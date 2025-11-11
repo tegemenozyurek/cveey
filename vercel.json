@@ -3,9 +3,6 @@
   "builds": [
     { "src": "vite.config.js", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
   ],
-  "scripts": {
-    "build": "npm run build"
-  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ]
