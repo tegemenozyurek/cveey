@@ -5,27 +5,30 @@ import {
 } from 'firebase/auth'
 import { auth } from './firebase'
 import { syncUserToFirestore } from './userService'
+import { useLanguage } from './context/LanguageContext'
 
-const AUTH_ERRORS = {
-  'auth/email-already-in-use': 'This email is already registered.',
-  'auth/invalid-email': 'Invalid email address.',
-  'auth/invalid-credential': 'Invalid email or password.',
-  'auth/weak-password': 'Password must be at least 6 characters.',
-  'auth/user-not-found': 'Invalid email or password.',
-  'auth/wrong-password': 'Invalid email or password.',
-  'auth/too-many-requests': 'Too many attempts. Try again later.',
-}
-
-function getAuthErrorMessage(code) {
-  return AUTH_ERRORS[code] ?? 'Something went wrong. Please try again.'
+const AUTH_ERROR_KEYS = {
+  'auth/email-already-in-use': 'auth.error.emailInUse',
+  'auth/invalid-email': 'auth.error.invalidEmail',
+  'auth/invalid-credential': 'auth.error.invalidCredential',
+  'auth/weak-password': 'auth.error.weakPassword',
+  'auth/user-not-found': 'auth.error.invalidCredential',
+  'auth/wrong-password': 'auth.error.invalidCredential',
+  'auth/too-many-requests': 'auth.error.tooManyRequests',
 }
 
 export default function LoginModal({ onClose }) {
+  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const getAuthErrorMessage = (code) => {
+    const key = AUTH_ERROR_KEYS[code]
+    return key ? t(key) : t('auth.error.generic')
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -61,24 +64,22 @@ export default function LoginModal({ onClose }) {
         aria-labelledby="login-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
+        <button type="button" className="modal-close" onClick={onClose} aria-label={t('login.close')}>
           ×
         </button>
 
         <p className="modal-logo">cve<span>ey</span></p>
 
         <h2 id="login-title" className="modal-title">
-          {isSignUp ? 'Create your account' : 'Welcome back'}
+          {isSignUp ? t('login.createAccount') : t('login.welcome')}
         </h2>
         <p className="modal-subtitle">
-          {isSignUp
-            ? 'Start uploading your resumes today.'
-            : 'Sign in to continue to cveey.'}
+          {isSignUp ? t('login.subtitleSignUp') : t('login.subtitleSignIn')}
         </p>
 
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-field">
-            <label className="form-label" htmlFor="email">Email address</label>
+            <label className="form-label" htmlFor="email">{t('login.email')}</label>
             <input
               id="email"
               className="form-input"
@@ -92,7 +93,7 @@ export default function LoginModal({ onClose }) {
           </div>
 
           <div className="form-field">
-            <label className="form-label" htmlFor="password">Password</label>
+            <label className="form-label" htmlFor="password">{t('login.password')}</label>
             <input
               id="password"
               className="form-input"
@@ -102,7 +103,7 @@ export default function LoginModal({ onClose }) {
               required
               minLength={6}
               autoComplete={isSignUp ? 'new-password' : 'current-password'}
-              placeholder={isSignUp ? 'Min. 6 characters' : '••••••••'}
+              placeholder={isSignUp ? t('login.passwordPlaceholder') : '••••••••'}
             />
           </div>
 
@@ -117,16 +118,16 @@ export default function LoginModal({ onClose }) {
           )}
 
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Please wait…' : isSignUp ? 'Create account' : 'Sign in'}
+            {loading ? t('login.wait') : isSignUp ? t('login.submitSignUp') : t('login.submitSignIn')}
           </button>
         </form>
 
         <hr className="modal-divider" />
 
         <p className="modal-switch">
-          {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+          {isSignUp ? t('login.hasAccount') : t('login.noAccount')}{' '}
           <button type="button" className="link-btn" onClick={switchMode}>
-            {isSignUp ? 'Sign in' : 'Sign up for free'}
+            {isSignUp ? t('login.switchSignIn') : t('login.switchSignUp')}
           </button>
         </p>
       </div>

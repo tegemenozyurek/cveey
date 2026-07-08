@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
 import { listUserResumes } from '../storageService'
 
 function formatBytes(bytes) {
@@ -17,6 +18,7 @@ function displayName(storageName) {
 
 export default function MyCV() {
   const { user, openLogin, authLoading } = useAuth()
+  const { t } = useLanguage()
   const [resumes, setResumes] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -33,19 +35,19 @@ export default function MyCV() {
         if (!cancelled) setResumes(items)
       })
       .catch(() => {
-        if (!cancelled) setError('Could not load your resumes.')
+        if (!cancelled) setError(t('myCv.loadError'))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
 
     return () => { cancelled = true }
-  }, [user])
+  }, [user, t])
 
   if (authLoading) {
     return (
       <main className="main">
-        <p className="page-loading">Loading…</p>
+        <p className="page-loading">{t('myCv.loading')}</p>
       </main>
     )
   }
@@ -54,8 +56,8 @@ export default function MyCV() {
     return (
       <main className="main">
         <div className="page-header">
-          <h1 className="page-title">My <span>CV</span></h1>
-          <p className="page-subtitle">View and manage your uploaded resumes.</p>
+          <h1 className="page-title">{t('myCv.title')}</h1>
+          <p className="page-subtitle">{t('myCv.subtitle')}</p>
         </div>
         <div className="empty-state">
           <div className="empty-state-icon">
@@ -64,26 +66,28 @@ export default function MyCV() {
               <path d="M10 7V5a2 2 0 012-2h0a2 2 0 012 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </div>
-          <h2 className="empty-state-title">Sign in required</h2>
-          <p className="empty-state-text">
-            Sign in to see your uploaded resumes.
-          </p>
+          <h2 className="empty-state-title">{t('myCv.signInRequired')}</h2>
+          <p className="empty-state-text">{t('myCv.signInText')}</p>
           <button type="button" className="btn btn-primary" onClick={openLogin}>
-            Sign in
+            {t('nav.signIn')}
           </button>
         </div>
       </main>
     )
   }
 
+  const resumeLabel = resumes.length === 1
+    ? t('myCv.resumeCount', { count: resumes.length })
+    : t('myCv.resumesCount', { count: resumes.length })
+
   return (
     <main className="main">
       <div className="page-header">
-        <h1 className="page-title">My <span>CV</span></h1>
-        <p className="page-subtitle">View and manage your uploaded resumes.</p>
+        <h1 className="page-title">{t('myCv.title')}</h1>
+        <p className="page-subtitle">{t('myCv.subtitle')}</p>
       </div>
 
-      {loading && <p className="page-loading">Loading your resumes…</p>}
+      {loading && <p className="page-loading">{t('myCv.loadingResumes')}</p>}
 
       {error && (
         <div className="file-errors">
@@ -99,21 +103,17 @@ export default function MyCV() {
               <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </div>
-          <h2 className="empty-state-title">No resumes yet</h2>
-          <p className="empty-state-text">
-            Upload your first PDF on the Home page.
-          </p>
+          <h2 className="empty-state-title">{t('myCv.emptyTitle')}</h2>
+          <p className="empty-state-text">{t('myCv.emptyText')}</p>
           <Link to="/" className="btn btn-primary">
-            Go to Home
+            {t('myCv.goHome')}
           </Link>
         </div>
       )}
 
       {!loading && resumes.length > 0 && (
         <div className="file-section">
-          <p className="file-section-title">
-            {resumes.length} resume{resumes.length > 1 ? 's' : ''}
-          </p>
+          <p className="file-section-title">{resumeLabel}</p>
           {resumes.map((item) => (
             <div className="file-item" key={item.fullPath}>
               <div className="file-type-badge">PDF</div>
@@ -127,7 +127,7 @@ export default function MyCV() {
                 rel="noopener noreferrer"
                 className="btn btn-ghost btn-sm"
               >
-                View
+                {t('myCv.view')}
               </a>
             </div>
           ))}

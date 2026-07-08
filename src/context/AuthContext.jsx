@@ -3,6 +3,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from '../firebase'
 import LoginModal from '../LoginModal'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
+import ConfirmLogoutModal from '../components/ConfirmLogoutModal'
 import { deleteUserAccount } from '../userService'
 
 const AuthContext = createContext(null)
@@ -12,6 +13,7 @@ export function AuthProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true)
   const [showLogin, setShowLogin] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
@@ -24,7 +26,10 @@ export function AuthProvider({ children }) {
   const openLogin = () => setShowLogin(true)
   const closeLogin = () => setShowLogin(false)
 
-  const handleLogout = () => signOut(auth)
+  const handleLogout = () => {
+    setShowLogoutConfirm(false)
+    signOut(auth)
+  }
 
   const handleDeleteAccount = async () => {
     if (!user) return
@@ -52,11 +57,18 @@ export function AuthProvider({ children }) {
         openLogin,
         handleLogout,
         setShowDeleteConfirm,
+        setShowLogoutConfirm,
         deleting,
       }}
     >
       {children}
       {showLogin && <LoginModal onClose={closeLogin} />}
+      {showLogoutConfirm && (
+        <ConfirmLogoutModal
+          onConfirm={handleLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      )}
       {showDeleteConfirm && (
         <ConfirmDeleteModal
           onConfirm={handleDeleteAccount}
