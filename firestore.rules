@@ -1,0 +1,88 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: {auth.uid}
+// Fields:
+//   - uid: string (required, immutable) - Firebase Auth user ID
+//   - email: string (required, max 320) - user email
+//   - createdAt: timestamp (required on create, immutable)
+//   - lastLoginAt: timestamp (required)
+//   - authMethod: string (required, immutable) - e.g. "email-password"
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.size() > 0 &&
+        email.size() <= 320 &&
+        email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    function isValidAuthMethod(method) {
+      return method is string && method == 'email-password';
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasOnly(['uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod']) &&
+        data.uid is string &&
+        data.uid.size() > 0 &&
+        data.uid.size() <= 128 &&
+        data.email is string &&
+        isValidEmail(data.email) &&
+        data.lastLoginAt is timestamp &&
+        isValidAuthMethod(data.authMethod) &&
+        (!('createdAt' in data) || data.createdAt is timestamp);
+    }
+
+    function isValidUserCreate(data) {
+      return isValidUser(data) &&
+        data.uid == request.auth.uid &&
+        data.email == request.auth.token.email &&
+        'createdAt' in data &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidUserUpdate(data) {
+      return isValidUser(data) &&
+        data.uid == resource.data.uid &&
+        data.uid == request.auth.uid &&
+        data.email == resource.data.email &&
+        data.createdAt == resource.data.createdAt &&
+        data.authMethod == resource.data.authMethod;
+    }
+
+    function isValidUserLoginUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastLoginAt']) &&
+        request.resource.data.lastLoginAt is timestamp &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.authMethod == resource.data.authMethod;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserCreate(request.resource.data);
+      allow update: if isOwner(userId) && (
+        isValidUserUpdate(request.resource.data) ||
+        isValidUserLoginUpdate()
+      );
+      allow delete: if isOwner(userId);
+    }
+  }
+}

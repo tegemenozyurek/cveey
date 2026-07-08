@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './firebase'
 import LoginModal from './LoginModal'
+import { deleteUserAccount } from './userService'
 import './App.css'
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
   const [files, setFiles] = useState([])
   const [user, setUser] = useState(null)
   const [showLogin, setShowLogin] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -44,6 +46,28 @@ function App() {
 
   const handleLogout = () => signOut(auth)
 
+  const handleDeleteAccount = async () => {
+    if (!user) return
+
+    const confirmed = window.confirm(
+      'Delete your account permanently? This removes your profile and cannot be undone.',
+    )
+    if (!confirmed) return
+
+    setDeleting(true)
+    try {
+      await deleteUserAccount(user)
+    } catch (err) {
+      const message =
+        err.code === 'auth/requires-recent-login'
+          ? 'For security, sign out, sign in again, then delete your account.'
+          : 'Could not delete account. Please try again.'
+      window.alert(message)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <div className="page">
       <header className="header">
@@ -52,8 +76,16 @@ function App() {
           {user ? (
             <>
               <span className="user-email">{user.email}</span>
-              <button type="button" className="login-btn" onClick={handleLogout}>
+              <button type="button" className="login-btn" onClick={handleLogout} disabled={deleting}>
                 Logout
+              </button>
+              <button
+                type="button"
+                className="delete-btn"
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting…' : 'Delete account'}
               </button>
             </>
           ) : (

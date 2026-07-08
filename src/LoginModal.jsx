@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth'
 import { auth } from './firebase'
+import { syncUserToFirestore } from './userService'
 
 const AUTH_ERRORS = {
   'auth/email-already-in-use': 'This email is already registered.',
@@ -33,9 +34,11 @@ export default function LoginModal({ onClose }) {
 
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password)
+        const { user } = await createUserWithEmailAndPassword(auth, email, password)
+        await syncUserToFirestore(user, { isNewUser: true })
       } else {
-        await signInWithEmailAndPassword(auth, email, password)
+        const { user } = await signInWithEmailAndPassword(auth, email, password)
+        await syncUserToFirestore(user)
       }
       onClose()
     } catch (err) {
