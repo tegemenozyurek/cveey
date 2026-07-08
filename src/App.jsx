@@ -1,10 +1,19 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { auth } from './firebase'
+import LoginModal from './LoginModal'
 import './App.css'
 
 function App() {
   const [isDragging, setIsDragging] = useState(false)
   const [files, setFiles] = useState([])
+  const [user, setUser] = useState(null)
+  const [showLogin, setShowLogin] = useState(false)
   const fileInputRef = useRef(null)
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, setUser)
+  }, [])
 
   const handleFiles = (incoming) => {
     const list = Array.from(incoming).filter((f) =>
@@ -33,13 +42,26 @@ function App() {
     e.target.value = ''
   }
 
+  const handleLogout = () => signOut(auth)
+
   return (
     <div className="page">
       <header className="header">
         <span className="logo">SAP</span>
-        <button type="button" className="login-btn">
-          Login
-        </button>
+        <div className="header-actions">
+          {user ? (
+            <>
+              <span className="user-email">{user.email}</span>
+              <button type="button" className="login-btn" onClick={handleLogout}>
+                Logout
+              </button>
+            </>
+          ) : (
+            <button type="button" className="login-btn" onClick={() => setShowLogin(true)}>
+              Login
+            </button>
+          )}
+        </div>
       </header>
 
       <main className="main">
@@ -87,9 +109,10 @@ function App() {
           </ul>
         )}
       </main>
+
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </div>
   )
-
 }
 
 export default App
