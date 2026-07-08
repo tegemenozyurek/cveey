@@ -48,6 +48,11 @@ export default function LoginModal({ onClose }) {
     }
   }
 
+  const switchMode = () => {
+    setIsSignUp((v) => !v)
+    setError('')
+  }
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
@@ -60,52 +65,68 @@ export default function LoginModal({ onClose }) {
           ×
         </button>
 
+        <p className="modal-logo">cve<span>ey</span></p>
+
         <h2 id="login-title" className="modal-title">
-          {isSignUp ? 'Create account' : 'Login'}
+          {isSignUp ? 'Create your account' : 'Welcome back'}
         </h2>
+        <p className="modal-subtitle">
+          {isSignUp
+            ? 'Start uploading your resumes today.'
+            : 'Sign in to continue to cveey.'}
+        </p>
 
         <form className="login-form" onSubmit={handleSubmit}>
-          <label className="form-field">
-            Email
+          <div className="form-field">
+            <label className="form-label" htmlFor="email">Email address</label>
             <input
+              id="email"
+              className="form-input"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
+              placeholder="you@example.com"
             />
-          </label>
+          </div>
 
-          <label className="form-field">
-            Password
+          <div className="form-field">
+            <label className="form-label" htmlFor="password">Password</label>
             <input
+              id="password"
+              className="form-input"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
               autoComplete={isSignUp ? 'new-password' : 'current-password'}
+              placeholder={isSignUp ? 'Min. 6 characters' : '••••••••'}
             />
-          </label>
+          </div>
 
-          {error && <p className="form-error">{error}</p>}
+          {error && (
+            <p className="form-error">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              {error}
+            </p>
+          )}
 
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Please wait…' : isSignUp ? 'Sign up' : 'Sign in'}
+            {loading ? 'Please wait…' : isSignUp ? 'Create account' : 'Sign in'}
           </button>
         </form>
 
+        <hr className="modal-divider" />
+
         <p className="modal-switch">
           {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-          <button
-            type="button"
-            className="link-btn"
-            onClick={() => {
-              setIsSignUp((v) => !v)
-              setError('')
-            }}
-          >
-            {isSignUp ? 'Sign in' : 'Sign up'}
+          <button type="button" className="link-btn" onClick={switchMode}>
+            {isSignUp ? 'Sign in' : 'Sign up for free'}
           </button>
         </p>
       </div>
