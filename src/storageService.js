@@ -1,5 +1,7 @@
 import {
   deleteObject,
+  getDownloadURL,
+  getMetadata,
   listAll,
   ref,
   uploadBytesResumable,
@@ -47,4 +49,25 @@ export async function deleteUserStorageFiles(uid) {
   }
 
   await deleteItems(listing.items, listing.prefixes)
+}
+
+export async function listUserResumes(uid) {
+  const userRef = ref(storage, `users/${uid}`)
+  const listing = await listAll(userRef)
+
+  return Promise.all(
+    listing.items.map(async (item) => {
+      const [url, metadata] = await Promise.all([
+        getDownloadURL(item),
+        getMetadata(item),
+      ])
+      return {
+        name: item.name,
+        fullPath: item.fullPath,
+        url,
+        size: metadata.size,
+        updated: metadata.updated,
+      }
+    }),
+  )
 }

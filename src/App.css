@@ -5,18 +5,24 @@
   flex-direction: column;
 }
 
-/* ── Header ─────────────────────────────────────── */
-.header {
+/* ── Navbar ─────────────────────────────────────── */
+.navbar {
   position: sticky;
   top: 0;
   z-index: 50;
+  background: #fff;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.navbar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
   height: 64px;
-  background: #fff;
-  border-bottom: 1px solid #E2E8F0;
 }
 
 .logo {
@@ -24,10 +30,41 @@
   font-weight: 700;
   letter-spacing: -0.5px;
   color: #0F172A;
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
 .logo span {
   color: #4F46E5;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link {
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748B;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  color: #0F172A;
+  background: #F8FAFC;
+}
+
+.nav-link--active {
+  color: #4F46E5;
+  background: #EEF2FF;
 }
 
 .header-actions {
@@ -118,6 +155,150 @@
 .btn-danger:hover:not(:disabled) {
   background: #FEF2F2;
   border-color: #FCA5A5;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+}
+
+.btn-lg {
+  padding: 11px 24px;
+  font-size: 14px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* ── Page layouts ────────────────────────────────── */
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+  max-width: 560px;
+}
+
+.page-title {
+  margin: 0 0 10px;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  color: #0F172A;
+  line-height: 1.15;
+}
+
+.page-title span {
+  color: #4F46E5;
+}
+
+.page-subtitle {
+  margin: 0;
+  font-size: 16px;
+  color: #64748B;
+  line-height: 1.6;
+}
+
+.page-loading {
+  font-size: 14px;
+  color: #94A3B8;
+  text-align: center;
+}
+
+.empty-state {
+  width: 100%;
+  max-width: 400px;
+  padding: 48px 32px;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty-state-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: #F1F5F9;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.empty-state-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.empty-state-text {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #64748B;
+  line-height: 1.6;
+}
+
+.feature-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 40px 36px;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.feature-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: #EEF2FF;
+  color: #4F46E5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.feature-card-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.feature-card-text {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #64748B;
+  line-height: 1.6;
+}
+
+.feature-card-hint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #94A3B8;
+}
+
+.feature-card-hint a {
+  color: #4F46E5;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.feature-card-hint a:hover {
+  text-decoration: underline;
 }
 
 /* ── Main ────────────────────────────────────────── */
@@ -613,12 +794,50 @@
 }
 
 /* ── Responsive ──────────────────────────────────── */
-@media (max-width: 600px) {
-  .header {
-    padding: 0 20px;
+@media (max-width: 900px) {
+  .navbar-inner {
+    padding: 0 16px;
+    gap: 12px;
   }
 
-  .hero-title {
+  .nav-links {
+    gap: 2px;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-link {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .header-actions .btn-danger {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar-inner {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .nav-links {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero-title,
+  .page-title {
     font-size: 28px;
   }
 
