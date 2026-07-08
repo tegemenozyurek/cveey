@@ -184,6 +184,14 @@
   transform: scale(1.01);
 }
 
+.upload-card-locked {
+  opacity: 0.85;
+}
+
+.upload-card-locked:hover {
+  border-color: #4F46E5;
+}
+
 .upload-icon-wrap {
   width: 72px;
   height: 72px;
@@ -321,6 +329,32 @@
   font-size: 12px;
   color: #94A3B8;
   margin: 0;
+}
+
+.upload-progress {
+  margin-top: 8px;
+  height: 4px;
+  background: #E2E8F0;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.upload-progress-bar {
+  height: 100%;
+  background: #4F46E5;
+  border-radius: 99px;
+  transition: width 0.2s ease;
+}
+
+.upload-done-icon {
+  flex-shrink: 0;
+  color: #16A34A;
+  display: flex;
+  align-items: center;
+}
+
+.file-item--error .file-size {
+  color: #DC2626;
 }
 
 .file-remove {

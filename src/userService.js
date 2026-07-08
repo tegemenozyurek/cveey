@@ -1,6 +1,7 @@
 import { deleteUser } from 'firebase/auth'
 import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
 import { db } from './firebase'
+import { deleteUserStorageFiles } from './storageService'
 
 export const AUTH_METHOD_EMAIL_PASSWORD = 'email-password'
 
@@ -25,6 +26,7 @@ export async function syncUserToFirestore(user, { isNewUser = false } = {}) {
 }
 
 export async function deleteUserAccount(user) {
+  await deleteUserStorageFiles(user.uid)
   await deleteDoc(doc(db, 'users', user.uid))
   await deleteUser(user)
 }

@@ -3,6 +3,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './firebase'
 import LoginModal from './LoginModal'
 import { deleteUserAccount } from './userService'
+import { uploadResume } from './storageService'
 import './App.css'
 
 const MAX_FILE_SIZE_MB = 5
@@ -51,17 +52,53 @@ function ConfirmDeleteModal({ onConfirm, onCancel, loading }) {
 
 function App() {
   const [isDragging, setIsDragging] = useState(false)
-  const [files, setFiles] = useState([])
+  const [uploads, setUploads] = useState([])
   const [fileErrors, setFileErrors] = useState([])
   const [user, setUser] = useState(null)
   const [showLogin, setShowLogin] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const fileInputRef = useRef(null)
+  const pendingFilesRef = useRef([])
 
   useEffect(() => {
     return onAuthStateChanged(auth, setUser)
   }, [])
+
+  const updateUpload = (id, patch) => {
+    setUploads((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)))
+  }
+
+  const startUpload = async (uid, file) => {
+    const id = `${file.name}-${Date.now()}-${Math.random()}`
+    setUploads((prev) => [
+      ...prev,
+      { id, file, status: 'uploading', progress: 0, storagePath: null, error: null },
+    ])
+
+    try {
+      const { path } = await uploadResume(uid, file, (progress) => {
+        updateUpload(id, { progress })
+      })
+      updateUpload(id, { status: 'done', progress: 100, storagePath: path })
+    } catch {
+      updateUpload(id, {
+        status: 'error',
+        error: 'Upload failed. Please try again.',
+      })
+    }
+  }
+
+  const uploadFiles = async (uid, files) => {
+    await Promise.all(files.map((file) => startUpload(uid, file)))
+  }
+
+  useEffect(() => {
+    if (!user || pendingFilesRef.current.length === 0) return
+    const files = pendingFilesRef.current
+    pendingFilesRef.current = []
+    uploadFiles(user.uid, files)
+  }, [user])
 
   const handleFiles = (incoming) => {
     const errors = []
@@ -80,11 +117,19 @@ function App() {
     }
 
     setFileErrors(errors)
-    if (valid.length) setFiles((prev) => [...prev, ...valid])
+    if (!valid.length) return
+
+    if (!user) {
+      pendingFilesRef.current = valid
+      setShowLogin(true)
+      return
+    }
+
+    uploadFiles(user.uid, valid)
   }
 
-  const removeFile = (index) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index))
+  const removeUpload = (id) => {
+    setUploads((prev) => prev.filter((u) => u.id !== id))
   }
 
   const onDrop = (e) => {
@@ -180,14 +225,14 @@ function App() {
         </div>
 
         <div
-          className={`upload-card${isDragging ? ' dragging' : ''}`}
+          className={`upload-card${isDragging ? ' dragging' : ''}${!user ? ' upload-card-locked' : ''}`}
           onDrop={onDrop}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
-          onClick={onBrowse}
+          onClick={user ? onBrowse : () => setShowLogin(true)}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && onBrowse()}
+          onKeyDown={(e) => e.key === 'Enter' && (user ? onBrowse() : setShowLogin(true))}
         >
           <div className="upload-icon-wrap">
             <svg className="upload-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -198,7 +243,11 @@ function App() {
             {isDragging ? 'Release to upload' : 'Drag & drop your resume'}
           </p>
           <p className="upload-hint">
-            or <strong>click to browse</strong> files
+            {user ? (
+              <>or <strong>click to browse</strong> files</>
+            ) : (
+              <><strong>Sign in</strong> to upload your resume</>
+            )}
           </p>
           <p className="upload-formats">PDF only · Max {MAX_FILE_SIZE_MB} MB</p>
         </div>
@@ -226,28 +275,51 @@ function App() {
           </div>
         )}
 
-        {files.length > 0 && (
+        {uploads.length > 0 && (
           <div className="file-section">
             <p className="file-section-title">
-              {files.length} file{files.length > 1 ? 's' : ''} selected
+              {uploads.length} upload{uploads.length > 1 ? 's' : ''}
             </p>
-            {files.map((f, i) => (
-              <div className="file-item" key={`${f.name}-${i}`}>
-                <div className="file-type-badge">{getExtension(f.name)}</div>
+            {uploads.map((item) => (
+              <div className={`file-item file-item--${item.status}`} key={item.id}>
+                <div className="file-type-badge">{getExtension(item.file.name)}</div>
                 <div className="file-info">
-                  <p className="file-name">{f.name}</p>
-                  <p className="file-size">{formatBytes(f.size)}</p>
+                  <p className="file-name">{item.file.name}</p>
+                  <p className="file-size">
+                    {item.status === 'uploading' && `Uploading… ${Math.round(item.progress)}%`}
+                    {item.status === 'done' && (
+                      <>Uploaded · {formatBytes(item.file.size)}</>
+                    )}
+                    {item.status === 'error' && (item.error ?? 'Upload failed')}
+                  </p>
+                  {item.status === 'uploading' && (
+                    <div className="upload-progress">
+                      <div
+                        className="upload-progress-bar"
+                        style={{ width: `${item.progress}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  className="file-remove"
-                  onClick={(e) => { e.stopPropagation(); removeFile(i) }}
-                  aria-label="Remove file"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </button>
+                {item.status !== 'uploading' && (
+                  <button
+                    type="button"
+                    className="file-remove"
+                    onClick={(e) => { e.stopPropagation(); removeUpload(item.id) }}
+                    aria-label="Remove from list"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                )}
+                {item.status === 'done' && (
+                  <span className="upload-done-icon" aria-label="Uploaded">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                )}
               </div>
             ))}
           </div>
