@@ -148,7 +148,7 @@ export default function MyCV() {
                 <div className="cv-section-list">
                   {otherCvs.map((cv) => (
                     <CvCard
-                      key={cv.fullPath}
+                      key={cv.id}
                       cv={cv}
                       isActive={false}
                       onRename={renameUserCv}

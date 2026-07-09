@@ -1,19 +1,19 @@
 rules_version = '2';
 
 // ===============================================================
-// Assumed Data Model
+// Data Model
 // ===============================================================
 //
-// Collection: users
-// Document ID: {auth.uid}
-// Fields:
-//   - uid: string (required, immutable) - Firebase Auth user ID
-//   - email: string (required, max 320) - user email
-//   - createdAt: timestamp (required on create, immutable)
-//   - lastLoginAt: timestamp (required)
-//   - authMethod: string (required, immutable) - e.g. "email-password", "google", or "github"
-//   - activeCvPath: string (optional) - Storage path of the user's active CV
-//   - cvDisplayNames: map (optional) - Custom display names keyed by storage path
+// Collection: users / Document: {auth.uid}
+//   - uid, email, createdAt, lastLoginAt, authMethod
+//   - activeFileId: string (optional) - Firestore file doc id for active CV
+//
+// Subcollection: users/{userId}/files / Document: {fileId}
+//   - filePath: string - Firebase Storage path (e.g. users/{uid}/{fileId}.pdf)
+//   - displayName: string - User-visible CV name ending in .pdf
+//   - size: int - File size in bytes
+//   - createdAt: timestamp
+//   - updatedAt: timestamp
 //
 // ===============================================================
 
@@ -43,10 +43,6 @@ service cloud.firestore {
       );
     }
 
-    function isValidCvDisplayNames(names) {
-      return names is map && names.size() <= 5;
-    }
-
     function userCoreFieldsMatch() {
       return request.resource.data.uid == resource.data.uid &&
         request.resource.data.email == resource.data.email &&
@@ -54,18 +50,11 @@ service cloud.firestore {
         request.resource.data.authMethod == resource.data.authMethod;
     }
 
-    function lastLoginAtNotReverted() {
-      return request.resource.data.lastLoginAt == resource.data.lastLoginAt ||
-        request.resource.data.lastLoginAt > resource.data.lastLoginAt;
-    }
-
-    function isCvMetadataOnlyDiff() {
-      let diff = request.resource.data.diff(resource.data).affectedKeys();
-      return !diff.hasAny(['uid', 'email', 'createdAt', 'authMethod']);
-    }
-
     function isValidUser(data) {
-      return data.keys().hasOnly(['uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod', 'activeCvPath', 'cvDisplayNames']) &&
+      return data.keys().hasOnly([
+          'uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod', 'activeFileId',
+          'activeCvPath', 'cvDisplayNames'
+        ]) &&
         data.uid is string &&
         data.uid.size() > 0 &&
         data.uid.size() <= 128 &&
@@ -74,12 +63,11 @@ service cloud.firestore {
         data.lastLoginAt is timestamp &&
         isValidAuthMethod(data.authMethod) &&
         (!('createdAt' in data) || data.createdAt is timestamp) &&
-        (!('activeCvPath' in data) || (
-          data.activeCvPath is string &&
-          data.activeCvPath.size() > 0 &&
-          data.activeCvPath.size() <= 512
-        )) &&
-        (!('cvDisplayNames' in data) || isValidCvDisplayNames(data.cvDisplayNames));
+        (!('activeFileId' in data) || (
+          data.activeFileId is string &&
+          data.activeFileId.size() > 0 &&
+          data.activeFileId.size() <= 128
+        ));
     }
 
     function isValidUserCreate(data) {
@@ -98,38 +86,18 @@ service cloud.firestore {
         data.authMethod == resource.data.authMethod;
     }
 
-    function isValidActiveCvUpdate() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasAll(['activeCvPath']) &&
-        isCvMetadataOnlyDiff() &&
+    function isValidActiveFileIdUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeFileId']) &&
         userCoreFieldsMatch() &&
-        lastLoginAtNotReverted() &&
-        request.resource.data.activeCvPath is string &&
-        request.resource.data.activeCvPath.size() > 0 &&
-        request.resource.data.activeCvPath.size() <= 512;
+        request.resource.data.activeFileId is string &&
+        request.resource.data.activeFileId.size() > 0 &&
+        request.resource.data.activeFileId.size() <= 128;
     }
 
-    function isValidActiveCvClear() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasAll(['activeCvPath']) &&
-        isCvMetadataOnlyDiff() &&
+    function isValidActiveFileIdClear() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeFileId']) &&
         userCoreFieldsMatch() &&
-        lastLoginAtNotReverted() &&
-        !('activeCvPath' in request.resource.data);
-    }
-
-    function isValidCvDisplayNamesUpdate() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasAll(['cvDisplayNames']) &&
-        isCvMetadataOnlyDiff() &&
-        userCoreFieldsMatch() &&
-        lastLoginAtNotReverted() &&
-        isValidCvDisplayNames(request.resource.data.cvDisplayNames);
-    }
-
-    function isValidCvDisplayNamesClear() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasAll(['cvDisplayNames']) &&
-        isCvMetadataOnlyDiff() &&
-        userCoreFieldsMatch() &&
-        lastLoginAtNotReverted() &&
-        !('cvDisplayNames' in request.resource.data);
+        !('activeFileId' in request.resource.data);
     }
 
     function isValidUserLoginUpdate() {
@@ -141,18 +109,56 @@ service cloud.firestore {
         request.resource.data.authMethod == resource.data.authMethod;
     }
 
+    function isValidCvFile(data) {
+      return data.keys().hasOnly(['filePath', 'displayName', 'size', 'createdAt', 'updatedAt']) &&
+        data.filePath is string &&
+        data.filePath.size() > 0 &&
+        data.filePath.size() <= 512 &&
+        data.displayName is string &&
+        data.displayName.size() > 0 &&
+        data.displayName.size() <= 120 &&
+        data.displayName.matches('^.+\\.pdf$') &&
+        data.size is int &&
+        data.size > 0 &&
+        data.size <= 5242880 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidCvFileCreate(data) {
+      return isValidCvFile(data);
+    }
+
+    function isValidCvFileUpdate(data) {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['displayName', 'updatedAt']) &&
+        data.filePath == resource.data.filePath &&
+        data.createdAt == resource.data.createdAt &&
+        data.size == resource.data.size &&
+        data.displayName is string &&
+        data.displayName.size() > 0 &&
+        data.displayName.size() <= 120 &&
+        data.displayName.matches('^.+\\.pdf$') &&
+        data.updatedAt is timestamp;
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId) && isValidUserCreate(request.resource.data);
       allow update: if isOwner(userId) && (
         isValidUserUpdate(request.resource.data) ||
         isValidUserLoginUpdate() ||
-        isValidActiveCvUpdate() ||
-        isValidActiveCvClear() ||
-        isValidCvDisplayNamesUpdate() ||
-        isValidCvDisplayNamesClear()
+        isValidActiveFileIdUpdate() ||
+        isValidActiveFileIdClear()
       );
       allow delete: if isOwner(userId);
+
+      match /files/{fileId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidCvFileCreate(request.resource.data);
+        allow update: if isOwner(userId) && isValidCvFileUpdate(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
     }
   }
 }

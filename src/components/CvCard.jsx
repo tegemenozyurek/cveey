@@ -190,7 +190,7 @@ export default function CvCard({
     setSaving(true)
     setLocalError('')
     try {
-      await onRename(cv.fullPath, nextName)
+      await onRename(cv.id, nextName)
       setEditing(false)
     } catch (err) {
       if (err?.message === 'NAME_TOO_LONG') {
@@ -238,7 +238,7 @@ export default function CvCard({
     setDeleting(true)
     setLocalError('')
     try {
-      await onDelete(cv.fullPath)
+      await onDelete(cv.id)
       setConfirmDelete(false)
     } catch {
       setLocalError(t('myCv.deleteError'))
@@ -254,7 +254,7 @@ export default function CvCard({
     setLocalError('')
     setConfirmDelete(false)
     try {
-      await onSetActive(cv.fullPath)
+      await onSetActive(cv.id)
     } catch {
       setLocalError(t('myCv.activateError'))
     } finally {

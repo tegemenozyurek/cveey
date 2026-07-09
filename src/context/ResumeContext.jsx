@@ -159,31 +159,35 @@ export function ResumeProvider({ children }) {
     return data
   }, [user, applyCvData])
 
-  const removeCv = useCallback(async (fullPath) => {
+  const removeCv = useCallback(async (fileId) => {
     if (!user) return null
 
     setError('')
-    const data = await deleteCv(user.uid, fullPath)
+    const data = await deleteCv(user.uid, fileId)
     applyCvData(data)
     loadedUidRef.current = user.uid
     return data
   }, [user, applyCvData])
 
-  const renameUserCv = useCallback(async (fullPath, newName) => {
-    if (!user) return null
+  const renameUserCv = useCallback(async (fileId, newName) => {
+    if (!user) {
+      const err = new Error('NOT_AUTHENTICATED')
+      err.code = 'auth/not-authenticated'
+      throw err
+    }
 
     setError('')
-    const data = await renameCv(user.uid, fullPath, newName)
+    const data = await renameCv(user.uid, fileId, newName)
     applyCvData(data)
     loadedUidRef.current = user.uid
     return data
   }, [user, applyCvData])
 
-  const setActiveUserCv = useCallback(async (fullPath) => {
+  const setActiveUserCv = useCallback(async (fileId) => {
     if (!user) return null
 
     setError('')
-    const data = await activateCv(user.uid, fullPath)
+    const data = await activateCv(user.uid, fileId)
     applyCvData(data)
     loadedUidRef.current = user.uid
     return data
