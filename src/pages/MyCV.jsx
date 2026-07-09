@@ -28,7 +28,6 @@ export default function MyCV() {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [actionError, setActionError] = useState('')
-  const [dragging, setDragging] = useState(false)
   const [otherIndex, setOtherIndex] = useState(0)
 
   const canUpload = cvs.length < MAX_CV_COUNT
@@ -96,9 +95,39 @@ export default function MyCV() {
           <h1 className="my-cv-title">{t('myCv.title')}</h1>
           <p className="my-cv-subtitle">{t('myCv.subtitle')}</p>
         </div>
-        <Link to="/create-cv" className="btn-gradient-wrap my-cv-cta">
-          <span className="btn-gradient-inner">{t('myCv.guideAtsCreate')}</span>
-        </Link>
+        <div className="my-cv-actions">
+          {canUpload && (
+            <button
+              type="button"
+              className="my-cv-upload-btn"
+              onClick={() => !uploading && fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? (
+                <span className="my-cv-upload-progress-text">{t('myCv.uploading', { progress: Math.round(uploadProgress) })}</span>
+              ) : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  {t('myCv.addNew')}
+                </>
+              )}
+            </button>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            className="cv-file-input"
+            onChange={(e) => handleFile(e.target.files?.[0])}
+            disabled={uploading}
+          />
+          <Link to="/create-cv" className="btn-gradient-wrap my-cv-cta">
+            <span className="btn-gradient-inner">{t('myCv.guideAtsCreate')}</span>
+          </Link>
+        </div>
       </div>
 
       {/* ── Errors ── */}
@@ -181,43 +210,6 @@ export default function MyCV() {
                 </div>
               </div>
             </section>
-          )}
-        </div>
-      )}
-
-      {/* ── Upload card ── */}
-      {!showInitialLoading && !error && canUpload && (
-        <div
-          className={`cv-upload-card${dragging ? ' dragging' : ''}${uploading ? ' cv-upload-card--busy' : ''}${cvs.length > 0 ? ' cv-upload-card--compact' : ''}`}
-          role="button"
-          tabIndex={0}
-          onClick={() => !uploading && fileInputRef.current?.click()}
-          onKeyDown={(e) => {
-            if ((e.key === 'Enter' || e.key === ' ') && !uploading) {
-              e.preventDefault()
-              fileInputRef.current?.click()
-            }
-          }}
-          onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={(e) => { e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files?.[0]) }}
-        >
-          <input ref={fileInputRef} type="file" accept="application/pdf" className="cv-file-input" onChange={(e) => handleFile(e.target.files?.[0])} disabled={uploading} />
-          <div className="cv-upload-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <p className="cv-upload-hint">{cvs.length === 0 ? t('myCv.uploadHint') : t('myCv.addAnother')}</p>
-          <p className="cv-upload-formats">{t('myCv.uploadFormats', { max: MAX_CV_COUNT, count: cvs.length })}</p>
-          {uploading && (
-            <div className="cv-upload-progress">
-              <div className="upload-progress">
-                <div className="upload-progress-bar" style={{ width: `${uploadProgress}%` }} />
-              </div>
-              <p className="cv-upload-progress-label">{t('myCv.uploading', { progress: Math.round(uploadProgress) })}</p>
-            </div>
           )}
         </div>
       )}

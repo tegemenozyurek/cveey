@@ -1416,6 +1416,48 @@
   color: var(--text-muted);
 }
 
+.my-cv-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.my-cv-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border-radius: 9999px;
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.my-cv-upload-btn:hover:not(:disabled) {
+  background: var(--glass-hover);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme='light'] .my-cv-upload-btn:hover:not(:disabled) {
+  border-color: rgba(15, 23, 42, 0.16);
+}
+
+.my-cv-upload-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.my-cv-upload-progress-text {
+  font-variant-numeric: tabular-nums;
+}
+
 .my-cv-cta {
   flex-shrink: 0;
   text-decoration: none;
@@ -1597,7 +1639,7 @@
 }
 
 .cv-active-col .cv-card-preview {
-  height: 300px;
+  height: 600px;
 }
 
 .cv-others-head {
@@ -2771,11 +2813,21 @@
 
 @media (max-width: 560px) {
   .my-cv-header {
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .my-cv-actions {
+    width: 100%;
+  }
+
+  .my-cv-upload-btn {
+    flex: 1;
+    justify-content: center;
   }
 
   .my-cv-cta {
-    width: 100%;
+    flex: 1;
   }
 
   .my-cv-cta .btn-gradient-inner {
