@@ -11,6 +11,11 @@ const NAV_ITEMS = [
   { to: '/my-cv', key: 'nav.myCv' },
 ]
 
+const MOBILE_NAV_ITEMS = [
+  ...NAV_ITEMS,
+  { to: '/messages', key: 'nav.messages' },
+]
+
 function BurgerIcon({ open }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -204,6 +209,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   className="navbar-icon-btn"
+                  onClick={() => goTo('/notifications')}
                   aria-label={t('nav.notifications')}
                   title={t('nav.notifications')}
                 >
@@ -212,8 +218,9 @@ export default function Navbar() {
                 <button
                   type="button"
                   className="navbar-icon-btn"
-                  aria-label={t('nav.inbox')}
-                  title={t('nav.inbox')}
+                  onClick={() => goTo('/messages')}
+                  aria-label={t('nav.messages')}
+                  title={t('nav.messages')}
                 >
                   <InboxIcon />
                 </button>
@@ -268,7 +275,7 @@ export default function Navbar() {
           />
           <div className="mobile-nav-panel">
             <nav className="mobile-nav-links" aria-label={t('nav.mainNav')}>
-              {NAV_ITEMS.map(({ to, key, end }) => (
+              {MOBILE_NAV_ITEMS.map(({ to, key, end }) => (
                 <NavLink
                   key={to}
                   to={to}
@@ -287,6 +294,14 @@ export default function Navbar() {
               </div>
             ) : user ? (
               <div className="mobile-nav-footer">
+                <button
+                  type="button"
+                  className="mobile-nav-notifications"
+                  onClick={() => goTo('/notifications')}
+                >
+                  {t('nav.notifications')}
+                </button>
+
                 <div className={`mobile-account${mobileAccountOpen ? ' mobile-account--open' : ''}`}>
                   <button
                     type="button"

@@ -13,6 +13,7 @@ export const translations = {
     'nav.mainNav': 'Main navigation',
     'nav.openMenu': 'Open menu',
     'nav.closeMenu': 'Close menu',
+    'nav.messages': 'Messages',
     'nav.inbox': 'Inbox',
     'nav.notifications': 'Notifications',
 
@@ -128,6 +129,7 @@ export const translations = {
     'nav.mainNav': 'Ana menü',
     'nav.openMenu': 'Menüyü aç',
     'nav.closeMenu': 'Menüyü kapat',
+    'nav.messages': 'Mesajlar',
     'nav.inbox': 'Gelen kutusu',
     'nav.notifications': 'Bildirimler',
 

@@ -136,8 +136,41 @@
 }
 
 .mobile-nav-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-top: auto;
   padding-top: 20px;
+}
+
+.mobile-nav-notifications {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.mobile-nav-notifications:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='light'] .mobile-nav-notifications {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+[data-theme='light'] .mobile-nav-notifications:hover {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.12);
 }
 
 .mobile-account {
