@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import UserAvatar from './UserAvatar'
 
 const NAV_ITEMS = [
   { to: '/', key: 'nav.home', end: true },
@@ -46,7 +47,6 @@ export default function Navbar() {
   const profileRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
-  const avatarLetter = user?.email?.[0]?.toUpperCase() ?? '?'
 
   useEffect(() => {
     setMobileNavOpen(false)
@@ -96,34 +96,37 @@ export default function Navbar() {
 
   const desktopProfileActions = (
     <>
-      <button
-        type="button"
-        className="profile-dropdown-item"
-        role="menuitem"
-        onClick={() => goTo('/profile')}
-      >
-        {t('nav.profile')}
-      </button>
-      <button
-        type="button"
-        className="profile-dropdown-item"
-        role="menuitem"
-        onClick={() => goTo('/preferences')}
-      >
-        {t('nav.preferences')}
-      </button>
-      <div className="profile-dropdown-divider" />
-      <button
-        type="button"
-        className="profile-dropdown-item profile-dropdown-item--danger"
-        role="menuitem"
-        onClick={() => {
-          closeProfile()
-          setShowLogoutConfirm(true)
-        }}
-      >
-        {t('nav.logout')}
-      </button>
+      <div className="profile-dropdown-body">
+        <button
+          type="button"
+          className="profile-dropdown-item"
+          role="menuitem"
+          onClick={() => goTo('/profile')}
+        >
+          {t('nav.profile')}
+        </button>
+        <button
+          type="button"
+          className="profile-dropdown-item"
+          role="menuitem"
+          onClick={() => goTo('/preferences')}
+        >
+          {t('nav.preferences')}
+        </button>
+      </div>
+      <div className="profile-dropdown-footer">
+        <button
+          type="button"
+          className="profile-dropdown-item profile-dropdown-item--danger"
+          role="menuitem"
+          onClick={() => {
+            closeProfile()
+            setShowLogoutConfirm(true)
+          }}
+        >
+          {t('nav.logout')}
+        </button>
+      </div>
     </>
   )
 
@@ -163,12 +166,13 @@ export default function Navbar() {
                 aria-haspopup="menu"
                 aria-label={t('nav.accountMenu')}
               >
-                <span className="profile-avatar">{avatarLetter}</span>
+                <UserAvatar user={user} />
               </button>
 
               {profileOpen && (
                 <div className="profile-dropdown" role="menu">
                   <div className="profile-dropdown-header">
+                    <span className="profile-dropdown-label">{t('nav.account')}</span>
                     <span className="profile-dropdown-email">{user.email}</span>
                   </div>
                   {desktopProfileActions}
