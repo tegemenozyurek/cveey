@@ -1629,13 +1629,24 @@
   display: grid;
   grid-template-columns: 2.2fr 1fr;
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
   margin-bottom: 16px;
 }
 
 .cv-active-col,
 .cv-others-col {
   min-width: 0;
+}
+
+.cv-others-col {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cv-others-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .cv-active-col .cv-card-preview {

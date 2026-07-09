@@ -28,7 +28,8 @@ export default function MyCV() {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [actionError, setActionError] = useState('')
-  const [otherIndex, setOtherIndex] = useState(0)
+  const [otherIndexTop, setOtherIndexTop] = useState(0)
+  const [otherIndexBottom, setOtherIndexBottom] = useState(0)
 
   const canUpload = cvs.length < MAX_CV_COUNT
 
@@ -84,7 +85,59 @@ export default function MyCV() {
   const showInitialLoading = loading && cvs.length === 0 && !error
   const activeCv = cvs.find((cv) => cv.id === activeCvPath || cv.fullPath === activeCvPath)
   const otherCvs = cvs.filter((cv) => cv !== activeCv)
-  const safeIndex = Math.min(otherIndex, Math.max(0, otherCvs.length - 1))
+
+  const renderOthersSlider = (index, setIndex) => {
+    const safeIndex = Math.min(index, Math.max(0, otherCvs.length - 1))
+    return (
+      <div className="cv-others-group">
+        <div className="cv-others-head">
+          <h3 className="cv-section-label">{t('myCv.sectionOthers')}</h3>
+          {otherCvs.length > 1 && (
+            <div className="cv-slider-nav">
+              <button
+                type="button"
+                className="cv-slider-arrow"
+                onClick={() => setIndex(Math.max(0, safeIndex - 1))}
+                disabled={safeIndex === 0}
+                aria-label={t('myCv.prev')}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              <span className="cv-slider-count">{safeIndex + 1} / {otherCvs.length}</span>
+              <button
+                type="button"
+                className="cv-slider-arrow"
+                onClick={() => setIndex(Math.min(otherCvs.length - 1, safeIndex + 1))}
+                disabled={safeIndex === otherCvs.length - 1}
+                aria-label={t('myCv.next')}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="cv-slider-viewport">
+          <div
+            className="cv-slider-track"
+            style={{ transform: `translateX(-${safeIndex * 100}%)` }}
+          >
+            {otherCvs.map((cv) => (
+              <div className="cv-slider-slide" key={cv.id}>
+                <CvCard
+                  cv={cv}
+                  isActive={false}
+                  onRename={renameUserCv}
+                  onDelete={removeCv}
+                  onSetActive={setActiveUserCv}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <main className="main my-cv-main">
@@ -164,51 +217,8 @@ export default function MyCV() {
 
           {otherCvs.length > 0 && (
             <section className="cv-section cv-others-col">
-              <div className="cv-others-head">
-                <h3 className="cv-section-label">{t('myCv.sectionOthers')}</h3>
-                {otherCvs.length > 1 && (
-                  <div className="cv-slider-nav">
-                    <button
-                      type="button"
-                      className="cv-slider-arrow"
-                      onClick={() => setOtherIndex((i) => Math.max(0, Math.min(i, otherCvs.length - 1) - 1))}
-                      disabled={safeIndex === 0}
-                      aria-label={t('myCv.prev')}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </button>
-                    <span className="cv-slider-count">{safeIndex + 1} / {otherCvs.length}</span>
-                    <button
-                      type="button"
-                      className="cv-slider-arrow"
-                      onClick={() => setOtherIndex((i) => Math.min(otherCvs.length - 1, Math.min(i, otherCvs.length - 1) + 1))}
-                      disabled={safeIndex === otherCvs.length - 1}
-                      aria-label={t('myCv.next')}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="cv-slider-viewport">
-                <div
-                  className="cv-slider-track"
-                  style={{ transform: `translateX(-${safeIndex * 100}%)` }}
-                >
-                  {otherCvs.map((cv) => (
-                    <div className="cv-slider-slide" key={cv.id}>
-                      <CvCard
-                        cv={cv}
-                        isActive={false}
-                        onRename={renameUserCv}
-                        onDelete={removeCv}
-                        onSetActive={setActiveUserCv}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {renderOthersSlider(otherIndexTop, setOtherIndexTop)}
+              {renderOthersSlider(otherIndexBottom, setOtherIndexBottom)}
             </section>
           )}
         </div>
