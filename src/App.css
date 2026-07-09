@@ -1785,30 +1785,110 @@
   margin: 0 0 4px;
 }
 
-.login-reset-hint {
+.modal.modal--forgot {
+  min-height: auto;
+  max-width: 400px;
+  padding: 14px 28px 22px;
+}
+
+.modal--forgot .modal-auth-header {
+  margin-bottom: 12px;
+}
+
+.reset-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 28px;
+}
+
+.reset-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-cyan);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.14), rgba(232, 121, 249, 0.14));
+  border: 1px solid rgba(34, 211, 238, 0.2);
+}
+
+.modal--forgot .modal-heading {
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.reset-subtitle {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.login-form--reset {
+  gap: 16px;
+}
+
+.login-form--reset .login-submit-btn {
+  margin-top: 4px;
+}
+
+.reset-text {
   margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.reset-hint {
+  margin: 10px 0 0;
   font-size: 13px;
   line-height: 1.6;
   color: var(--text-muted);
-  font-style: italic;
 }
 
-.login-form-success {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 0;
+.modal--forgot .modal-auth-error:empty {
+  display: none;
+}
+
+.reset-feedback {
+  margin: 12px 0 0;
   font-size: 13px;
   line-height: 1.5;
+}
+
+.reset-feedback--success {
   color: #4ade80;
+}
+
+.reset-actions {
+  margin-top: 20px;
+}
+
+.reset-resend-btn {
+  color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.08);
+  border-color: rgba(34, 211, 238, 0.2);
+}
+
+.reset-resend-btn:hover:not(:disabled) {
+  background: rgba(34, 211, 238, 0.14);
+  border-color: rgba(34, 211, 238, 0.32);
+}
+
+[data-theme='light'] .reset-resend-btn:hover:not(:disabled) {
+  background: rgba(34, 211, 238, 0.12);
+}
+
+.modal--forgot .modal-auth-footer {
+  margin-top: 16px;
+  min-height: 32px;
 }
 
 .form-field--placeholder-tall .form-input--placeholder {
   min-height: 84px;
-}
-
-.modal--forgot {
-  min-height: 548px;
 }
 
 .form-input {

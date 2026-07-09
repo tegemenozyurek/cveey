@@ -69,15 +69,23 @@ function AuthError({ message }) {
   )
 }
 
-function AuthSuccess({ message }) {
+function MailIcon() {
   return (
-    <p className="login-form-success">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-        <path d="M8 12l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-      {message}
-    </p>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M22 8l-10 6L2 8"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   )
 }
 
@@ -103,6 +111,7 @@ export default function LoginModal({ onClose }) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [mode, setMode] = useState('signin')
   const [resetSent, setResetSent] = useState(false)
+  const [resetMessage, setResetMessage] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
@@ -126,6 +135,7 @@ export default function LoginModal({ onClose }) {
 
     if (isForgot) {
       setLoading(true)
+      setResetMessage('')
       try {
         await sendPasswordResetForEmail(auth, email)
         setResetSent(true)
@@ -191,6 +201,7 @@ export default function LoginModal({ onClose }) {
     setMode('forgot')
     setError('')
     setResetSent(false)
+    setResetMessage('')
     setPassword('')
     setConfirmPassword('')
   }
@@ -199,14 +210,30 @@ export default function LoginModal({ onClose }) {
     setMode('signin')
     setError('')
     setResetSent(false)
+    setResetMessage('')
     setPassword('')
     setConfirmPassword('')
+  }
+
+  const handleResendReset = async () => {
+    setLoading(true)
+    setError('')
+    setResetMessage('')
+    try {
+      await sendPasswordResetForEmail(auth, email)
+      setResetMessage(t('login.resetSent'))
+    } catch (err) {
+      setError(getAuthErrorMessage(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   const switchToSignUp = () => {
     setMode('signup')
     setError('')
     setResetSent(false)
+    setResetMessage('')
     setConfirmPassword('')
   }
 
@@ -235,18 +262,82 @@ export default function LoginModal({ onClose }) {
           {isSignUp ? (
             <h2 id="login-title" className="modal-heading">{t('login.createAccountTitle')}</h2>
           ) : isForgot ? (
-            <h2 id="login-title" className="modal-heading">{t('login.resetTitle')}</h2>
+            <div className="reset-header">
+              {resetSent && (
+                <div className="reset-icon" aria-hidden="true">
+                  <MailIcon />
+                </div>
+              )}
+              <h2 id="login-title" className="modal-heading">
+                {resetSent ? t('login.resetSentTitle') : t('login.resetTitle')}
+              </h2>
+            </div>
           ) : (
             <p id="login-title" className="modal-logo modal-logo--lg">cve<span>ey</span></p>
           )}
         </div>
 
         <div className="modal-auth-body">
-          <form className="login-form" onSubmit={handleSubmit}>
-            {isForgot && (
-              <p className="modal-subtitle login-reset-subtitle">{t('login.resetSubtitle')}</p>
-            )}
+          {isForgot ? (
+            resetSent ? (
+              <>
+                <p className="reset-text">{t('login.resetSentTo', { email })}</p>
+                <p className="reset-hint">{t('login.resetHint')}</p>
 
+                <div className="modal-auth-error">
+                  {resetMessage && <p className="reset-feedback reset-feedback--success">{resetMessage}</p>}
+                  {error && <AuthError message={error} />}
+                </div>
+
+                <div className="reset-actions">
+                  <button
+                    type="button"
+                    className="oauth-btn reset-resend-btn"
+                    onClick={handleResendReset}
+                    disabled={isBusy}
+                  >
+                    {loading ? t('login.resetResending') : t('login.resetResend')}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="reset-subtitle">{t('login.resetSubtitle')}</p>
+                <form className="login-form login-form--reset" onSubmit={handleSubmit}>
+                  <div className="form-field">
+                    <label className="form-label" htmlFor="reset-email">
+                      {t('login.email')}
+                    </label>
+                    <input
+                      id="reset-email"
+                      className="form-input"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      disabled={isBusy}
+                    />
+                  </div>
+
+                  {error && <AuthError message={error} />}
+
+                  <button
+                    type="submit"
+                    className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
+                    disabled={isBusy}
+                  >
+                    <span className="btn-gradient-inner">
+                      {loading ? t('login.wait') : t('login.resetSubmit')}
+                    </span>
+                  </button>
+                </form>
+              </>
+            )
+          ) : (
+            <>
+          <form className="login-form" onSubmit={handleSubmit}>
             <div className="form-field">
               <label className="form-label" htmlFor={isSignUp ? 'signup-email' : 'email'}>
                 {t('login.email')}
@@ -260,12 +351,11 @@ export default function LoginModal({ onClose }) {
                 required
                 autoComplete="email"
                 placeholder="you@example.com"
-                disabled={isBusy || (isForgot && resetSent)}
+                disabled={isBusy}
               />
             </div>
 
-            {!isForgot && (
-              <div className="form-field">
+            <div className="form-field">
                 <label className="form-label" htmlFor={isSignUp ? 'signup-password' : 'password'}>
                   {t('login.password')}
                 </label>
@@ -292,7 +382,6 @@ export default function LoginModal({ onClose }) {
                   </button>
                 )}
               </div>
-            )}
 
             {isSignUp && (
               <div className="form-field">
@@ -312,47 +401,29 @@ export default function LoginModal({ onClose }) {
               </div>
             )}
 
-            {isForgot && (
-              <div className="form-field form-field--placeholder form-field--placeholder-tall" aria-hidden="true">
-                <span className="form-label">{t('login.password')}</span>
-                <div className="form-input form-input--placeholder" />
-              </div>
-            )}
-
-            {isForgot && resetSent && (
-              <p className="login-reset-hint">{t('login.resetHint')}</p>
-            )}
-
             <button
               type="submit"
               className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
-              disabled={isBusy || (isForgot && resetSent)}
+              disabled={isBusy}
             >
               <span className="btn-gradient-inner">
                 {loading
                   ? t('login.wait')
-                  : isForgot
-                    ? t('login.resetSubmit')
-                    : isSignUp
-                      ? t('login.submitSignUp')
-                      : t('login.submitSignIn')}
+                  : isSignUp
+                    ? t('login.submitSignUp')
+                    : t('login.submitSignIn')}
               </span>
             </button>
           </form>
 
           <div className="modal-auth-error">
             {error && <AuthError message={error} />}
-            {isForgot && resetSent && !error && (
-              <AuthSuccess message={t('login.resetSent')} />
-            )}
           </div>
 
-          {!isForgot && (
-            <>
-              <div className="modal-or">
-                <span>{t('login.or')}</span>
-              </div>
-              <OAuthButtons {...oauthProps} />
+          <div className="modal-or">
+            <span>{t('login.or')}</span>
+          </div>
+          <OAuthButtons {...oauthProps} />
             </>
           )}
         </div>
