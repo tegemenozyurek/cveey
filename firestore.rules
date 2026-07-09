@@ -174,5 +174,14 @@ service cloud.firestore {
         allow delete: if isOwner(userId);
       }
     }
+
+    match /accountAuth/{emailKey} {
+      allow read: if true;
+      allow create, update: if isAuthenticated() &&
+        request.resource.data.uid == request.auth.uid &&
+        isValidAuthMethod(request.resource.data.authMethod) &&
+        request.resource.data.keys().hasOnly(['uid', 'authMethod']);
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
   }
 }

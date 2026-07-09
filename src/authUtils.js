@@ -11,3 +11,8 @@ export function resolveAuthMethod(user) {
   }
   return AUTH_METHOD_EMAIL_PASSWORD
 }
+
+export function requiresEmailVerification(user) {
+  if (!user) return false
+  return resolveAuthMethod(user) === AUTH_METHOD_EMAIL_PASSWORD && !user.emailVerified
+}

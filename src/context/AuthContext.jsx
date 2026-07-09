@@ -4,6 +4,8 @@ import { auth } from '../firebase'
 import LoginModal from '../LoginModal'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
 import ConfirmLogoutModal from '../components/ConfirmLogoutModal'
+import EmailVerificationModal from '../components/EmailVerificationModal'
+import { requiresEmailVerification } from '../authUtils'
 import { deleteUserAccount, syncUserToFirestore } from '../userService'
 
 const AuthContext = createContext(null)
@@ -15,10 +17,12 @@ export function AuthProvider({ children }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [verificationDismissed, setVerificationDismissed] = useState(false)
 
   useEffect(() => {
     return onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser)
+      setVerificationDismissed(false)
       setAuthLoading(false)
 
       if (nextUser) {
@@ -31,11 +35,6 @@ export function AuthProvider({ children }) {
 
   const openLogin = () => setShowLogin(true)
   const closeLogin = () => setShowLogin(false)
-
-  const handleLogout = () => {
-    setShowLogoutConfirm(false)
-    signOut(auth)
-  }
 
   const handleDeleteAccount = async () => {
     if (!user) return
@@ -53,6 +52,20 @@ export function AuthProvider({ children }) {
     } finally {
       setDeleting(false)
     }
+  }
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(false)
+    signOut(auth)
+  }
+
+  const showEmailVerification = Boolean(
+    user && requiresEmailVerification(user) && !verificationDismissed,
+  )
+
+  const handleEmailVerified = () => {
+    setVerificationDismissed(true)
+    setUser(auth.currentUser)
   }
 
   return (
@@ -81,6 +94,9 @@ export function AuthProvider({ children }) {
           onCancel={() => setShowDeleteConfirm(false)}
           loading={deleting}
         />
+      )}
+      {showEmailVerification && (
+        <EmailVerificationModal user={user} onVerified={handleEmailVerified} />
       )}
     </AuthContext.Provider>
   )
