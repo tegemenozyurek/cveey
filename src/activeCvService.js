@@ -1,8 +1,8 @@
 import { deleteField, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
-import { auth } from './firebase'
-import { db } from './firebase'
+import { auth, db } from './firebase'
 
 const AUTH_METHOD = 'email-password'
+const MAX_NAME_LENGTH = 120
 
 async function ensureUserDoc(uid) {
   const userRef = doc(db, 'users', uid)
@@ -21,6 +21,41 @@ async function ensureUserDoc(uid) {
     createdAt: serverTimestamp(),
     lastLoginAt: serverTimestamp(),
   })
+}
+
+export async function getCvDisplayNames(uid) {
+  const snap = await getDoc(doc(db, 'users', uid))
+  return snap.exists() ? snap.data().cvDisplayNames ?? {} : {}
+}
+
+export async function setCvDisplayName(uid, fullPath, name) {
+  const trimmed = name.trim()
+  if (!trimmed) throw new Error('EMPTY_NAME')
+  if (trimmed.length > MAX_NAME_LENGTH) throw new Error('NAME_TOO_LONG')
+
+  await ensureUserDoc(uid)
+  const snap = await getDoc(doc(db, 'users', uid))
+  const existing = snap.exists() ? snap.data().cvDisplayNames ?? {} : {}
+
+  await updateDoc(doc(db, 'users', uid), {
+    cvDisplayNames: { ...existing, [fullPath]: trimmed },
+  })
+}
+
+export async function removeCvDisplayName(uid, fullPath) {
+  const userRef = doc(db, 'users', uid)
+  const snap = await getDoc(userRef)
+  if (!snap.exists()) return
+
+  const existing = snap.data().cvDisplayNames ?? {}
+  if (!(fullPath in existing)) return
+
+  const { [fullPath]: _removed, ...rest } = existing
+  if (Object.keys(rest).length === 0) {
+    await updateDoc(userRef, { cvDisplayNames: deleteField() })
+  } else {
+    await updateDoc(userRef, { cvDisplayNames: rest })
+  }
 }
 
 export async function getActiveCvPath(uid) {

@@ -13,6 +13,7 @@ rules_version = '2';
 //   - lastLoginAt: timestamp (required)
 //   - authMethod: string (required, immutable) - e.g. "email-password"
 //   - activeCvPath: string (optional) - Storage path of the user's active CV
+//   - cvDisplayNames: map (optional) - Custom display names keyed by storage path
 //
 // ===============================================================
 
@@ -38,8 +39,20 @@ service cloud.firestore {
       return method is string && method == 'email-password';
     }
 
+    function isValidCvDisplayNames(names) {
+      return names is map && names.size() <= 5;
+    }
+
+    function userImmutableFieldsMatch() {
+      return request.resource.data.uid == resource.data.uid &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.authMethod == resource.data.authMethod &&
+        request.resource.data.lastLoginAt == resource.data.lastLoginAt;
+    }
+
     function isValidUser(data) {
-      return data.keys().hasOnly(['uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod', 'activeCvPath']) &&
+      return data.keys().hasOnly(['uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod', 'activeCvPath', 'cvDisplayNames']) &&
         data.uid is string &&
         data.uid.size() > 0 &&
         data.uid.size() <= 128 &&
@@ -52,7 +65,8 @@ service cloud.firestore {
           data.activeCvPath is string &&
           data.activeCvPath.size() > 0 &&
           data.activeCvPath.size() <= 512
-        ));
+        )) &&
+        (!('cvDisplayNames' in data) || isValidCvDisplayNames(data.cvDisplayNames));
     }
 
     function isValidUserCreate(data) {
@@ -77,11 +91,7 @@ service cloud.firestore {
 
     function isValidActiveCvUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeCvPath']) &&
-        request.resource.data.uid == resource.data.uid &&
-        request.resource.data.email == resource.data.email &&
-        request.resource.data.createdAt == resource.data.createdAt &&
-        request.resource.data.authMethod == resource.data.authMethod &&
-        request.resource.data.lastLoginAt == resource.data.lastLoginAt &&
+        userImmutableFieldsMatch() &&
         request.resource.data.activeCvPath is string &&
         request.resource.data.activeCvPath.size() > 0 &&
         request.resource.data.activeCvPath.size() <= 512;
@@ -89,12 +99,20 @@ service cloud.firestore {
 
     function isValidActiveCvClear() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeCvPath']) &&
-        request.resource.data.uid == resource.data.uid &&
-        request.resource.data.email == resource.data.email &&
-        request.resource.data.createdAt == resource.data.createdAt &&
-        request.resource.data.authMethod == resource.data.authMethod &&
-        request.resource.data.lastLoginAt == resource.data.lastLoginAt &&
+        userImmutableFieldsMatch() &&
         !('activeCvPath' in request.resource.data);
+    }
+
+    function isValidCvDisplayNamesUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cvDisplayNames']) &&
+        userImmutableFieldsMatch() &&
+        isValidCvDisplayNames(request.resource.data.cvDisplayNames);
+    }
+
+    function isValidCvDisplayNamesClear() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cvDisplayNames']) &&
+        userImmutableFieldsMatch() &&
+        !('cvDisplayNames' in request.resource.data);
     }
 
     function isValidUserLoginUpdate() {
@@ -113,7 +131,9 @@ service cloud.firestore {
         isValidUserUpdate(request.resource.data) ||
         isValidUserLoginUpdate() ||
         isValidActiveCvUpdate() ||
-        isValidActiveCvClear()
+        isValidActiveCvClear() ||
+        isValidCvDisplayNamesUpdate() ||
+        isValidCvDisplayNamesClear()
       );
       allow delete: if isOwner(userId);
     }

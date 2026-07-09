@@ -1,3 +1,1 @@
-export default function CreateCV() {
-  return <main className="main" />
-}
+export { default } from '../components/UnderConstruction'
