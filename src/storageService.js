@@ -15,7 +15,7 @@ import {
   setActiveCvPath,
   setCvDisplayName,
 } from './activeCvService'
-import { releasePreviewUrl } from './cvPreviewCache'
+import { getCvBlob, releasePreviewUrl } from './cvPreviewCache'
 
 export const MAX_CV_COUNT = 5
 
@@ -35,7 +35,8 @@ export function buildCvStoragePath(uid, fileName) {
 }
 
 function resolveDisplayName(fullPath, storageName, metadataName, displayNames) {
-  if (displayNames[fullPath]) return displayNames[fullPath]
+  const pathKey = normalizeStoragePath(fullPath)
+  if (displayNames[pathKey]) return displayNames[pathKey]
   if (metadataName) return metadataName
   const parts = storageName.split('_')
   if (parts.length > 1) return parts.slice(1).join('_')
@@ -53,7 +54,7 @@ async function fetchCvItem(item, displayNames) {
   return {
     storageName: item.name,
     displayName: resolveDisplayName(item.fullPath, item.name, metadataName, displayNames),
-    fullPath: item.fullPath,
+    fullPath: normalizeStoragePath(item.fullPath),
     url,
     size: metadata.size,
     updated: metadata.updated,
@@ -150,7 +151,7 @@ export async function uploadCv(uid, file, onProgress) {
 }
 
 export async function renameCv(uid, fullPath, newName) {
-  await setCvDisplayName(uid, fullPath, newName)
+  await setCvDisplayName(uid, normalizeStoragePath(fullPath), newName)
   invalidateCvCache(uid)
   return getUserCvs(uid, { force: true })
 }
@@ -181,38 +182,32 @@ async function ensureAuth() {
   return user
 }
 
-function buildAttachmentUrl(baseUrl, fileName) {
-  const separator = baseUrl.includes('?') ? '&' : '?'
-  const safeName = fileName.replace(/"/g, '')
-  const disposition = encodeURIComponent(`attachment; filename="${safeName}"`)
-  return `${baseUrl}${separator}response-content-disposition=${disposition}`
+function triggerBlobDownload(blob, fileName) {
+  const blobUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = blobUrl
+  link.download = fileName
+  link.rel = 'noopener'
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
 }
 
-function triggerIframeDownload(url) {
-  const iframe = document.createElement('iframe')
-  iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0;visibility:hidden'
-  iframe.setAttribute('aria-hidden', 'true')
-  iframe.src = url
-  document.body.appendChild(iframe)
-  window.setTimeout(() => iframe.remove(), 120_000)
-}
-
-export async function downloadCvFile(fullPath, displayName, cachedUrl) {
+export async function downloadCvFile(fullPath, displayName) {
   await ensureAuth()
 
   const fileName = sanitizeDownloadFileName(displayName)
-  const path = normalizeStoragePath(fullPath)
-  const baseUrl = cachedUrl || await getCvDownloadUrl(path)
-  const downloadUrl = buildAttachmentUrl(baseUrl, fileName)
-
-  triggerIframeDownload(downloadUrl)
+  const blob = await getCvBlob(fullPath)
+  triggerBlobDownload(blob, fileName)
 }
 
 export async function deleteCv(uid, fullPath) {
-  await deleteObject(ref(storage, fullPath))
-  releasePreviewUrl(fullPath)
+  const pathKey = normalizeStoragePath(fullPath)
+  await deleteObject(ref(storage, pathKey))
+  releasePreviewUrl(pathKey)
   try {
-    await removeCvDisplayName(uid, fullPath)
+    await removeCvDisplayName(uid, pathKey)
   } catch (err) {
     console.warn('Could not remove CV display name:', err)
   }
@@ -221,7 +216,7 @@ export async function deleteCv(uid, fullPath) {
 }
 
 export async function activateCv(uid, fullPath) {
-  await setActiveCvPath(uid, fullPath)
+  await setActiveCvPath(uid, normalizeStoragePath(fullPath))
   invalidateCvCache(uid)
   return getUserCvs(uid, { force: true })
 }

@@ -47,12 +47,21 @@ service cloud.firestore {
       return names is map && names.size() <= 5;
     }
 
-    function userImmutableFieldsMatch() {
+    function userCoreFieldsMatch() {
       return request.resource.data.uid == resource.data.uid &&
         request.resource.data.email == resource.data.email &&
         request.resource.data.createdAt == resource.data.createdAt &&
-        request.resource.data.authMethod == resource.data.authMethod &&
-        request.resource.data.lastLoginAt == resource.data.lastLoginAt;
+        request.resource.data.authMethod == resource.data.authMethod;
+    }
+
+    function lastLoginAtNotReverted() {
+      return request.resource.data.lastLoginAt == resource.data.lastLoginAt ||
+        request.resource.data.lastLoginAt > resource.data.lastLoginAt;
+    }
+
+    function isCvMetadataOnlyDiff() {
+      let diff = request.resource.data.diff(resource.data).affectedKeys();
+      return !diff.hasAny(['uid', 'email', 'createdAt', 'authMethod']);
     }
 
     function isValidUser(data) {
@@ -90,28 +99,36 @@ service cloud.firestore {
     }
 
     function isValidActiveCvUpdate() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeCvPath']) &&
-        userImmutableFieldsMatch() &&
+      return request.resource.data.diff(resource.data).affectedKeys().hasAll(['activeCvPath']) &&
+        isCvMetadataOnlyDiff() &&
+        userCoreFieldsMatch() &&
+        lastLoginAtNotReverted() &&
         request.resource.data.activeCvPath is string &&
         request.resource.data.activeCvPath.size() > 0 &&
         request.resource.data.activeCvPath.size() <= 512;
     }
 
     function isValidActiveCvClear() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeCvPath']) &&
-        userImmutableFieldsMatch() &&
+      return request.resource.data.diff(resource.data).affectedKeys().hasAll(['activeCvPath']) &&
+        isCvMetadataOnlyDiff() &&
+        userCoreFieldsMatch() &&
+        lastLoginAtNotReverted() &&
         !('activeCvPath' in request.resource.data);
     }
 
     function isValidCvDisplayNamesUpdate() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cvDisplayNames']) &&
-        userImmutableFieldsMatch() &&
+      return request.resource.data.diff(resource.data).affectedKeys().hasAll(['cvDisplayNames']) &&
+        isCvMetadataOnlyDiff() &&
+        userCoreFieldsMatch() &&
+        lastLoginAtNotReverted() &&
         isValidCvDisplayNames(request.resource.data.cvDisplayNames);
     }
 
     function isValidCvDisplayNamesClear() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cvDisplayNames']) &&
-        userImmutableFieldsMatch() &&
+      return request.resource.data.diff(resource.data).affectedKeys().hasAll(['cvDisplayNames']) &&
+        isCvMetadataOnlyDiff() &&
+        userCoreFieldsMatch() &&
+        lastLoginAtNotReverted() &&
         !('cvDisplayNames' in request.resource.data);
     }
 

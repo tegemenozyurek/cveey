@@ -224,7 +224,7 @@ export default function CvCard({
     setDownloading(true)
     setLocalError('')
 
-    void downloadCvFile(cv.fullPath, cv.displayName, cv.url)
+    void downloadCvFile(cv.fullPath, cv.displayName)
       .catch((err) => {
         console.error('CV download failed:', err)
         setLocalError(t('myCv.downloadError'))

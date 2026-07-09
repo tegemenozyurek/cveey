@@ -1,6 +1,8 @@
 import { getBytes, ref } from 'firebase/storage'
 import { storage } from './firebase'
 
+export const MAX_CV_BYTES = 5 * 1024 * 1024
+
 const previewBlobCache = new Map()
 
 function normalizeStoragePath(fullPath) {
@@ -8,26 +10,40 @@ function normalizeStoragePath(fullPath) {
 }
 
 export function getCachedPreviewUrl(fullPath) {
-  return previewBlobCache.get(fullPath) ?? null
+  return previewBlobCache.get(normalizeStoragePath(fullPath)) ?? null
+}
+
+export async function getCvBlob(fullPath) {
+  const normalizedPath = normalizeStoragePath(fullPath)
+  const cachedUrl = previewBlobCache.get(normalizedPath)
+  if (cachedUrl) {
+    const response = await fetch(cachedUrl)
+    return response.blob()
+  }
+
+  const bytes = await getBytes(ref(storage, normalizedPath), MAX_CV_BYTES)
+  const blob = new Blob([bytes], { type: 'application/pdf' })
+  const blobUrl = URL.createObjectURL(blob)
+  previewBlobCache.set(normalizedPath, blobUrl)
+  return blob
 }
 
 export async function getOrCreatePreviewUrl(fullPath) {
-  const cached = previewBlobCache.get(fullPath)
+  const normalizedPath = normalizeStoragePath(fullPath)
+  const cached = previewBlobCache.get(normalizedPath)
   if (cached) return cached
 
-  const bytes = await getBytes(ref(storage, normalizeStoragePath(fullPath)))
-  const blob = new Blob([bytes], { type: 'application/pdf' })
-  const blobUrl = URL.createObjectURL(blob)
-  previewBlobCache.set(fullPath, blobUrl)
-  return blobUrl
+  await getCvBlob(normalizedPath)
+  return previewBlobCache.get(normalizedPath)
 }
 
 export function releasePreviewUrl(fullPath) {
-  const blobUrl = previewBlobCache.get(fullPath)
+  const normalizedPath = normalizeStoragePath(fullPath)
+  const blobUrl = previewBlobCache.get(normalizedPath)
   if (!blobUrl) return
 
   URL.revokeObjectURL(blobUrl)
-  previewBlobCache.delete(fullPath)
+  previewBlobCache.delete(normalizedPath)
 }
 
 export function clearPreviewCache() {
