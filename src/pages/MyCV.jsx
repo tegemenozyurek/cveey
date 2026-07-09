@@ -8,6 +8,7 @@ import { MAX_CV_COUNT } from '../storageService'
 
 const MAX_SIZE = 5 * 1024 * 1024
 
+
 export default function MyCV() {
   const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
@@ -33,30 +34,17 @@ export default function MyCV() {
 
   const handleFile = async (file) => {
     if (!file || !canUpload) return
-
     setActionError('')
-
-    if (file.type !== 'application/pdf') {
-      setActionError(t('myCv.errorPdfOnly'))
-      return
-    }
-
-    if (file.size > MAX_SIZE) {
-      setActionError(t('myCv.errorTooLarge'))
-      return
-    }
-
+    if (file.type !== 'application/pdf') { setActionError(t('myCv.errorPdfOnly')); return }
+    if (file.size > MAX_SIZE) { setActionError(t('myCv.errorTooLarge')); return }
     setUploading(true)
     setUploadProgress(0)
-
     try {
       await uploadUserCv(file, setUploadProgress)
     } catch (err) {
-      if (err?.code === 'MAX_CV_COUNT') {
-        setActionError(t('myCv.errorMaxCvs', { max: MAX_CV_COUNT }))
-      } else {
-        setActionError(t('myCv.uploadError'))
-      }
+      setActionError(err?.code === 'MAX_CV_COUNT'
+        ? t('myCv.errorMaxCvs', { max: MAX_CV_COUNT })
+        : t('myCv.uploadError'))
     } finally {
       setUploading(false)
       setUploadProgress(0)
@@ -64,15 +52,30 @@ export default function MyCV() {
     }
   }
 
-  const onFileChange = (e) => {
-    handleFile(e.target.files?.[0])
-  }
-
-  const onDrop = (e) => {
-    e.preventDefault()
-    setDragging(false)
-    handleFile(e.dataTransfer.files?.[0])
-  }
+  const guideItems = [
+    {
+      title: t('myCv.guide1Title'),
+      text: t('myCv.guide1Text'),
+      accent: 'cyan',
+    },
+    {
+      title: t('myCv.guide2Title'),
+      text: t('myCv.guide2Text'),
+      accent: 'pink',
+    },
+    {
+      title: t('myCv.guide3Title'),
+      text: t('myCv.guide3Text'),
+      accent: 'amber',
+      actions: (
+        <div className="cv-guide-actions">
+          <Link to="/create-cv" className="btn-gradient-wrap cv-guide-create">
+            <span className="btn-gradient-inner">{t('myCv.guideAtsCreate')}</span>
+          </Link>
+        </div>
+      ),
+    },
+  ]
 
   if (authLoading) {
     return (
@@ -103,76 +106,84 @@ export default function MyCV() {
   }
 
   const showInitialLoading = loading && cvs.length === 0 && !error
+  const activeCv = cvs.find((cv) => cv.id === activeCvPath || cv.fullPath === activeCvPath)
+  const otherCvs = cvs.filter((cv) => cv !== activeCv)
 
   return (
     <main className="main my-cv-main">
-      <div className="page-header my-cv-header">
-        <div className="my-cv-header-text">
+
+      {/* ── Hero row: title + guide slider ── */}
+      <div className="my-cv-hero">
+        <div className="my-cv-header">
           <h1 className="page-title">{t('myCv.title')}</h1>
+          <p className="my-cv-subtitle">{t('myCv.subtitle')}</p>
         </div>
-        <Link to="/create-cv" className="btn-gradient-wrap my-cv-create-btn">
-          <span className="btn-gradient-inner">{t('myCv.create')}</span>
-        </Link>
+
+        <section className="cv-guide" aria-label={t('myCv.guideTitle')}>
+          <div className="cv-guide-slider">
+            {guideItems.map((item, i) => (
+              <div key={i} className={`cv-guide-card cv-guide-card--${item.accent}`}>
+                <h3 className="cv-guide-card-title">{item.title}</h3>
+                <p className="cv-guide-card-text">{item.text}</p>
+                {item.actions}
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
 
-      {showInitialLoading && (
-        <p className="page-loading">{t('myCv.loading')}</p>
-      )}
-
+      {/* ── Errors ── */}
       {error && (
         <div className="file-errors cv-errors">
           <p className="file-error-item">{t('myCv.loadError')}</p>
         </div>
       )}
-
       {actionError && (
         <div className="file-errors cv-errors">
           <p className="file-error-item">{actionError}</p>
         </div>
       )}
 
-      {!showInitialLoading && !error && cvs.length > 0 && (() => {
-        const activeCv = cvs.find((cv) => cv.fullPath === activeCvPath)
-        const otherCvs = cvs.filter((cv) => cv.fullPath !== activeCvPath)
+      {showInitialLoading && <p className="page-loading">{t('myCv.loading')}</p>}
 
-        return (
-          <div className="cv-list">
-            {activeCv && (
-              <section className="cv-section">
-                <h2 className="cv-section-label">{t('myCv.sectionActive')}</h2>
-                <CvCard
-                  cv={activeCv}
-                  isActive
-                  previewUrl={activePreviewUrl}
-                  previewLoading={activePreviewLoading}
-                  onRename={renameUserCv}
-                  onDelete={removeCv}
-                  onSetActive={setActiveUserCv}
-                />
-              </section>
-            )}
+      {/* ── CV list ── */}
+      {!showInitialLoading && !error && cvs.length > 0 && (
+        <div className="cv-list">
+          {activeCv && (
+            <section className="cv-section">
+              <h3 className="cv-section-label">{t('myCv.sectionActive')}</h3>
+              <CvCard
+                cv={activeCv}
+                isActive
+                previewUrl={activePreviewUrl}
+                previewLoading={activePreviewLoading}
+                onRename={renameUserCv}
+                onDelete={removeCv}
+                onSetActive={setActiveUserCv}
+              />
+            </section>
+          )}
+          {otherCvs.length > 0 && (
+            <section className="cv-section">
+              <h3 className="cv-section-label">{t('myCv.sectionOthers')}</h3>
+              <div className="cv-section-list">
+                {otherCvs.map((cv) => (
+                  <CvCard
+                    key={cv.id}
+                    cv={cv}
+                    isActive={false}
+                    onRename={renameUserCv}
+                    onDelete={removeCv}
+                    onSetActive={setActiveUserCv}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
 
-            {otherCvs.length > 0 && (
-              <section className="cv-section">
-                <h2 className="cv-section-label">{t('myCv.sectionOthers')}</h2>
-                <div className="cv-section-list">
-                  {otherCvs.map((cv) => (
-                    <CvCard
-                      key={cv.id}
-                      cv={cv}
-                      isActive={false}
-                      onRename={renameUserCv}
-                      onDelete={removeCv}
-                      onSetActive={setActiveUserCv}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-        )
-      })()}
-
+      {/* ── Upload card ── */}
       {!showInitialLoading && !error && canUpload && (
         <div
           className={`cv-upload-card${dragging ? ' dragging' : ''}${uploading ? ' cv-upload-card--busy' : ''}${cvs.length > 0 ? ' cv-upload-card--compact' : ''}`}
@@ -187,36 +198,23 @@ export default function MyCV() {
           }}
           onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
           onDragLeave={() => setDragging(false)}
-          onDrop={onDrop}
+          onDrop={(e) => { e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files?.[0]) }}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf"
-            className="cv-file-input"
-            onChange={onFileChange}
-            disabled={uploading}
-          />
+          <input ref={fileInputRef} type="file" accept="application/pdf" className="cv-file-input" onChange={(e) => handleFile(e.target.files?.[0])} disabled={uploading} />
           <div className="cv-upload-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
               <path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </div>
-          <p className="cv-upload-hint">
-            {cvs.length === 0 ? t('myCv.uploadHint') : t('myCv.addAnother')}
-          </p>
-          <p className="cv-upload-formats">
-            {t('myCv.uploadFormats', { max: MAX_CV_COUNT, count: cvs.length })}
-          </p>
+          <p className="cv-upload-hint">{cvs.length === 0 ? t('myCv.uploadHint') : t('myCv.addAnother')}</p>
+          <p className="cv-upload-formats">{t('myCv.uploadFormats', { max: MAX_CV_COUNT, count: cvs.length })}</p>
           {uploading && (
             <div className="cv-upload-progress">
               <div className="upload-progress">
                 <div className="upload-progress-bar" style={{ width: `${uploadProgress}%` }} />
               </div>
-              <p className="cv-upload-progress-label">
-                {t('myCv.uploading', { progress: Math.round(uploadProgress) })}
-              </p>
+              <p className="cv-upload-progress-label">{t('myCv.uploading', { progress: Math.round(uploadProgress) })}</p>
             </div>
           )}
         </div>
@@ -225,6 +223,7 @@ export default function MyCV() {
       {!showInitialLoading && !error && !canUpload && cvs.length > 0 && (
         <p className="cv-limit-note">{t('myCv.limitReached', { max: MAX_CV_COUNT })}</p>
       )}
+
     </main>
   )
 }

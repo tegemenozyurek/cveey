@@ -1405,29 +1405,206 @@
 /* ── My CV ───────────────────────────────────────── */
 .my-cv-main {
   width: 100%;
-  max-width: 720px;
+  max-width: 900px;
   align-self: center;
 }
 
-.my-cv-header {
+/* ── Hero row ── */
+.my-cv-hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  gap: 28px;
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: 36px;
 }
 
-.my-cv-header-text {
-  min-width: 0;
+.my-cv-header {
+  flex: 0 0 200px;
 }
 
 .my-cv-header .page-title {
-  margin: 0;
+  margin: 0 0 8px;
+  font-size: 22px;
 }
 
-.my-cv-create-btn {
-  flex-shrink: 0;
+.my-cv-subtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ── Guide slider ── */
+.cv-guide {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.cv-guide-title {
+  margin: 0 0 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.cv-guide-slider {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.cv-guide-slider::-webkit-scrollbar {
+  display: none;
+}
+
+.cv-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.cv-guide-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 18px 16px;
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  transition: border-color 0.15s, background 0.15s;
+  flex: 0 0 200px;
+  scroll-snap-align: start;
+}
+
+.cv-guide-card--cyan  { border-left: 2px solid rgba(34,  211, 238, 0.5); }
+.cv-guide-card--pink  { border-left: 2px solid rgba(232, 121, 249, 0.5); }
+.cv-guide-card--amber { border-left: 2px solid rgba(251, 191,  36, 0.5); }
+
+.cv-guide-card--cyan  .cv-guide-card-title { color: #22d3ee; }
+.cv-guide-card--pink  .cv-guide-card-title { color: #e879f9; }
+.cv-guide-card--amber .cv-guide-card-title { color: #fbbf24; }
+
+.cv-guide-card-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.cv-guide-card-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.cv-guide-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.cv-guide-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 13px;
+  border-radius: 9999px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.cv-guide-btn--ghost {
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text);
+}
+
+.cv-guide-btn--ghost:hover {
+  background: var(--glass-hover);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme='light'] .cv-guide-btn--ghost:hover {
+  border-color: rgba(15, 23, 42, 0.16);
+}
+
+.cv-guide-create {
+  width: 80%;
+  text-decoration: none;
+  align-self: center;
+}
+
+.cv-guide-create .btn-gradient-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  padding: 9px 16px;
+  font-size: 13px;
+}
+
+
+
+.cv-ats-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.cv-ats-modal {
+  width: min(100%, 440px);
+  padding: 22px 22px 18px;
+  border-radius: 16px;
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.cv-ats-modal-title {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.cv-ats-modal-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.cv-ats-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 .cv-errors {
@@ -2459,6 +2636,19 @@
   }
 }
 
+@media (max-width: 860px) {
+  .my-cv-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .my-cv-header {
+    flex: none;
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   .nav-links--desktop {
     display: none;
@@ -2534,6 +2724,30 @@
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
+  }
+
+  .cv-guide-card {
+    flex: 0 0 75vw;
+  }
+
+  .cv-guide-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cv-guide-create,
+  .cv-guide-btn {
+    width: 100%;
+  }
+
+  .cv-guide-create .btn-gradient-inner {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cv-ats-modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
   }
 
   .cv-card-tools {
