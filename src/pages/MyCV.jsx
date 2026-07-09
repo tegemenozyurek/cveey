@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import CvCard from '../components/CvCard'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -6,6 +7,7 @@ import { useResume } from '../context/ResumeContext'
 import { MAX_CV_COUNT } from '../storageService'
 
 const MAX_SIZE = 5 * 1024 * 1024
+
 
 export default function MyCV() {
   const { user, openLogin, authLoading } = useAuth()
@@ -26,36 +28,42 @@ export default function MyCV() {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [actionError, setActionError] = useState('')
-  const [dragging, setDragging] = useState(false)
+  const [otherIndexBottom, setOtherIndexBottom] = useState(0)
+  const [promoIndex, setPromoIndex] = useState(0)
+
+  const promoSlides = [
+    { title: t('myCv.promo1Title'), text: t('myCv.promo1Text'), accent: 'cyan' },
+    { title: t('myCv.promo2Title'), text: t('myCv.promo2Text'), accent: 'pink' },
+    { title: t('myCv.promo3Title'), text: t('myCv.promo3Text'), accent: 'amber' },
+    { title: t('myCv.promo4Title'), text: t('myCv.promo4Text'), accent: 'violet' },
+  ]
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setPromoIndex((i) => (i + 1) % promoSlides.length)
+    }, 7000)
+    return () => window.clearTimeout(id)
+  }, [promoIndex, promoSlides.length])
+
+  const goPromo = (dir) => {
+    setPromoIndex((i) => (i + dir + promoSlides.length) % promoSlides.length)
+  }
 
   const canUpload = cvs.length < MAX_CV_COUNT
 
   const handleFile = async (file) => {
     if (!file || !canUpload) return
-
     setActionError('')
-
-    if (file.type !== 'application/pdf') {
-      setActionError(t('myCv.errorPdfOnly'))
-      return
-    }
-
-    if (file.size > MAX_SIZE) {
-      setActionError(t('myCv.errorTooLarge'))
-      return
-    }
-
+    if (file.type !== 'application/pdf') { setActionError(t('myCv.errorPdfOnly')); return }
+    if (file.size > MAX_SIZE) { setActionError(t('myCv.errorTooLarge')); return }
     setUploading(true)
     setUploadProgress(0)
-
     try {
       await uploadUserCv(file, setUploadProgress)
     } catch (err) {
-      if (err?.code === 'MAX_CV_COUNT') {
-        setActionError(t('myCv.errorMaxCvs', { max: MAX_CV_COUNT }))
-      } else {
-        setActionError(t('myCv.uploadError'))
-      }
+      setActionError(err?.code === 'MAX_CV_COUNT'
+        ? t('myCv.errorMaxCvs', { max: MAX_CV_COUNT })
+        : t('myCv.uploadError'))
     } finally {
       setUploading(false)
       setUploadProgress(0)
@@ -63,15 +71,6 @@ export default function MyCV() {
     }
   }
 
-  const onFileChange = (e) => {
-    handleFile(e.target.files?.[0])
-  }
-
-  const onDrop = (e) => {
-    e.preventDefault()
-    setDragging(false)
-    handleFile(e.dataTransfer.files?.[0])
-  }
 
   if (authLoading) {
     return (
@@ -102,112 +101,196 @@ export default function MyCV() {
   }
 
   const showInitialLoading = loading && cvs.length === 0 && !error
+  const activeCv = cvs.find((cv) => cv.id === activeCvPath || cv.fullPath === activeCvPath)
+  const otherCvs = cvs.filter((cv) => cv !== activeCv)
+
+  const renderOthersSlider = (index, setIndex) => {
+    const safeIndex = Math.min(index, Math.max(0, otherCvs.length - 1))
+    return (
+      <div className="cv-others-group">
+        <div className="cv-others-head">
+          <h3 className="cv-section-label">{t('myCv.sectionOthers', { max: MAX_CV_COUNT })}</h3>
+          {otherCvs.length > 1 && (
+            <div className="cv-slider-nav">
+              <button
+                type="button"
+                className="cv-slider-arrow"
+                onClick={() => setIndex((safeIndex - 1 + otherCvs.length) % otherCvs.length)}
+                aria-label={t('myCv.prev')}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              <span className="cv-slider-count">{safeIndex + 1} / {otherCvs.length}</span>
+              <button
+                type="button"
+                className="cv-slider-arrow"
+                onClick={() => setIndex((safeIndex + 1) % otherCvs.length)}
+                aria-label={t('myCv.next')}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="cv-slider-viewport">
+          <div
+            className="cv-slider-track"
+            style={{ transform: `translateX(-${safeIndex * 100}%)` }}
+          >
+            {otherCvs.map((cv, i) => (
+              <div className="cv-slider-slide" key={cv.id}>
+                <CvCard
+                  cv={cv}
+                  isActive={false}
+                  colorIndex={i}
+                  onRename={renameUserCv}
+                  onDelete={removeCv}
+                  onSetActive={setActiveUserCv}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <main className="main my-cv-main">
-      {showInitialLoading && (
-        <p className="page-loading">{t('myCv.loading')}</p>
-      )}
 
+      {/* ── Page header ── */}
+      <div className="my-cv-header">
+        <div className="my-cv-header-left">
+          <h1 className="my-cv-title">{t('myCv.title')}</h1>
+          <p className="my-cv-subtitle">{t('myCv.subtitle')}</p>
+        </div>
+        <div className="my-cv-actions">
+          {canUpload && (
+            <button
+              type="button"
+              className="my-cv-upload-btn"
+              onClick={() => !uploading && fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? (
+                <span className="my-cv-upload-progress-text">{t('myCv.uploading', { progress: Math.round(uploadProgress) })}</span>
+              ) : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  {t('myCv.addNew')}
+                </>
+              )}
+            </button>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            className="cv-file-input"
+            onChange={(e) => handleFile(e.target.files?.[0])}
+            disabled={uploading}
+          />
+          <Link to="/create-cv" className="btn-gradient-wrap my-cv-cta">
+            <span className="btn-gradient-inner">{t('myCv.guideAtsCreate')}</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* ── Errors ── */}
       {error && (
         <div className="file-errors cv-errors">
           <p className="file-error-item">{t('myCv.loadError')}</p>
         </div>
       )}
-
       {actionError && (
         <div className="file-errors cv-errors">
           <p className="file-error-item">{actionError}</p>
         </div>
       )}
 
-      {!showInitialLoading && !error && cvs.length > 0 && (() => {
-        const activeCv = cvs.find((cv) => cv.fullPath === activeCvPath)
-        const otherCvs = cvs.filter((cv) => cv.fullPath !== activeCvPath)
+      {showInitialLoading && <p className="page-loading">{t('myCv.loading')}</p>}
 
-        return (
-          <div className="cv-list">
-            {activeCv && (
-              <section className="cv-section">
-                <h2 className="cv-section-label">{t('myCv.sectionActive')}</h2>
-                <CvCard
-                  cv={activeCv}
-                  isActive
-                  previewUrl={activePreviewUrl}
-                  previewLoading={activePreviewLoading}
-                  onRename={renameUserCv}
-                  onDelete={removeCv}
-                  onSetActive={setActiveUserCv}
-                />
-              </section>
-            )}
+      {/* ── CV workspace: active + others slider ── */}
+      {!showInitialLoading && !error && cvs.length > 0 && (
+        <div className="cv-workspace">
+          {activeCv && (
+            <section className="cv-section cv-active-col">
+              <h3 className="cv-section-label">{t('myCv.sectionActive')}</h3>
+              <CvCard
+                cv={activeCv}
+                isActive
+                previewUrl={activePreviewUrl}
+                previewLoading={activePreviewLoading}
+                onRename={renameUserCv}
+                onDelete={removeCv}
+                onSetActive={setActiveUserCv}
+              />
+            </section>
+          )}
 
-            {otherCvs.length > 0 && (
-              <section className="cv-section">
-                <h2 className="cv-section-label">{t('myCv.sectionOthers')}</h2>
-                <div className="cv-section-list">
-                  {otherCvs.map((cv) => (
-                    <CvCard
-                      key={cv.id}
-                      cv={cv}
-                      isActive={false}
-                      onRename={renameUserCv}
-                      onDelete={removeCv}
-                      onSetActive={setActiveUserCv}
-                    />
-                  ))}
+          {otherCvs.length > 0 && (
+            <section className="cv-section cv-others-col">
+              <div className="cv-others-group cv-promo-group">
+                <div className="cv-others-head">
+                  <h3 className="cv-section-label">{t('myCv.promoHeading')}</h3>
+                  <div className="cv-slider-nav">
+                    <button
+                      type="button"
+                      className="cv-slider-arrow"
+                      onClick={() => goPromo(-1)}
+                      aria-label={t('myCv.prev')}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                    <span className="cv-slider-count">{promoIndex + 1} / {promoSlides.length}</span>
+                    <button
+                      type="button"
+                      className="cv-slider-arrow"
+                      onClick={() => goPromo(1)}
+                      aria-label={t('myCv.next')}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                  </div>
                 </div>
-              </section>
-            )}
-          </div>
-        )
-      })()}
 
-      {!showInitialLoading && !error && canUpload && (
-        <div
-          className={`cv-upload-card${dragging ? ' dragging' : ''}${uploading ? ' cv-upload-card--busy' : ''}${cvs.length > 0 ? ' cv-upload-card--compact' : ''}`}
-          role="button"
-          tabIndex={0}
-          onClick={() => !uploading && fileInputRef.current?.click()}
-          onKeyDown={(e) => {
-            if ((e.key === 'Enter' || e.key === ' ') && !uploading) {
-              e.preventDefault()
-              fileInputRef.current?.click()
-            }
-          }}
-          onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={onDrop}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf"
-            className="cv-file-input"
-            onChange={onFileChange}
-            disabled={uploading}
-          />
-          <div className="cv-upload-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <p className="cv-upload-hint">
-            {cvs.length === 0 ? t('myCv.uploadHint') : t('myCv.addAnother')}
-          </p>
-          <p className="cv-upload-formats">
-            {t('myCv.uploadFormats', { max: MAX_CV_COUNT, count: cvs.length })}
-          </p>
-          {uploading && (
-            <div className="cv-upload-progress">
-              <div className="upload-progress">
-                <div className="upload-progress-bar" style={{ width: `${uploadProgress}%` }} />
+                <div className="cv-slider-viewport cv-promo-viewport">
+                  <div
+                    className="cv-slider-track"
+                    style={{ transform: `translateX(-${promoIndex * 100}%)` }}
+                  >
+                    {promoSlides.map((slide, i) => (
+                      <div className="cv-slider-slide" key={i}>
+                        <div className={`cv-promo-card cv-promo-card--${slide.accent}`}>
+                          <h4 className="cv-promo-title">{slide.title}</h4>
+                          <p className="cv-promo-text">{slide.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="cv-promo-dots" role="tablist">
+                    {promoSlides.map((s, di) => (
+                      <button
+                        key={di}
+                        type="button"
+                        className={`cv-promo-dot${di === promoIndex ? ' cv-promo-dot--active' : ''}`}
+                        onClick={() => setPromoIndex(di)}
+                        aria-label={s.title}
+                        aria-selected={di === promoIndex}
+                        role="tab"
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
-              <p className="cv-upload-progress-label">
-                {t('myCv.uploading', { progress: Math.round(uploadProgress) })}
-              </p>
-            </div>
+
+              {renderOthersSlider(otherIndexBottom, setOtherIndexBottom)}
+            </section>
           )}
         </div>
       )}
@@ -215,6 +298,7 @@ export default function MyCV() {
       {!showInitialLoading && !error && !canUpload && cvs.length > 0 && (
         <p className="cv-limit-note">{t('myCv.limitReached', { max: MAX_CV_COUNT })}</p>
       )}
+
     </main>
   )
 }

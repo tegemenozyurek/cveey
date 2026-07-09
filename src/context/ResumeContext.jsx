@@ -65,7 +65,8 @@ export function ResumeProvider({ children }) {
           loadedUidRef.current = user.uid
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('CV list failed:', err)
         if (!cancelled) setError('load')
       })
       .finally(() => {

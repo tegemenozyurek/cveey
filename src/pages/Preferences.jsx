@@ -1,9 +1,24 @@
+import { Navigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 
 export default function Preferences() {
+  const { user, authLoading, setShowLogoutConfirm } = useAuth()
   const { t } = useLanguage()
+
+  if (authLoading) {
+    return (
+      <main className="main">
+        <p className="page-loading">{t('prefs.loading')}</p>
+      </main>
+    )
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />
+  }
 
   return (
     <main className="main">
@@ -29,6 +44,22 @@ export default function Preferences() {
             <p className="prefs-row-hint">{t('prefs.themeHint')}</p>
           </div>
           <ThemeSwitcher />
+        </div>
+
+        <div className="prefs-divider" />
+
+        <div className="prefs-row">
+          <div className="prefs-row-info">
+            <p className="prefs-row-label">{t('prefs.logout')}</p>
+            <p className="prefs-row-hint">{t('prefs.logoutHint')}</p>
+          </div>
+          <button
+            type="button"
+            className="prefs-logout-btn"
+            onClick={() => setShowLogoutConfirm(true)}
+          >
+            {t('nav.logout')}
+          </button>
         </div>
       </div>
     </main>

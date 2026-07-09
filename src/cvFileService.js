@@ -30,7 +30,7 @@ export function buildCvStoragePath(uid, fileId) {
 }
 
 export function normalizeCvDisplayName(name) {
-  const trimmed = name.trim()
+  const trimmed = String(name ?? '').trim()
   if (!trimmed) throw new Error('EMPTY_NAME')
 
   const baseName = trimmed.replace(/\.pdf$/i, '').trim()
@@ -55,10 +55,10 @@ function isDefaultStoragePath(uid, fileId, filePath) {
 }
 
 export function resolveFilePath(uid, fileId, data) {
-  if (data.storageObject) {
+  if (data?.storageObject) {
     return `users/${uid}/${data.storageObject}`
   }
-  if (data.filePath) {
+  if (data?.filePath) {
     return normalizeStoragePath(data.filePath)
   }
   return buildCvStoragePath(uid, fileId)
@@ -70,9 +70,17 @@ function parseDisplayNameFromStorageName(storageName) {
   return storageName
 }
 
+function storageObjectFromData(uid, fileId, data) {
+  if (data.storageObject) return data.storageObject
+  const filePath = data.filePath
+    ? normalizeStoragePath(data.filePath)
+    : buildCvStoragePath(uid, fileId)
+  return storageNameFromPath(filePath)
+}
+
 function compactFileData(uid, fileId, data) {
   const compact = {
-    displayName: data.displayName,
+    displayName: normalizeCvDisplayName(data.displayName || 'cv.pdf'),
   }
 
   const filePath = resolveFilePath(uid, fileId, data)
@@ -83,15 +91,9 @@ function compactFileData(uid, fileId, data) {
   return compact
 }
 
-function storageObjectFromData(uid, fileId, data) {
-  if (data.storageObject) return data.storageObject
-  const filePath = data.filePath ? normalizeStoragePath(data.filePath) : buildCvStoragePath(uid, fileId)
-  return storageNameFromPath(filePath)
-}
-
 function needsFileCompaction(uid, fileId, data) {
   const allowed = new Set(['displayName', 'storageObject'])
-  const keys = Object.keys(data)
+  const keys = Object.keys(data ?? {})
   if (keys.some((key) => !allowed.has(key))) return true
 
   const filePath = resolveFilePath(uid, fileId, data)
@@ -107,7 +109,7 @@ function mapFileDoc(uid, id, data) {
     id,
     filePath,
     fullPath: filePath,
-    displayName: data.displayName,
+    displayName: data.displayName || storageNameFromPath(filePath),
     storageName: storageNameFromPath(filePath),
   }
 }
@@ -132,25 +134,18 @@ async function ensureUserDoc(uid) {
 }
 
 async function compactFileRecord(uid, fileId, data) {
-  if (!needsFileCompaction(uid, fileId, data)) return mapFileDoc(uid, fileId, data)
+  const mapped = mapFileDoc(uid, fileId, data)
+  if (!needsFileCompaction(uid, fileId, data)) return mapped
 
   const compact = compactFileData(uid, fileId, data)
-  const cleanup = {
-    displayName: compact.displayName,
-    filePath: deleteField(),
-    size: deleteField(),
-    createdAt: deleteField(),
-    updatedAt: deleteField(),
-  }
 
-  if (compact.storageObject) {
-    cleanup.storageObject = compact.storageObject
-  } else {
-    cleanup.storageObject = deleteField()
+  try {
+    await setDoc(fileDoc(uid, fileId), compact)
+    return mapFileDoc(uid, fileId, compact)
+  } catch (err) {
+    console.warn('CV file compaction skipped:', fileId, err)
+    return mapped
   }
-
-  await updateDoc(fileDoc(uid, fileId), cleanup)
-  return mapFileDoc(uid, fileId, compact)
 }
 
 export async function pruneLegacyUserFields(uid) {
@@ -165,7 +160,12 @@ export async function pruneLegacyUserFields(uid) {
   if ('cvDisplayNames' in data) cleanup.cvDisplayNames = deleteField()
 
   if (Object.keys(cleanup).length === 0) return
-  await updateDoc(userRef, cleanup)
+
+  try {
+    await updateDoc(userRef, cleanup)
+  } catch (err) {
+    console.warn('Legacy user field cleanup skipped:', err)
+  }
 }
 
 export async function listCvFileRecords(uid) {
@@ -223,8 +223,13 @@ export async function getActiveFileId(uid) {
   const legacyPath = data.activeCvPath ? normalizeStoragePath(data.activeCvPath) : null
   if (!legacyPath) return null
 
-  const files = await listCvFileRecords(uid)
-  return files.find((file) => file.filePath === legacyPath)?.id ?? null
+  try {
+    const files = await listCvFileRecords(uid)
+    return files.find((file) => file.filePath === legacyPath)?.id ?? null
+  } catch (err) {
+    console.warn('Could not resolve legacy active CV:', err)
+    return null
+  }
 }
 
 export async function setActiveFileId(uid, fileId) {
@@ -241,10 +246,14 @@ export async function clearActiveFileId(uid) {
 }
 
 export function resolveLegacyDisplayName(filePath, storageName, metadataName, legacyNames) {
-  if (legacyNames[storageName]) return legacyNames[storageName]
-  if (legacyNames[filePath]) return legacyNames[filePath]
-  if (metadataName) return normalizeCvDisplayName(metadataName)
-  return normalizeCvDisplayName(parseDisplayNameFromStorageName(storageName))
+  try {
+    if (legacyNames[storageName]) return normalizeCvDisplayName(legacyNames[storageName])
+    if (legacyNames[filePath]) return normalizeCvDisplayName(legacyNames[filePath])
+    if (metadataName) return normalizeCvDisplayName(metadataName)
+    return normalizeCvDisplayName(parseDisplayNameFromStorageName(storageName))
+  } catch {
+    return normalizeCvDisplayName(storageName || 'cv.pdf')
+  }
 }
 
 export async function readLegacyMigrationData(uid) {
