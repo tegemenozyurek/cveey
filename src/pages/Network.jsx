@@ -1,5 +1,5 @@
 import UnderConstruction from '../components/UnderConstruction'
 
-export default function Connections() {
+export default function Network() {
   return <UnderConstruction />
 }

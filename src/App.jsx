@@ -12,7 +12,7 @@ import Profile from './pages/Profile'
 import Preferences from './pages/Preferences'
 import Messages from './pages/Messages'
 import Notifications from './pages/Notifications'
-import Connections from './pages/Connections'
+import Network from './pages/Network'
 import './App.css'
 
 export default function App() {
@@ -26,7 +26,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/jobs" element={<Jobs />} />
-            <Route path="/connections" element={<Connections />} />
+            <Route path="/network" element={<Network />} />
             <Route path="/create-cv" element={<CreateCV />} />
             <Route path="/my-cv" element={<MyCV />} />
             <Route path="/messages" element={<Messages />} />
