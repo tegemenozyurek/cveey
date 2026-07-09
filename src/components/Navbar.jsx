@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -25,21 +25,6 @@ function BurgerIcon({ open }) {
       ) : (
         <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
       )}
-    </svg>
-  )
-}
-
-function ChevronIcon({ open }) {
-  return (
-    <svg
-      className={`mobile-account-chevron${open ? ' mobile-account-chevron--open' : ''}`}
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )
 }
@@ -87,96 +72,30 @@ function BellIcon() {
 }
 
 export default function Navbar() {
-  const { user, openLogin, setShowLogoutConfirm, authLoading } = useAuth()
+  const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
-  const [profileOpen, setProfileOpen] = useState(false)
-  const [mobileAccountOpen, setMobileAccountOpen] = useState(false)
-  const profileRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
 
   useEffect(() => {
     setMobileNavOpen(false)
-    setProfileOpen(false)
-    setMobileAccountOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
     document.body.style.overflow = mobileNavOpen ? 'hidden' : ''
-    if (!mobileNavOpen) setMobileAccountOpen(false)
     return () => { document.body.style.overflow = '' }
   }, [mobileNavOpen])
 
-  useEffect(() => {
-    if (!profileOpen) return
-
-    const onClickOutside = (e) => {
-      if (profileRef.current && !profileRef.current.contains(e.target)) {
-        setProfileOpen(false)
-      }
-    }
-
-    const onEscape = (e) => {
-      if (e.key === 'Escape') setProfileOpen(false)
-    }
-
-    document.addEventListener('mousedown', onClickOutside)
-    document.addEventListener('keydown', onEscape)
-    return () => {
-      document.removeEventListener('mousedown', onClickOutside)
-      document.removeEventListener('keydown', onEscape)
-    }
-  }, [profileOpen])
-
   const closeMobileNav = () => setMobileNavOpen(false)
-  const closeProfile = () => setProfileOpen(false)
 
   const goTo = (path) => {
-    closeProfile()
     closeMobileNav()
-    setMobileAccountOpen(false)
     navigate(path)
   }
 
   const navLinkClass = ({ isActive }) =>
     `nav-link${isActive ? ' nav-link--active' : ''}`
-
-  const desktopProfileActions = (
-    <>
-      <div className="profile-dropdown-body">
-        <button
-          type="button"
-          className="profile-dropdown-item"
-          role="menuitem"
-          onClick={() => goTo('/profile')}
-        >
-          {t('nav.profile')}
-        </button>
-        <button
-          type="button"
-          className="profile-dropdown-item"
-          role="menuitem"
-          onClick={() => goTo('/preferences')}
-        >
-          {t('nav.preferences')}
-        </button>
-      </div>
-      <div className="profile-dropdown-footer">
-        <button
-          type="button"
-          className="profile-dropdown-item profile-dropdown-item--danger"
-          role="menuitem"
-          onClick={() => {
-            closeProfile()
-            setShowLogoutConfirm(true)
-          }}
-        >
-          {t('nav.logout')}
-        </button>
-      </div>
-    </>
-  )
 
   return (
     <header className="navbar">
@@ -226,38 +145,22 @@ export default function Navbar() {
                   <InboxIcon />
                 </button>
               </div>
-              <div className="profile-menu profile-menu--desktop" ref={profileRef}>
-                <button
-                  type="button"
-                  className={`profile-trigger${profileOpen ? ' profile-trigger--open' : ''}`}
-                  onClick={() => setProfileOpen((v) => !v)}
-                  aria-expanded={profileOpen}
-                  aria-haspopup="menu"
-                  aria-label={t('nav.accountMenu')}
-                >
-                  <UserAvatar user={user} />
-                </button>
-
-                {profileOpen && (
-                  <div className="profile-dropdown" role="menu">
-                    <div className="profile-dropdown-header">
-                      <span className="profile-dropdown-label">{t('nav.account')}</span>
-                      <span className="profile-dropdown-email">{user.email}</span>
-                    </div>
-                    {desktopProfileActions}
-                  </div>
-                )}
-              </div>
+              <button
+                type="button"
+                className="profile-trigger profile-trigger--desktop"
+                onClick={() => goTo('/profile')}
+                aria-label={t('nav.profile')}
+                title={t('nav.profile')}
+              >
+                <UserAvatar user={user} />
+              </button>
             </div>
           )}
 
           <button
             type="button"
             className={`burger-btn${mobileNavOpen ? ' burger-btn--open' : ''}`}
-            onClick={() => {
-              setMobileNavOpen((v) => !v)
-              setProfileOpen(false)
-            }}
+            onClick={() => setMobileNavOpen((v) => !v)}
             aria-expanded={mobileNavOpen}
             aria-label={mobileNavOpen ? t('nav.closeMenu') : t('nav.openMenu')}
           >
@@ -303,52 +206,17 @@ export default function Navbar() {
                   {t('nav.notifications')}
                 </button>
 
-                <div className={`mobile-account${mobileAccountOpen ? ' mobile-account--open' : ''}`}>
-                  <button
-                    type="button"
-                    className="mobile-account-trigger"
-                    onClick={() => setMobileAccountOpen((v) => !v)}
-                    aria-expanded={mobileAccountOpen}
-                    aria-controls="mobile-account-menu"
-                  >
-                    <div className="mobile-account-trigger-text">
-                      <span className="mobile-account-label">{t('nav.account')}</span>
-                      <span className="mobile-account-email">{user.email}</span>
-                    </div>
-                    <ChevronIcon open={mobileAccountOpen} />
-                  </button>
-
-                  <div
-                    id="mobile-account-menu"
-                    className="mobile-account-menu"
-                    hidden={!mobileAccountOpen}
-                  >
-                    <button
-                      type="button"
-                      className="mobile-account-item"
-                      onClick={() => goTo('/profile')}
-                    >
-                      {t('nav.profile')}
-                    </button>
-                    <button
-                      type="button"
-                      className="mobile-account-item"
-                      onClick={() => goTo('/preferences')}
-                    >
-                      {t('nav.preferences')}
-                    </button>
-                    <button
-                      type="button"
-                      className="mobile-account-item mobile-account-item--danger"
-                      onClick={() => {
-                        closeMobileNav()
-                        setShowLogoutConfirm(true)
-                      }}
-                    >
-                      {t('nav.logout')}
-                    </button>
+                <button
+                  type="button"
+                  className="mobile-nav-profile"
+                  onClick={() => goTo('/profile')}
+                >
+                  <UserAvatar user={user} className="user-avatar" />
+                  <div className="mobile-nav-profile-text">
+                    <span className="mobile-account-label">{t('nav.profile')}</span>
+                    <span className="mobile-account-email">{user.email}</span>
                   </div>
-                </div>
+                </button>
               </div>
             ) : (
               <div className="mobile-nav-footer">
