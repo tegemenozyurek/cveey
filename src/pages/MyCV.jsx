@@ -18,6 +18,7 @@ export default function MyCV() {
     uploadUserCv,
     removeCv,
     renameUserCv,
+    setActiveUserCv,
   } = useResume()
   const fileInputRef = useRef(null)
   const [uploading, setUploading] = useState(false)
@@ -127,6 +128,7 @@ export default function MyCV() {
               isActive={cv.fullPath === activeCvPath}
               onRename={renameUserCv}
               onDelete={removeCv}
+              onSetActive={setActiveUserCv}
             />
           ))}
         </div>

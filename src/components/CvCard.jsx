@@ -4,33 +4,94 @@ import { downloadCvFile, getCvDownloadUrl } from '../storageService'
 
 function IconEdit() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
 
 function IconView() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" strokeWidth="2"/>
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M2.062 12.348a1 1 0 010-.696 10.75 10.75 0 0119.876 0 1 1 0 010 .696 10.75 10.75 0 01-19.876 0z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.75" />
     </svg>
   )
 }
 
 function IconDownload() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 4v10m0 0l-4-4m4 4l4-4M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 3v13M12 16l-4-4M12 16l4-4"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
 
 function IconDelete() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M3 6h18M8 6V4h8v2m-1 0v14H9V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 6h18" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path
+        d="M8 6V4.5A1.5 1.5 0 019.5 3h5A1.5 1.5 0 0116 4.5V6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 6l.8 14.2A2 2 0 008.8 22h6.4a2 2 0 001.99-1.8L18 6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconStar() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 2l2.9 6.5L22 9.3l-5 4.4 1.5 6.5L12 17.3 5.5 20.2 7 13.7 2 9.3l7.1-.8L12 2z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
@@ -56,6 +117,7 @@ export default function CvCard({
   isActive,
   onRename,
   onDelete,
+  onSetActive,
 }) {
   const { lang, t } = useLanguage()
   const [editing, setEditing] = useState(false)
@@ -63,6 +125,7 @@ export default function CvCard({
   const [saving, setSaving] = useState(false)
   const [viewing, setViewing] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [activating, setActivating] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [localError, setLocalError] = useState('')
@@ -142,16 +205,20 @@ export default function CvCard({
     }
   }
 
-  const onDownload = async () => {
+  const onDownload = () => {
+    if (downloading) return
+
     setDownloading(true)
     setLocalError('')
-    try {
-      await downloadCvFile(cv.fullPath, cv.displayName)
-    } catch {
-      setLocalError(t('myCv.downloadError'))
-    } finally {
-      setDownloading(false)
-    }
+
+    void downloadCvFile(cv.fullPath, cv.displayName, cv.url)
+      .catch((err) => {
+        console.error('CV download failed:', err)
+        setLocalError(t('myCv.downloadError'))
+      })
+      .finally(() => {
+        setDownloading(false)
+      })
   }
 
   const onConfirmDelete = async () => {
@@ -164,6 +231,21 @@ export default function CvCard({
       setLocalError(t('myCv.deleteError'))
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const onActivate = async () => {
+    if (isActive || activating) return
+
+    setActivating(true)
+    setLocalError('')
+    setConfirmDelete(false)
+    try {
+      await onSetActive(cv.fullPath)
+    } catch {
+      setLocalError(t('myCv.activateError'))
+    } finally {
+      setActivating(false)
     }
   }
 
@@ -206,8 +288,22 @@ export default function CvCard({
             </div>
           ) : (
             <div className="cv-card-title-row">
-              <h2 className="cv-card-name">{cv.displayName}</h2>
-              {isActive && <span className="cv-active-badge">{t('myCv.active')}</span>}
+              <h2 className="cv-card-name" title={cv.displayName}>{cv.displayName}</h2>
+              {isActive ? (
+                <span className="cv-active-badge">{t('myCv.active')}</span>
+              ) : (
+                <button
+                  type="button"
+                  className="cv-set-active-btn"
+                  onClick={onActivate}
+                  disabled={activating || editing}
+                  aria-label={t('myCv.setActive')}
+                  title={t('myCv.setActive')}
+                >
+                  <IconStar />
+                  {activating ? t('myCv.activating') : t('myCv.setActive')}
+                </button>
+              )}
             </div>
           )}
           <p className="cv-card-meta">
@@ -219,7 +315,7 @@ export default function CvCard({
           {!editing && (
             <button
               type="button"
-              className="cv-icon-btn"
+              className="cv-icon-btn cv-icon-btn--edit"
               onClick={startEdit}
               aria-label={t('myCv.edit')}
               title={t('myCv.edit')}
@@ -229,7 +325,7 @@ export default function CvCard({
           )}
           <button
             type="button"
-            className="cv-icon-btn"
+            className="cv-icon-btn cv-icon-btn--view"
             onClick={onView}
             disabled={viewing || editing}
             aria-label={t('myCv.view')}
@@ -239,7 +335,7 @@ export default function CvCard({
           </button>
           <button
             type="button"
-            className="cv-icon-btn"
+            className="cv-icon-btn cv-icon-btn--download"
             onClick={onDownload}
             disabled={downloading || editing}
             aria-label={t('myCv.download')}
