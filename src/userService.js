@@ -3,6 +3,8 @@ import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'fire
 import { db } from './firebase'
 import { deleteUserStorageFiles } from './storageService'
 
+export { getActiveCvPath, setActiveCvPath, clearActiveCvPath } from './activeCvService'
+
 export const AUTH_METHOD_EMAIL_PASSWORD = 'email-password'
 
 export async function syncUserToFirestore(user, { isNewUser = false } = {}) {
@@ -12,7 +14,7 @@ export async function syncUserToFirestore(user, { isNewUser = false } = {}) {
   if (!snap.exists() || isNewUser) {
     await setDoc(userRef, {
       uid: user.uid,
-      email: user.email ?? '',
+      email: user.email || '',
       authMethod: AUTH_METHOD_EMAIL_PASSWORD,
       createdAt: serverTimestamp(),
       lastLoginAt: serverTimestamp(),

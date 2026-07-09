@@ -4,7 +4,7 @@ import { auth } from '../firebase'
 import LoginModal from '../LoginModal'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
 import ConfirmLogoutModal from '../components/ConfirmLogoutModal'
-import { deleteUserAccount } from '../userService'
+import { deleteUserAccount, syncUserToFirestore } from '../userService'
 
 const AuthContext = createContext(null)
 
@@ -17,7 +17,14 @@ export function AuthProvider({ children }) {
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (nextUser) => {
+    return onAuthStateChanged(auth, async (nextUser) => {
+      if (nextUser) {
+        try {
+          await syncUserToFirestore(nextUser)
+        } catch (err) {
+          console.error('User sync failed:', err)
+        }
+      }
       setUser(nextUser)
       setAuthLoading(false)
     })

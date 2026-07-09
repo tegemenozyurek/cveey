@@ -8,7 +8,10 @@ service firebase.storage {
       allow create: if request.auth != null
         && request.auth.uid == userId
         && request.resource.size < 5 * 1024 * 1024
-        && request.resource.contentType == 'application/pdf';
+        && (
+          request.resource.contentType == 'application/pdf' ||
+          request.resource.contentType == 'application/octet-stream'
+        );
 
       allow update: if false;
 

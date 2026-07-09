@@ -12,6 +12,7 @@ rules_version = '2';
 //   - createdAt: timestamp (required on create, immutable)
 //   - lastLoginAt: timestamp (required)
 //   - authMethod: string (required, immutable) - e.g. "email-password"
+//   - activeCvPath: string (optional) - Storage path of the user's active CV
 //
 // ===============================================================
 
@@ -38,7 +39,7 @@ service cloud.firestore {
     }
 
     function isValidUser(data) {
-      return data.keys().hasOnly(['uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod']) &&
+      return data.keys().hasOnly(['uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod', 'activeCvPath']) &&
         data.uid is string &&
         data.uid.size() > 0 &&
         data.uid.size() <= 128 &&
@@ -46,15 +47,23 @@ service cloud.firestore {
         isValidEmail(data.email) &&
         data.lastLoginAt is timestamp &&
         isValidAuthMethod(data.authMethod) &&
-        (!('createdAt' in data) || data.createdAt is timestamp);
+        (!('createdAt' in data) || data.createdAt is timestamp) &&
+        (!('activeCvPath' in data) || (
+          data.activeCvPath is string &&
+          data.activeCvPath.size() > 0 &&
+          data.activeCvPath.size() <= 512
+        ));
     }
 
     function isValidUserCreate(data) {
       return isValidUser(data) &&
         data.uid == request.auth.uid &&
-        data.email == request.auth.token.email &&
         'createdAt' in data &&
-        data.createdAt is timestamp;
+        data.createdAt is timestamp &&
+        (
+          (request.auth.token.email != null && data.email == request.auth.token.email) ||
+          isValidEmail(data.email)
+        );
     }
 
     function isValidUserUpdate(data) {
@@ -64,6 +73,28 @@ service cloud.firestore {
         data.email == resource.data.email &&
         data.createdAt == resource.data.createdAt &&
         data.authMethod == resource.data.authMethod;
+    }
+
+    function isValidActiveCvUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeCvPath']) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.authMethod == resource.data.authMethod &&
+        request.resource.data.lastLoginAt == resource.data.lastLoginAt &&
+        request.resource.data.activeCvPath is string &&
+        request.resource.data.activeCvPath.size() > 0 &&
+        request.resource.data.activeCvPath.size() <= 512;
+    }
+
+    function isValidActiveCvClear() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeCvPath']) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.authMethod == resource.data.authMethod &&
+        request.resource.data.lastLoginAt == resource.data.lastLoginAt &&
+        !('activeCvPath' in request.resource.data);
     }
 
     function isValidUserLoginUpdate() {
@@ -80,7 +111,9 @@ service cloud.firestore {
       allow create: if isOwner(userId) && isValidUserCreate(request.resource.data);
       allow update: if isOwner(userId) && (
         isValidUserUpdate(request.resource.data) ||
-        isValidUserLoginUpdate()
+        isValidUserLoginUpdate() ||
+        isValidActiveCvUpdate() ||
+        isValidActiveCvClear()
       );
       allow delete: if isOwner(userId);
     }

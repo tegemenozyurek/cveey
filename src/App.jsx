@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { LanguageProvider } from './context/LanguageContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { ResumeProvider } from './context/ResumeContext'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Jobs from './pages/Jobs'
@@ -16,6 +17,7 @@ export default function App() {
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
+        <ResumeProvider>
         <div className="page">
           <Navbar />
           <Routes>
@@ -27,6 +29,7 @@ export default function App() {
             <Route path="/preferences" element={<Preferences />} />
           </Routes>
         </div>
+        </ResumeProvider>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>

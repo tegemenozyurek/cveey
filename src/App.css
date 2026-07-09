@@ -263,6 +263,27 @@
   width: 100%;
 }
 
+.btn-gradient-wrap--sm {
+  text-decoration: none;
+  flex-shrink: 0;
+  font-family: inherit;
+  display: inline-block;
+  border: none;
+  background: var(--gradient-border);
+  cursor: pointer;
+  padding: 1.5px;
+}
+
+.btn-gradient-wrap--sm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-gradient-wrap--sm .btn-gradient-inner {
+  padding: 7px 16px;
+  font-size: 13px;
+}
+
 .logo {
   font-size: 18px;
   font-weight: 700;
@@ -1036,6 +1057,205 @@
   color: #f87171;
 }
 
+/* ── My CV ───────────────────────────────────────── */
+.my-cv-main {
+  width: 100%;
+  max-width: 640px;
+  align-self: center;
+}
+
+.cv-errors {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.cv-file-input {
+  display: none;
+}
+
+.cv-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.cv-list-item {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.cv-list-item--active {
+  border-color: rgba(34, 211, 238, 0.35);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.12);
+}
+
+.cv-list-item-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cv-list-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cv-list-item-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cv-list-item-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.cv-active-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.12);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.cv-list-item-meta {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.cv-list-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.cv-upload-card {
+  width: 100%;
+  padding: 36px 28px;
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px dashed var(--upload-border);
+  border-radius: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  outline: none;
+}
+
+.cv-upload-card--compact {
+  padding: 22px 20px;
+}
+
+.cv-upload-card:hover,
+.cv-upload-card:focus-visible {
+  border-color: rgba(232, 121, 249, 0.5);
+  background: rgba(232, 121, 249, 0.06);
+}
+
+.cv-upload-card.dragging {
+  border-color: var(--accent-pink);
+  background: rgba(232, 121, 249, 0.1);
+  transform: scale(1.01);
+}
+
+.cv-upload-card--busy {
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.cv-upload-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 14px;
+  background: rgba(232, 121, 249, 0.12);
+  color: var(--accent-pink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cv-upload-card--compact .cv-upload-icon {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 10px;
+}
+
+.cv-upload-hint {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.cv-upload-formats {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.cv-upload-progress {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.cv-upload-progress-label {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.cv-limit-note {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.cv-delete-confirm {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.cv-delete-text {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.cv-delete-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .file-remove {
   flex-shrink: 0;
   width: 28px;
@@ -1401,6 +1621,20 @@
 
   .upload-card {
     padding: 32px 20px;
+  }
+
+  .cv-list-item-main {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cv-list-item-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .cv-upload-card {
+    padding: 28px 18px;
   }
 
   .modal {
