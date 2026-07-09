@@ -7,7 +7,8 @@ import {
 } from 'firebase/auth'
 import { auth } from './firebase'
 import { signInWithOAuthPopup } from './authOAuthService'
-import { sendVerificationEmail } from './authEmailService'
+import { sendPasswordResetForEmail, sendVerificationEmail } from './authEmailService'
+import { syncPasswordAccountIndex } from './passwordAccountService'
 import { useLanguage } from './context/LanguageContext'
 
 const googleProvider = new GoogleAuthProvider()
@@ -30,6 +31,8 @@ const AUTH_ERROR_KEYS = {
   'auth/operation-not-allowed': 'auth.error.operationNotAllowed',
   'auth/account-exists-with-different-credential': 'auth.error.accountExists',
   'auth/unauthorized-domain': 'auth.error.unauthorizedDomain',
+  EMAIL_NOT_REGISTERED: 'login.resetNotFound',
+  AUTH_METHOD_NOT_PASSWORD: 'login.resetOAuthOnly',
   USER_EMAIL_MISSING: 'auth.error.emailMissing',
   PASSWORD_MISMATCH: 'login.passwordMismatch',
   'permission-denied': 'auth.error.syncFailed',
@@ -66,6 +69,18 @@ function AuthError({ message }) {
   )
 }
 
+function AuthSuccess({ message }) {
+  return (
+    <p className="login-form-success">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+        <path d="M8 12l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      {message}
+    </p>
+  )
+}
+
 function OAuthButtons({ isBusy, googleLoading, githubLoading, onGoogle, onGitHub, t }) {
   return (
     <div className="oauth-buttons">
@@ -86,12 +101,15 @@ export default function LoginModal({ onClose }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [mode, setMode] = useState('signin')
+  const [resetSent, setResetSent] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [githubLoading, setGithubLoading] = useState(false)
 
+  const isSignUp = mode === 'signup'
+  const isForgot = mode === 'forgot'
   const isBusy = loading || googleLoading || githubLoading
 
   const getAuthErrorMessage = (err) => {
@@ -99,12 +117,25 @@ export default function LoginModal({ onClose }) {
     const key = AUTH_ERROR_KEYS[code]
     if (key) return t(key)
     console.error('Auth error:', err)
-    return t('auth.error.generic')
+    return isForgot ? t('login.resetError') : t('auth.error.generic')
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (isForgot) {
+      setLoading(true)
+      try {
+        await sendPasswordResetForEmail(auth, email)
+        setResetSent(true)
+      } catch (err) {
+        setError(getAuthErrorMessage(err))
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
 
     if (isSignUp && password !== confirmPassword) {
       setError(t('login.passwordMismatch'))
@@ -116,9 +147,11 @@ export default function LoginModal({ onClose }) {
     try {
       if (isSignUp) {
         const credential = await createUserWithEmailAndPassword(auth, email, password)
+        await syncPasswordAccountIndex(credential.user)
         await sendVerificationEmail(credential.user)
       } else {
-        await signInWithEmailAndPassword(auth, email, password)
+        const credential = await signInWithEmailAndPassword(auth, email, password)
+        await syncPasswordAccountIndex(credential.user)
       }
       onClose()
     } catch (err) {
@@ -154,9 +187,26 @@ export default function LoginModal({ onClose }) {
     }
   }
 
-  const switchMode = () => {
-    setIsSignUp((v) => !v)
+  const openForgotPassword = () => {
+    setMode('forgot')
     setError('')
+    setResetSent(false)
+    setPassword('')
+    setConfirmPassword('')
+  }
+
+  const backToSignIn = () => {
+    setMode('signin')
+    setError('')
+    setResetSent(false)
+    setPassword('')
+    setConfirmPassword('')
+  }
+
+  const switchToSignUp = () => {
+    setMode('signup')
+    setError('')
+    setResetSent(false)
     setConfirmPassword('')
   }
 
@@ -172,7 +222,7 @@ export default function LoginModal({ onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className={`modal modal--auth${isSignUp ? ' modal--signup' : ' modal--signin'}`}
+        className={`modal modal--auth${isSignUp ? ' modal--signup' : ''}${isForgot ? ' modal--forgot' : ' modal--signin'}`}
         role="dialog"
         aria-labelledby="login-title"
         onClick={(e) => e.stopPropagation()}
@@ -184,6 +234,8 @@ export default function LoginModal({ onClose }) {
         <div className="modal-auth-header">
           {isSignUp ? (
             <h2 id="login-title" className="modal-heading">{t('login.createAccountTitle')}</h2>
+          ) : isForgot ? (
+            <h2 id="login-title" className="modal-heading">{t('login.resetTitle')}</h2>
           ) : (
             <p id="login-title" className="modal-logo modal-logo--lg">cve<span>ey</span></p>
           )}
@@ -191,6 +243,10 @@ export default function LoginModal({ onClose }) {
 
         <div className="modal-auth-body">
           <form className="login-form" onSubmit={handleSubmit}>
+            {isForgot && (
+              <p className="modal-subtitle login-reset-subtitle">{t('login.resetSubtitle')}</p>
+            )}
+
             <div className="form-field">
               <label className="form-label" htmlFor={isSignUp ? 'signup-email' : 'email'}>
                 {t('login.email')}
@@ -204,29 +260,41 @@ export default function LoginModal({ onClose }) {
                 required
                 autoComplete="email"
                 placeholder="you@example.com"
-                disabled={isBusy}
+                disabled={isBusy || (isForgot && resetSent)}
               />
             </div>
 
-            <div className="form-field">
-              <label className="form-label" htmlFor={isSignUp ? 'signup-password' : 'password'}>
-                {t('login.password')}
-              </label>
-              <input
-                id={isSignUp ? 'signup-password' : 'password'}
-                className="form-input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                placeholder={isSignUp ? t('login.passwordPlaceholder') : '••••••••'}
-                disabled={isBusy}
-              />
-            </div>
+            {!isForgot && (
+              <div className="form-field">
+                <label className="form-label" htmlFor={isSignUp ? 'signup-password' : 'password'}>
+                  {t('login.password')}
+                </label>
+                <input
+                  id={isSignUp ? 'signup-password' : 'password'}
+                  className="form-input"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                  placeholder={isSignUp ? t('login.passwordPlaceholder') : '••••••••'}
+                  disabled={isBusy}
+                />
+                {!isSignUp && (
+                  <button
+                    type="button"
+                    className="login-forgot-btn"
+                    onClick={openForgotPassword}
+                    disabled={isBusy}
+                  >
+                    {t('login.forgotPassword')}
+                  </button>
+                )}
+              </div>
+            )}
 
-            {isSignUp ? (
+            {isSignUp && (
               <div className="form-field">
                 <label className="form-label" htmlFor="confirm-password">{t('login.confirmPassword')}</label>
                 <input
@@ -242,41 +310,59 @@ export default function LoginModal({ onClose }) {
                   disabled={isBusy}
                 />
               </div>
-            ) : (
-              <div className="form-field form-field--placeholder" aria-hidden="true">
-                <span className="form-label">{t('login.confirmPassword')}</span>
+            )}
+
+            {isForgot && (
+              <div className="form-field form-field--placeholder form-field--placeholder-tall" aria-hidden="true">
+                <span className="form-label">{t('login.password')}</span>
                 <div className="form-input form-input--placeholder" />
               </div>
+            )}
+
+            {isForgot && resetSent && (
+              <p className="login-reset-hint">{t('login.resetHint')}</p>
             )}
 
             <button
               type="submit"
               className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
-              disabled={isBusy}
+              disabled={isBusy || (isForgot && resetSent)}
             >
               <span className="btn-gradient-inner">
-                {loading ? t('login.wait') : isSignUp ? t('login.submitSignUp') : t('login.submitSignIn')}
+                {loading
+                  ? t('login.wait')
+                  : isForgot
+                    ? t('login.resetSubmit')
+                    : isSignUp
+                      ? t('login.submitSignUp')
+                      : t('login.submitSignIn')}
               </span>
             </button>
           </form>
 
           <div className="modal-auth-error">
             {error && <AuthError message={error} />}
+            {isForgot && resetSent && !error && (
+              <AuthSuccess message={t('login.resetSent')} />
+            )}
           </div>
 
-          <div className="modal-or">
-            <span>{t('login.or')}</span>
-          </div>
-
-          <OAuthButtons {...oauthProps} />
+          {!isForgot && (
+            <>
+              <div className="modal-or">
+                <span>{t('login.or')}</span>
+              </div>
+              <OAuthButtons {...oauthProps} />
+            </>
+          )}
         </div>
 
         <div className="modal-auth-footer">
-          {isSignUp ? (
+          {isSignUp || isForgot ? (
             <button
               type="button"
               className="login-back-btn"
-              onClick={switchMode}
+              onClick={backToSignIn}
               disabled={isBusy}
             >
               {t('login.backToSignIn')}
@@ -285,7 +371,7 @@ export default function LoginModal({ onClose }) {
             <button
               type="button"
               className="login-create-btn"
-              onClick={switchMode}
+              onClick={switchToSignUp}
               disabled={isBusy}
             >
               {t('login.createAccountLink')}

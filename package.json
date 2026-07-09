@@ -8,7 +8,10 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "storage:cors": "gsutil cors set cors.json gs://cveey-a7faa.firebasestorage.app"
+    "storage:cors": "node scripts/set-storage-cors.cjs",
+    "firebase:login": "firebase login",
+    "firebase:deploy:rules": "firebase deploy --only firestore:rules",
+    "firebase:deploy:storage": "firebase deploy --only storage"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.3.0",
@@ -18,6 +21,7 @@
     "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
+    "@google-cloud/storage": "^7.21.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",

@@ -1756,6 +1756,61 @@
   color: var(--text-muted);
 }
 
+
+.login-forgot-btn {
+  align-self: flex-end;
+  margin-top: 2px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--accent-cyan);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, opacity 0.15s;
+}
+
+.login-forgot-btn:hover:not(:disabled) {
+  color: var(--accent-pink);
+}
+
+.login-forgot-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-reset-subtitle {
+  margin: 0 0 4px;
+}
+
+.login-reset-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.login-form-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #4ade80;
+}
+
+.form-field--placeholder-tall .form-input--placeholder {
+  min-height: 84px;
+}
+
+.modal--forgot {
+  min-height: 548px;
+}
+
 .form-input {
   padding: 10px 14px;
   font-size: 14px;
