@@ -82,20 +82,6 @@ function IconDelete() {
   )
 }
 
-function IconStar() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 2l2.9 6.5L22 9.3l-5 4.4 1.5 6.5L12 17.3 5.5 20.2 7 13.7 2 9.3l7.1-.8L12 2z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 function IconCheck() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -129,6 +115,8 @@ export default function CvCard({
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [localError, setLocalError] = useState('')
+  const [previewUrl, setPreviewUrl] = useState(cv.url ?? '')
+  const [previewLoading, setPreviewLoading] = useState(false)
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -138,6 +126,31 @@ export default function CvCard({
   useEffect(() => {
     if (editing) inputRef.current?.focus()
   }, [editing])
+
+  useEffect(() => {
+    if (!isActive) return
+
+    if (cv.url) {
+      setPreviewUrl(cv.url)
+      return
+    }
+
+    let cancelled = false
+    setPreviewLoading(true)
+
+    getCvDownloadUrl(cv.fullPath)
+      .then((url) => {
+        if (!cancelled) setPreviewUrl(url)
+      })
+      .catch(() => {
+        if (!cancelled) setLocalError(t('myCv.previewError'))
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [isActive, cv.fullPath, cv.url, t])
 
   const formatBytes = (bytes) => {
     if (bytes < 1024) return `${bytes} B`
@@ -196,7 +209,7 @@ export default function CvCard({
     setViewing(true)
     setLocalError('')
     try {
-      const url = await getCvDownloadUrl(cv.fullPath)
+      const url = previewUrl || await getCvDownloadUrl(cv.fullPath)
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch {
       setLocalError(t('myCv.viewError'))
@@ -287,28 +300,13 @@ export default function CvCard({
               </button>
             </div>
           ) : (
-            <div className="cv-card-title-row">
+            <>
               <h2 className="cv-card-name" title={cv.displayName}>{cv.displayName}</h2>
-              {isActive ? (
-                <span className="cv-active-badge">{t('myCv.active')}</span>
-              ) : (
-                <button
-                  type="button"
-                  className="cv-set-active-btn"
-                  onClick={onActivate}
-                  disabled={activating || editing}
-                  aria-label={t('myCv.setActive')}
-                  title={t('myCv.setActive')}
-                >
-                  <IconStar />
-                  {activating ? t('myCv.activating') : t('myCv.setActive')}
-                </button>
-              )}
-            </div>
+              <p className="cv-card-meta">
+                {formatBytes(cv.size)} · {formatDate(cv.updated)}
+              </p>
+            </>
           )}
-          <p className="cv-card-meta">
-            {formatBytes(cv.size)} · {formatDate(cv.updated)}
-          </p>
         </div>
 
         <div className="cv-card-tools">
@@ -357,7 +355,33 @@ export default function CvCard({
             <IconDelete />
           </button>
         </div>
+
+        {!isActive && !editing && (
+          <button
+            type="button"
+            className="cv-set-active-link"
+            onClick={onActivate}
+            disabled={activating}
+          >
+            {activating ? t('myCv.activating') : t('myCv.setActive')}
+          </button>
+        )}
       </div>
+
+      {isActive && (
+        <div className="cv-card-preview">
+          {previewLoading && (
+            <p className="cv-card-preview-loading">{t('myCv.previewLoading')}</p>
+          )}
+          {!previewLoading && previewUrl && (
+            <iframe
+              src={`${previewUrl}#toolbar=0&navpanes=0`}
+              title={cv.displayName}
+              className="cv-card-preview-frame"
+            />
+          )}
+        </div>
+      )}
 
       {localError && <p className="cv-card-error">{localError}</p>}
 

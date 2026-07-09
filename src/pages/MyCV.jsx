@@ -119,20 +119,45 @@ export default function MyCV() {
         </div>
       )}
 
-      {!showInitialLoading && !error && cvs.length > 0 && (
-        <div className="cv-list">
-          {cvs.map((cv) => (
-            <CvCard
-              key={cv.fullPath}
-              cv={cv}
-              isActive={cv.fullPath === activeCvPath}
-              onRename={renameUserCv}
-              onDelete={removeCv}
-              onSetActive={setActiveUserCv}
-            />
-          ))}
-        </div>
-      )}
+      {!showInitialLoading && !error && cvs.length > 0 && (() => {
+        const activeCv = cvs.find((cv) => cv.fullPath === activeCvPath)
+        const otherCvs = cvs.filter((cv) => cv.fullPath !== activeCvPath)
+
+        return (
+          <div className="cv-list">
+            {activeCv && (
+              <section className="cv-section">
+                <h2 className="cv-section-label">{t('myCv.sectionActive')}</h2>
+                <CvCard
+                  cv={activeCv}
+                  isActive
+                  onRename={renameUserCv}
+                  onDelete={removeCv}
+                  onSetActive={setActiveUserCv}
+                />
+              </section>
+            )}
+
+            {otherCvs.length > 0 && (
+              <section className="cv-section">
+                <h2 className="cv-section-label">{t('myCv.sectionOthers')}</h2>
+                <div className="cv-section-list">
+                  {otherCvs.map((cv) => (
+                    <CvCard
+                      key={cv.fullPath}
+                      cv={cv}
+                      isActive={false}
+                      onRename={renameUserCv}
+                      onDelete={removeCv}
+                      onSetActive={setActiveUserCv}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )
+      })()}
 
       {!showInitialLoading && !error && canUpload && (
         <div
