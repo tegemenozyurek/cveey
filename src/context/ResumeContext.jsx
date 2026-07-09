@@ -12,7 +12,7 @@ import {
 const ResumeContext = createContext(null)
 
 export function ResumeProvider({ children }) {
-  const { user } = useAuth()
+  const { user, authLoading } = useAuth()
   const [cvs, setCvs] = useState([])
   const [activeCv, setActiveCv] = useState(null)
   const [activeCvPath, setActiveCvPath] = useState(null)
@@ -27,6 +27,8 @@ export function ResumeProvider({ children }) {
   }, [])
 
   useEffect(() => {
+    if (authLoading) return
+
     if (!user) {
       setCvs([])
       setActiveCv(null)
@@ -58,7 +60,7 @@ export function ResumeProvider({ children }) {
       })
 
     return () => { cancelled = true }
-  }, [user, applyCvData])
+  }, [user, authLoading, applyCvData])
 
   const refreshCvs = useCallback(async () => {
     if (!user) return null

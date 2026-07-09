@@ -17,16 +17,15 @@ export function AuthProvider({ children }) {
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    return onAuthStateChanged(auth, async (nextUser) => {
-      if (nextUser) {
-        try {
-          await syncUserToFirestore(nextUser)
-        } catch (err) {
-          console.error('User sync failed:', err)
-        }
-      }
+    return onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser)
       setAuthLoading(false)
+
+      if (nextUser) {
+        void syncUserToFirestore(nextUser).catch((err) => {
+          console.error('User sync failed:', err)
+        })
+      }
     })
   }, [])
 
