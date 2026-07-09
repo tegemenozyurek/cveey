@@ -25,6 +25,10 @@ export function storageNameFromPath(fullPath) {
   return slash === -1 ? normalized : normalized.slice(slash + 1)
 }
 
+export function buildCvStoragePath(uid, fileId) {
+  return `users/${uid}/${fileId}.pdf`
+}
+
 export function normalizeCvDisplayName(name) {
   const trimmed = name.trim()
   if (!trimmed) throw new Error('EMPTY_NAME')
@@ -46,26 +50,65 @@ function fileDoc(uid, fileId) {
   return doc(db, 'users', uid, 'files', fileId)
 }
 
+function isDefaultStoragePath(uid, fileId, filePath) {
+  return normalizeStoragePath(filePath) === buildCvStoragePath(uid, fileId)
+}
+
+export function resolveFilePath(uid, fileId, data) {
+  if (data.storageObject) {
+    return `users/${uid}/${data.storageObject}`
+  }
+  if (data.filePath) {
+    return normalizeStoragePath(data.filePath)
+  }
+  return buildCvStoragePath(uid, fileId)
+}
+
 function parseDisplayNameFromStorageName(storageName) {
   const parts = storageName.split('_')
   if (parts.length > 1) return parts.slice(1).join('_')
   return storageName
 }
 
-function mapFileDoc(id, data) {
-  const filePath = normalizeStoragePath(data.filePath)
+function compactFileData(uid, fileId, data) {
+  const compact = {
+    displayName: data.displayName,
+  }
+
+  const filePath = resolveFilePath(uid, fileId, data)
+  if (!isDefaultStoragePath(uid, fileId, filePath)) {
+    compact.storageObject = storageObjectFromData(uid, fileId, data)
+  }
+
+  return compact
+}
+
+function storageObjectFromData(uid, fileId, data) {
+  if (data.storageObject) return data.storageObject
+  const filePath = data.filePath ? normalizeStoragePath(data.filePath) : buildCvStoragePath(uid, fileId)
+  return storageNameFromPath(filePath)
+}
+
+function needsFileCompaction(uid, fileId, data) {
+  const allowed = new Set(['displayName', 'storageObject'])
+  const keys = Object.keys(data)
+  if (keys.some((key) => !allowed.has(key))) return true
+
+  const filePath = resolveFilePath(uid, fileId, data)
+  const shouldHaveStorageObject = !isDefaultStoragePath(uid, fileId, filePath)
+  return shouldHaveStorageObject
+    ? data.storageObject !== storageObjectFromData(uid, fileId, data)
+    : 'storageObject' in data
+}
+
+function mapFileDoc(uid, id, data) {
+  const filePath = resolveFilePath(uid, id, data)
   return {
     id,
     filePath,
     fullPath: filePath,
     displayName: data.displayName,
     storageName: storageNameFromPath(filePath),
-    size: data.size ?? 0,
-    createdAt: data.createdAt?.toDate?.()?.toISOString?.() ?? data.createdAt ?? null,
-    updatedAt: data.updatedAt?.toDate?.()?.toISOString?.() ?? data.updatedAt ?? null,
-    updated: data.updatedAt?.toDate?.()?.toISOString?.()
-      ?? data.createdAt?.toDate?.()?.toISOString?.()
-      ?? new Date().toISOString(),
   }
 }
 
@@ -88,41 +131,76 @@ async function ensureUserDoc(uid) {
   })
 }
 
+async function compactFileRecord(uid, fileId, data) {
+  if (!needsFileCompaction(uid, fileId, data)) return mapFileDoc(uid, fileId, data)
+
+  const compact = compactFileData(uid, fileId, data)
+  const cleanup = {
+    displayName: compact.displayName,
+    filePath: deleteField(),
+    size: deleteField(),
+    createdAt: deleteField(),
+    updatedAt: deleteField(),
+  }
+
+  if (compact.storageObject) {
+    cleanup.storageObject = compact.storageObject
+  } else {
+    cleanup.storageObject = deleteField()
+  }
+
+  await updateDoc(fileDoc(uid, fileId), cleanup)
+  return mapFileDoc(uid, fileId, compact)
+}
+
+export async function pruneLegacyUserFields(uid) {
+  const userRef = doc(db, 'users', uid)
+  const snap = await getDoc(userRef)
+  if (!snap.exists()) return
+
+  const data = snap.data()
+  const cleanup = {}
+
+  if ('activeCvPath' in data) cleanup.activeCvPath = deleteField()
+  if ('cvDisplayNames' in data) cleanup.cvDisplayNames = deleteField()
+
+  if (Object.keys(cleanup).length === 0) return
+  await updateDoc(userRef, cleanup)
+}
+
 export async function listCvFileRecords(uid) {
   const snap = await getDocs(filesCollection(uid))
-  return snap.docs.map((entry) => mapFileDoc(entry.id, entry.data()))
+  return Promise.all(
+    snap.docs.map((entry) => compactFileRecord(uid, entry.id, entry.data())),
+  )
 }
 
 export async function getCvFileRecord(uid, fileId) {
   const snap = await getDoc(fileDoc(uid, fileId))
   if (!snap.exists()) return null
-  return mapFileDoc(snap.id, snap.data())
+  return compactFileRecord(uid, snap.id, snap.data())
 }
 
-export async function createCvFileRecord(uid, { filePath, displayName, size, fileId }) {
+export async function createCvFileRecord(uid, { displayName, fileId, storageObject }) {
   await ensureUserDoc(uid)
 
-  const normalizedPath = normalizeStoragePath(filePath)
   const fileRef = fileId ? fileDoc(uid, fileId) : doc(filesCollection(uid))
-  const now = serverTimestamp()
-
-  await setDoc(fileRef, {
-    filePath: normalizedPath,
+  const payload = {
     displayName: normalizeCvDisplayName(displayName),
-    size,
-    createdAt: now,
-    updatedAt: now,
-  })
+  }
 
+  if (storageObject) {
+    payload.storageObject = storageObject
+  }
+
+  await setDoc(fileRef, payload)
   const saved = await getDoc(fileRef)
-  return mapFileDoc(saved.id, saved.data())
+  return mapFileDoc(uid, saved.id, saved.data())
 }
 
 export async function updateCvFileDisplayName(uid, fileId, displayName) {
-  const normalized = normalizeCvDisplayName(displayName)
   await updateDoc(fileDoc(uid, fileId), {
-    displayName: normalized,
-    updatedAt: serverTimestamp(),
+    displayName: normalizeCvDisplayName(displayName),
   })
 }
 
@@ -138,25 +216,21 @@ export async function deleteAllCvFileRecords(uid) {
 export async function getActiveFileId(uid) {
   const snap = await getDoc(doc(db, 'users', uid))
   if (!snap.exists()) return null
-  return snap.data().activeFileId ?? null
-}
 
-export async function getLegacyActiveCvPath(uid) {
-  const snap = await getDoc(doc(db, 'users', uid))
-  if (!snap.exists()) return null
-  const path = snap.data().activeCvPath ?? null
-  return path ? normalizeStoragePath(path) : null
-}
+  const data = snap.data()
+  if (data.activeFileId) return data.activeFileId
 
-export async function getLegacyCvDisplayNames(uid) {
-  const snap = await getDoc(doc(db, 'users', uid))
-  if (!snap.exists()) return {}
-  return snap.data().cvDisplayNames ?? {}
+  const legacyPath = data.activeCvPath ? normalizeStoragePath(data.activeCvPath) : null
+  if (!legacyPath) return null
+
+  const files = await listCvFileRecords(uid)
+  return files.find((file) => file.filePath === legacyPath)?.id ?? null
 }
 
 export async function setActiveFileId(uid, fileId) {
   await ensureUserDoc(uid)
   await updateDoc(doc(db, 'users', uid), { activeFileId: fileId })
+  await pruneLegacyUserFields(uid)
 }
 
 export async function clearActiveFileId(uid) {
@@ -171,4 +245,17 @@ export function resolveLegacyDisplayName(filePath, storageName, metadataName, le
   if (legacyNames[filePath]) return legacyNames[filePath]
   if (metadataName) return normalizeCvDisplayName(metadataName)
   return normalizeCvDisplayName(parseDisplayNameFromStorageName(storageName))
+}
+
+export async function readLegacyMigrationData(uid) {
+  const snap = await getDoc(doc(db, 'users', uid))
+  if (!snap.exists()) {
+    return { legacyNames: {}, legacyActivePath: null }
+  }
+
+  const data = snap.data()
+  return {
+    legacyNames: data.cvDisplayNames ?? {},
+    legacyActivePath: data.activeCvPath ? normalizeStoragePath(data.activeCvPath) : null,
+  }
 }

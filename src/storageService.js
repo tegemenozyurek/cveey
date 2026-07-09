@@ -9,16 +9,17 @@ import {
 import { collection, doc } from 'firebase/firestore'
 import { auth, db, storage } from './firebase'
 import {
+  buildCvStoragePath,
   clearActiveFileId,
   createCvFileRecord,
   deleteAllCvFileRecords,
   deleteCvFileRecord,
   getActiveFileId,
   getCvFileRecord,
-  getLegacyActiveCvPath,
-  getLegacyCvDisplayNames,
   listCvFileRecords,
   normalizeStoragePath,
+  pruneLegacyUserFields,
+  readLegacyMigrationData,
   resolveLegacyDisplayName,
   setActiveFileId,
   updateCvFileDisplayName,
@@ -34,14 +35,6 @@ export function invalidateCvCache(uid) {
   else cvCache.clear()
 }
 
-function sanitizeFileName(name) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, '_')
-}
-
-export function buildCvStoragePath(uid, fileId) {
-  return `users/${uid}/${fileId}.pdf`
-}
-
 async function fetchStorageUrl(filePath) {
   return getDownloadURL(ref(storage, normalizeStoragePath(filePath)))
 }
@@ -55,17 +48,16 @@ async function enrichCvRecord(record) {
   return {
     ...record,
     url,
-    size: metadata?.size ?? record.size,
-    updated: metadata?.updated ?? record.updated,
+    size: metadata?.size ?? 0,
+    updated: metadata?.updated ?? new Date().toISOString(),
   }
 }
 
 async function syncStorageWithFirestore(uid) {
-  const [records, listing, legacyNames, legacyActivePath] = await Promise.all([
+  const [records, listing, legacy] = await Promise.all([
     listCvFileRecords(uid),
     listAll(ref(storage, `users/${uid}`)),
-    getLegacyCvDisplayNames(uid),
-    getLegacyActiveCvPath(uid),
+    readLegacyMigrationData(uid),
   ])
 
   const recordsByPath = new Map(records.map((record) => [record.filePath, record]))
@@ -82,18 +74,17 @@ async function syncStorageWithFirestore(uid) {
       filePath,
       item.name,
       metadata.customMetadata?.originalFileName,
-      legacyNames,
+      legacy.legacyNames,
     )
 
     const created = await createCvFileRecord(uid, {
-      filePath,
       displayName,
-      size: metadata.size,
+      storageObject: item.name,
     })
     recordsByPath.set(filePath, created)
   }
 
-  for (const record of recordsByPath.values()) {
+  for (const record of [...recordsByPath.values()]) {
     if (!storagePaths.has(record.filePath)) {
       await deleteCvFileRecord(uid, record.id)
       recordsByPath.delete(record.filePath)
@@ -102,14 +93,15 @@ async function syncStorageWithFirestore(uid) {
 
   const syncedRecords = [...recordsByPath.values()]
 
-  if (legacyActivePath && syncedRecords.length > 0) {
+  if (legacy.legacyActivePath && syncedRecords.length > 0) {
     const activeFileId = await getActiveFileId(uid)
     if (!activeFileId) {
-      const match = syncedRecords.find((record) => record.filePath === legacyActivePath)
+      const match = syncedRecords.find((record) => record.filePath === legacy.legacyActivePath)
       if (match) await setActiveFileId(uid, match.id)
     }
   }
 
+  await pruneLegacyUserFields(uid)
   return syncedRecords
 }
 
@@ -177,7 +169,6 @@ export async function uploadCv(uid, file, onProgress) {
   await new Promise((resolve, reject) => {
     const task = uploadBytesResumable(storageRef, file, {
       contentType: 'application/pdf',
-      customMetadata: { originalFileName: file.name },
     })
 
     task.on(
@@ -193,9 +184,7 @@ export async function uploadCv(uid, file, onProgress) {
 
   await createCvFileRecord(uid, {
     fileId,
-    filePath,
     displayName: file.name,
-    size: file.size,
   })
 
   if (cvs.length === 0) {
@@ -280,7 +269,7 @@ export async function deleteCv(uid, fileId) {
   if (activeFileId === fileId) {
     const remaining = (await listCvFileRecords(uid))
       .filter((cv) => cv.id !== fileId)
-      .sort((a, b) => new Date(b.updated) - new Date(a.updated))
+      .sort((a, b) => a.displayName.localeCompare(b.displayName))
 
     if (remaining.length > 0) {
       await setActiveFileId(uid, remaining[0].id)
@@ -305,5 +294,8 @@ export async function deleteUserStorageFiles(uid) {
   await Promise.all(listing.items.map((item) => deleteObject(item)))
   await deleteAllCvFileRecords(uid)
   await clearActiveFileId(uid)
+  await pruneLegacyUserFields(uid)
   invalidateCvCache(uid)
 }
+
+export { buildCvStoragePath }
