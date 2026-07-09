@@ -21,6 +21,7 @@ export const translations = {
 
     'login.welcome': 'Welcome back',
     'login.createAccount': 'Create your account',
+    'login.createAccountTitle': 'Create an Account',
     'login.subtitleSignIn': 'Sign in to continue to cveey.',
     'login.subtitleSignUp': 'Start uploading your resumes today.',
     'login.email': 'Email address',
@@ -31,6 +32,10 @@ export const translations = {
     'login.wait': 'Please wait…',
     'login.createAccountLink': 'Create an account',
     'login.switchSignIn': 'Sign in',
+    'login.backToSignIn': 'Back to sign in',
+    'login.confirmPassword': 'Confirm password',
+    'login.confirmPasswordPlaceholder': 'Repeat your password',
+    'login.passwordMismatch': 'Passwords do not match.',
     'login.close': 'Close',
 
     'auth.error.emailInUse': 'This email is already registered.',
@@ -123,6 +128,7 @@ export const translations = {
 
     'login.welcome': 'Tekrar hoş geldiniz',
     'login.createAccount': 'Hesap oluştur',
+    'login.createAccountTitle': 'Hesap Oluştur',
     'login.subtitleSignIn': 'cveey\'e devam etmek için giriş yapın.',
     'login.subtitleSignUp': 'Özgeçmişlerinizi yüklemeye bugün başlayın.',
     'login.email': 'E-posta adresi',
@@ -133,6 +139,10 @@ export const translations = {
     'login.wait': 'Lütfen bekleyin…',
     'login.createAccountLink': 'Hesap oluştur',
     'login.switchSignIn': 'Giriş yap',
+    'login.backToSignIn': 'Giriş yapmaya dön',
+    'login.confirmPassword': 'Şifreyi onayla',
+    'login.confirmPasswordPlaceholder': 'Şifreni tekrar gir',
+    'login.passwordMismatch': 'Şifreler eşleşmiyor.',
     'login.close': 'Kapat',
 
     'auth.error.emailInUse': 'Bu e-posta zaten kayıtlı.',

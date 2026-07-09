@@ -30,6 +30,7 @@ const AUTH_ERROR_KEYS = {
   'auth/account-exists-with-different-credential': 'auth.error.accountExists',
   'auth/unauthorized-domain': 'auth.error.unauthorizedDomain',
   USER_EMAIL_MISSING: 'auth.error.emailMissing',
+  PASSWORD_MISMATCH: 'login.passwordMismatch',
   'permission-denied': 'auth.error.syncFailed',
 }
 
@@ -52,10 +53,38 @@ function GitHubIcon() {
   )
 }
 
+function AuthError({ message }) {
+  return (
+    <p className="form-error login-form-error">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+        <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+      {message}
+    </p>
+  )
+}
+
+function OAuthButtons({ isBusy, googleLoading, githubLoading, onGoogle, onGitHub, t }) {
+  return (
+    <div className="oauth-buttons">
+      <button type="button" className="oauth-btn" onClick={onGoogle} disabled={isBusy}>
+        <GoogleIcon />
+        <span>{googleLoading ? t('login.wait') : t('login.google')}</span>
+      </button>
+      <button type="button" className="oauth-btn oauth-btn--github" onClick={onGitHub} disabled={isBusy}>
+        <GitHubIcon />
+        <span>{githubLoading ? t('login.wait') : t('login.github')}</span>
+      </button>
+    </div>
+  )
+}
+
 export default function LoginModal({ onClose }) {
   const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -75,6 +104,12 @@ export default function LoginModal({ onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (isSignUp && password !== confirmPassword) {
+      setError(t('login.passwordMismatch'))
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -94,7 +129,6 @@ export default function LoginModal({ onClose }) {
   const handleGoogleSignIn = async () => {
     setError('')
     setGoogleLoading(true)
-
     try {
       await signInWithPopup(auth, googleProvider)
       onClose()
@@ -108,7 +142,6 @@ export default function LoginModal({ onClose }) {
   const handleGitHubSignIn = async () => {
     setError('')
     setGithubLoading(true)
-
     try {
       await signInWithPopup(auth, githubProvider)
       onClose()
@@ -122,12 +155,22 @@ export default function LoginModal({ onClose }) {
   const switchMode = () => {
     setIsSignUp((v) => !v)
     setError('')
+    setConfirmPassword('')
+  }
+
+  const oauthProps = {
+    isBusy,
+    googleLoading,
+    githubLoading,
+    onGoogle: handleGoogleSignIn,
+    onGitHub: handleGitHubSignIn,
+    t,
   }
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal"
+        className={`modal${isSignUp ? ' modal--signup' : ' modal--signin'}`}
         role="dialog"
         aria-labelledby="login-title"
         onClick={(e) => e.stopPropagation()}
@@ -136,108 +179,154 @@ export default function LoginModal({ onClose }) {
           ×
         </button>
 
-        <p id="login-title" className="modal-logo modal-logo--lg">cve<span>ey</span></p>
-
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="form-field">
-            <label className="form-label" htmlFor="email">{t('login.email')}</label>
-            <input
-              id="email"
-              className="form-input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder="you@example.com"
-              disabled={isBusy}
-            />
-          </div>
-
-          <div className="form-field">
-            <label className="form-label" htmlFor="password">{t('login.password')}</label>
-            <input
-              id="password"
-              className="form-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              autoComplete={isSignUp ? 'new-password' : 'current-password'}
-              placeholder={isSignUp ? t('login.passwordPlaceholder') : '••••••••'}
-              disabled={isBusy}
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
-            disabled={isBusy}
-          >
-            <span className="btn-gradient-inner">
-              {loading ? t('login.wait') : isSignUp ? t('login.submitSignUp') : t('login.submitSignIn')}
-            </span>
-          </button>
-        </form>
-
-        {error && (
-          <p className="form-error login-form-error">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-              <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            {error}
-          </p>
+        {isSignUp ? (
+          <h2 id="login-title" className="modal-heading">{t('login.createAccountTitle')}</h2>
+        ) : (
+          <p id="login-title" className="modal-logo modal-logo--lg">cve<span>ey</span></p>
         )}
 
-        <div className="modal-or">
-          <span>{t('login.or')}</span>
-        </div>
+        {isSignUp ? (
+          <>
+            <form className="login-form signup-form" onSubmit={handleSubmit}>
+              <div className="form-field">
+                <label className="form-label" htmlFor="signup-email">{t('login.email')}</label>
+                <input
+                  id="signup-email"
+                  className="form-input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  disabled={isBusy}
+                />
+              </div>
 
-        <div className="oauth-buttons">
-          <button
-            type="button"
-            className="oauth-btn"
-            onClick={handleGoogleSignIn}
-            disabled={isBusy}
-          >
-            <GoogleIcon />
-            <span>{googleLoading ? t('login.wait') : t('login.google')}</span>
-          </button>
+              <div className="form-field">
+                <label className="form-label" htmlFor="signup-password">{t('login.password')}</label>
+                <input
+                  id="signup-password"
+                  className="form-input"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  placeholder={t('login.passwordPlaceholder')}
+                  disabled={isBusy}
+                />
+              </div>
 
-          <button
-            type="button"
-            className="oauth-btn oauth-btn--github"
-            onClick={handleGitHubSignIn}
-            disabled={isBusy}
-          >
-            <GitHubIcon />
-            <span>{githubLoading ? t('login.wait') : t('login.github')}</span>
-          </button>
-        </div>
+              <div className="form-field">
+                <label className="form-label" htmlFor="confirm-password">{t('login.confirmPassword')}</label>
+                <input
+                  id="confirm-password"
+                  className="form-input"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  placeholder={t('login.confirmPasswordPlaceholder')}
+                  disabled={isBusy}
+                />
+              </div>
 
-        {!isSignUp ? (
-          <div className="login-create-section">
+              <button
+                type="submit"
+                className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
+                disabled={isBusy}
+              >
+                <span className="btn-gradient-inner">
+                  {loading ? t('login.wait') : t('login.submitSignUp')}
+                </span>
+              </button>
+            </form>
+
+            {error && <AuthError message={error} />}
+
+            <div className="modal-or">
+              <span>{t('login.or')}</span>
+            </div>
+
+            <OAuthButtons {...oauthProps} />
+
             <button
               type="button"
-              className="login-create-btn"
+              className="login-back-btn"
               onClick={switchMode}
               disabled={isBusy}
             >
-              <span className="login-create-icon" aria-hidden="true">+</span>
-              <span>{t('login.createAccountLink')}</span>
+              {t('login.backToSignIn')}
             </button>
-          </div>
+          </>
         ) : (
-          <button
-            type="button"
-            className="login-back-btn"
-            onClick={switchMode}
-            disabled={isBusy}
-          >
-            {t('login.switchSignIn')}
-          </button>
+          <>
+            <form className="login-form" onSubmit={handleSubmit}>
+              <div className="form-field">
+                <label className="form-label" htmlFor="email">{t('login.email')}</label>
+                <input
+                  id="email"
+                  className="form-input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  disabled={isBusy}
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="form-label" htmlFor="password">{t('login.password')}</label>
+                <input
+                  id="password"
+                  className="form-input"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  disabled={isBusy}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
+                disabled={isBusy}
+              >
+                <span className="btn-gradient-inner">
+                  {loading ? t('login.wait') : t('login.submitSignIn')}
+                </span>
+              </button>
+            </form>
+
+            {error && <AuthError message={error} />}
+
+            <div className="modal-or">
+              <span>{t('login.or')}</span>
+            </div>
+
+            <OAuthButtons {...oauthProps} />
+
+            <div className="login-create-section">
+              <button
+                type="button"
+                className="login-create-btn"
+                onClick={switchMode}
+                disabled={isBusy}
+              >
+                {t('login.createAccountLink')}
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

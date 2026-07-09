@@ -1519,7 +1519,7 @@
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  padding: 36px 32px 28px;
+  padding: 16px 32px 28px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
   animation: slideUp 0.2s ease;
 }
@@ -1568,10 +1568,23 @@
 }
 
 .modal-logo--lg {
-  font-size: 36px;
-  letter-spacing: -1px;
-  text-align: center;
-  margin: 0 0 28px;
+  font-size: 40px;
+  letter-spacing: -1.5px;
+  text-align: left;
+  margin: 0 0 32px;
+  padding-right: 36px;
+  line-height: 1;
+}
+
+.modal-heading {
+  margin: 0 0 32px;
+  padding-right: 36px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  text-align: left;
+  color: var(--text);
 }
 
 .modal-title {
@@ -1753,48 +1766,25 @@
 }
 
 .login-create-section {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--glass-border);
+  margin-top: 20px;
+  text-align: center;
 }
 
 .login-create-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  padding: 13px 18px;
-  font-size: 14px;
-  font-weight: 600;
+  display: inline-block;
+  padding: 6px 4px;
+  font-size: 13px;
+  font-weight: 500;
   font-family: inherit;
-  color: var(--text);
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.08), rgba(232, 121, 249, 0.1));
-  border: 1px dashed rgba(232, 121, 249, 0.35);
-  border-radius: 14px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+  transition: color 0.15s;
 }
 
 .login-create-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.12), rgba(232, 121, 249, 0.16));
-  border-color: rgba(232, 121, 249, 0.55);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(232, 121, 249, 0.12);
-}
-
-.login-create-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1;
-  color: var(--accent-pink);
-  background: rgba(232, 121, 249, 0.15);
+  color: var(--text);
 }
 
 .login-create-btn:disabled {
