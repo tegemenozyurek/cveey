@@ -1,7 +1,11 @@
 {
   "auth": {
     "providers": {
-      "emailPassword": true
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "cveey",
+        "supportEmail": "cveey-a7faa@firebase.google.com"
+      }
     }
   },
   "firestore": {

@@ -41,6 +41,16 @@ export const translations = {
     'auth.error.weakPassword': 'Password must be at least 6 characters.',
     'auth.error.tooManyRequests': 'Too many attempts. Try again later.',
     'auth.error.generic': 'Something went wrong. Please try again.',
+    'auth.error.popupClosed': 'Sign-in popup was closed.',
+    'auth.error.accountExists': 'An account already exists with this email using a different sign-in method.',
+    'auth.error.unauthorizedDomain': 'This domain is not authorized for sign-in.',
+    'auth.error.popupBlocked': 'Popup was blocked. Allow popups and try again.',
+    'auth.error.operationNotAllowed': 'Google sign-in is not enabled for this app.',
+    'auth.error.emailMissing': 'No email address on this Google account.',
+    'auth.error.syncFailed': 'Signed in, but could not save your profile. Try again.',
+
+    'login.google': 'Continue with Google',
+    'login.or': 'or',
 
     'jobs.title': 'Jobs',
     'jobs.subtitle': 'Browse open positions and find your next opportunity.',
@@ -132,6 +142,16 @@ export const translations = {
     'auth.error.weakPassword': 'Şifre en az 6 karakter olmalı.',
     'auth.error.tooManyRequests': 'Çok fazla deneme. Daha sonra tekrar deneyin.',
     'auth.error.generic': 'Bir şeyler ters gitti. Lütfen tekrar deneyin.',
+    'auth.error.popupClosed': 'Giriş penceresi kapatıldı.',
+    'auth.error.accountExists': 'Bu e-posta farklı bir giriş yöntemiyle zaten kayıtlı.',
+    'auth.error.unauthorizedDomain': 'Bu alan adı giriş için yetkili değil.',
+    'auth.error.popupBlocked': 'Popup engellendi. İzin verip tekrar deneyin.',
+    'auth.error.operationNotAllowed': 'Bu uygulamada Google girişi etkin değil.',
+    'auth.error.emailMissing': 'Google hesabında e-posta adresi yok.',
+    'auth.error.syncFailed': 'Giriş yapıldı ama profil kaydedilemedi. Tekrar deneyin.',
+
+    'login.google': 'Google ile devam et',
+    'login.or': 'veya',
 
     'jobs.title': 'İlanlar',
     'jobs.subtitle': 'Açık pozisyonlara göz atın ve yeni fırsatınızı bulun.',
