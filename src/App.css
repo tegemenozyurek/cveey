@@ -1649,6 +1649,94 @@
   gap: 10px;
 }
 
+.cv-promo-group {
+  flex: 1;
+  min-height: 0;
+}
+
+.cv-promo-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.cv-promo-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--glass-border);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.cv-promo-dot--active {
+  background: var(--accent-cyan);
+  transform: scale(1.35);
+}
+
+.cv-promo-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.cv-promo-viewport .cv-slider-track {
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cv-promo-viewport .cv-slider-track,
+.cv-promo-viewport .cv-slider-slide {
+  height: 100%;
+}
+
+.cv-promo-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  padding: 26px 24px 44px;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(34, 211, 238, 0.06), transparent 60%),
+    var(--glass);
+  border: 1px solid var(--glass-border);
+  user-select: none;
+}
+
+.cv-promo-card--cyan   { background: linear-gradient(180deg, rgba(34,  211, 238, 0.07), transparent 60%), var(--glass); }
+.cv-promo-card--pink   { background: linear-gradient(180deg, rgba(232, 121, 249, 0.07), transparent 60%), var(--glass); }
+.cv-promo-card--amber  { background: linear-gradient(180deg, rgba(251, 191,  36, 0.07), transparent 60%), var(--glass); }
+.cv-promo-card--violet { background: linear-gradient(180deg, rgba(167, 139, 250, 0.07), transparent 60%), var(--glass); }
+
+.cv-promo-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.cv-promo-card--cyan   .cv-promo-title { color: #22d3ee; }
+.cv-promo-card--pink   .cv-promo-title { color: #e879f9; }
+.cv-promo-card--amber  .cv-promo-title { color: #fbbf24; }
+.cv-promo-card--violet .cv-promo-title { color: #a78bfa; }
+
+.cv-promo-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
 .cv-active-col .cv-card-preview {
   height: 600px;
 }

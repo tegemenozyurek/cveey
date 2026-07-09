@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CvCard from '../components/CvCard'
 import { useAuth } from '../context/AuthContext'
@@ -28,8 +28,26 @@ export default function MyCV() {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [actionError, setActionError] = useState('')
-  const [otherIndexTop, setOtherIndexTop] = useState(0)
   const [otherIndexBottom, setOtherIndexBottom] = useState(0)
+  const [promoIndex, setPromoIndex] = useState(0)
+
+  const promoSlides = [
+    { title: t('myCv.promo1Title'), text: t('myCv.promo1Text'), accent: 'cyan' },
+    { title: t('myCv.promo2Title'), text: t('myCv.promo2Text'), accent: 'pink' },
+    { title: t('myCv.promo3Title'), text: t('myCv.promo3Text'), accent: 'amber' },
+    { title: t('myCv.promo4Title'), text: t('myCv.promo4Text'), accent: 'violet' },
+  ]
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setPromoIndex((i) => (i + 1) % promoSlides.length)
+    }, 7000)
+    return () => window.clearTimeout(id)
+  }, [promoIndex, promoSlides.length])
+
+  const goPromo = (dir) => {
+    setPromoIndex((i) => (i + dir + promoSlides.length) % promoSlides.length)
+  }
 
   const canUpload = cvs.length < MAX_CV_COUNT
 
@@ -217,7 +235,61 @@ export default function MyCV() {
 
           {otherCvs.length > 0 && (
             <section className="cv-section cv-others-col">
-              {renderOthersSlider(otherIndexTop, setOtherIndexTop)}
+              <div className="cv-others-group cv-promo-group">
+                <div className="cv-others-head">
+                  <h3 className="cv-section-label">{t('myCv.promoHeading')}</h3>
+                  <div className="cv-slider-nav">
+                    <button
+                      type="button"
+                      className="cv-slider-arrow"
+                      onClick={() => goPromo(-1)}
+                      aria-label={t('myCv.prev')}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                    <span className="cv-slider-count">{promoIndex + 1} / {promoSlides.length}</span>
+                    <button
+                      type="button"
+                      className="cv-slider-arrow"
+                      onClick={() => goPromo(1)}
+                      aria-label={t('myCv.next')}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="cv-slider-viewport cv-promo-viewport">
+                  <div
+                    className="cv-slider-track"
+                    style={{ transform: `translateX(-${promoIndex * 100}%)` }}
+                  >
+                    {promoSlides.map((slide, i) => (
+                      <div className="cv-slider-slide" key={i}>
+                        <div className={`cv-promo-card cv-promo-card--${slide.accent}`}>
+                          <h4 className="cv-promo-title">{slide.title}</h4>
+                          <p className="cv-promo-text">{slide.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="cv-promo-dots" role="tablist">
+                    {promoSlides.map((s, di) => (
+                      <button
+                        key={di}
+                        type="button"
+                        className={`cv-promo-dot${di === promoIndex ? ' cv-promo-dot--active' : ''}`}
+                        onClick={() => setPromoIndex(di)}
+                        aria-label={s.title}
+                        aria-selected={di === promoIndex}
+                        role="tab"
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {renderOthersSlider(otherIndexBottom, setOtherIndexBottom)}
             </section>
           )}
