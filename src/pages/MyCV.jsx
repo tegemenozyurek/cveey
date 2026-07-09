@@ -15,6 +15,8 @@ export default function MyCV() {
     activeCvPath,
     loading,
     error,
+    activePreviewUrl,
+    activePreviewLoading,
     uploadUserCv,
     removeCv,
     renameUserCv,
@@ -131,6 +133,8 @@ export default function MyCV() {
                 <CvCard
                   cv={activeCv}
                   isActive
+                  previewUrl={activePreviewUrl}
+                  previewLoading={activePreviewLoading}
                   onRename={renameUserCv}
                   onDelete={removeCv}
                   onSetActive={setActiveUserCv}

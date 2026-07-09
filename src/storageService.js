@@ -15,6 +15,7 @@ import {
   setActiveCvPath,
   setCvDisplayName,
 } from './activeCvService'
+import { releasePreviewUrl } from './cvPreviewCache'
 
 export const MAX_CV_COUNT = 5
 
@@ -209,6 +210,7 @@ export async function downloadCvFile(fullPath, displayName, cachedUrl) {
 
 export async function deleteCv(uid, fullPath) {
   await deleteObject(ref(storage, fullPath))
+  releasePreviewUrl(fullPath)
   try {
     await removeCvDisplayName(uid, fullPath)
   } catch (err) {

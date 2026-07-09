@@ -114,6 +114,8 @@ function buildCvDisplayName(baseName) {
 export default function CvCard({
   cv,
   isActive,
+  previewUrl = '',
+  previewLoading = false,
   onRename,
   onDelete,
   onSetActive,
@@ -128,8 +130,7 @@ export default function CvCard({
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [localError, setLocalError] = useState('')
-  const [previewUrl, setPreviewUrl] = useState(cv.url ?? '')
-  const [previewLoading, setPreviewLoading] = useState(false)
+  const [iframeLoaded, setIframeLoaded] = useState(false)
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -141,29 +142,15 @@ export default function CvCard({
   }, [editing])
 
   useEffect(() => {
-    if (!isActive) return
+    setIframeLoaded(false)
+    if (!previewUrl) return undefined
 
-    if (cv.url) {
-      setPreviewUrl(cv.url)
-      return
-    }
+    const timeout = window.setTimeout(() => {
+      setIframeLoaded(true)
+    }, 8000)
 
-    let cancelled = false
-    setPreviewLoading(true)
-
-    getCvDownloadUrl(cv.fullPath)
-      .then((url) => {
-        if (!cancelled) setPreviewUrl(url)
-      })
-      .catch(() => {
-        if (!cancelled) setLocalError(t('myCv.previewError'))
-      })
-      .finally(() => {
-        if (!cancelled) setPreviewLoading(false)
-      })
-
-    return () => { cancelled = true }
-  }, [isActive, cv.fullPath, cv.url, t])
+    return () => window.clearTimeout(timeout)
+  }, [previewUrl, cv.fullPath])
 
   const formatBytes = (bytes) => {
     if (bytes < 1024) return `${bytes} B`
@@ -222,7 +209,7 @@ export default function CvCard({
     setViewing(true)
     setLocalError('')
     try {
-      const url = previewUrl || await getCvDownloadUrl(cv.fullPath)
+      const url = (isActive && previewUrl) || await getCvDownloadUrl(cv.fullPath)
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch {
       setLocalError(t('myCv.viewError'))
@@ -386,15 +373,27 @@ export default function CvCard({
 
       {isActive && (
         <div className="cv-card-preview">
-          {previewLoading && (
-            <p className="cv-card-preview-loading">{t('myCv.previewLoading')}</p>
+          {(previewLoading || (previewUrl && !iframeLoaded)) && (
+            <div className="cv-card-preview-status" aria-live="polite">
+              <span className="cv-preview-spinner" aria-hidden="true" />
+              <p className="cv-card-preview-loading">{t('myCv.previewLoading')}</p>
+            </div>
           )}
-          {!previewLoading && previewUrl && (
+
+          {previewUrl && (
             <iframe
+              key={cv.fullPath}
               src={`${previewUrl}#toolbar=0&navpanes=0`}
               title={cv.displayName}
-              className="cv-card-preview-frame"
+              className={`cv-card-preview-frame${iframeLoaded ? ' cv-card-preview-frame--ready' : ''}`}
+              onLoad={() => setIframeLoaded(true)}
             />
+          )}
+
+          {!previewLoading && !previewUrl && (
+            <div className="cv-card-preview-status">
+              <p className="cv-card-preview-loading">{t('myCv.previewError')}</p>
+            </div>
           )}
         </div>
       )}
@@ -403,7 +402,23 @@ export default function CvCard({
 
       {confirmDelete && (
         <div className="cv-delete-confirm">
-          <p className="cv-delete-text">{t('myCv.deleteConfirm')}</p>
+          <div className="cv-delete-confirm-content">
+            <div className="cv-delete-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M3 6h18M8 6V4.5A1.5 1.5 0 019.5 3h5A1.5 1.5 0 0116 4.5V6M6 6l.8 14.2A2 2 0 008.8 22h6.4a2 2 0 001.99-1.8L18 6M10 11v5M14 11v5"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="cv-delete-copy">
+              <p className="cv-delete-title">{t('myCv.deleteTitle')}</p>
+              <p className="cv-delete-text">{t('myCv.deleteWarning')}</p>
+            </div>
+          </div>
           <div className="cv-delete-actions">
             <button
               type="button"

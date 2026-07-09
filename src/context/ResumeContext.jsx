@@ -3,11 +3,17 @@ import { useAuth } from './AuthContext'
 import {
   activateCv,
   deleteCv,
+  getCvDownloadUrl,
   getUserCvs,
   invalidateCvCache,
   renameCv,
   uploadCv,
 } from '../storageService'
+import {
+  clearPreviewCache,
+  getCachedPreviewUrl,
+  getOrCreatePreviewUrl,
+} from '../cvPreviewCache'
 
 const ResumeContext = createContext(null)
 
@@ -18,7 +24,10 @@ export function ResumeProvider({ children }) {
   const [activeCvPath, setActiveCvPath] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [activePreviewUrl, setActivePreviewUrl] = useState('')
+  const [activePreviewLoading, setActivePreviewLoading] = useState(false)
   const loadedUidRef = useRef(null)
+  const previewPathRef = useRef(null)
 
   const applyCvData = useCallback((data) => {
     setCvs(data.cvs)
@@ -33,9 +42,13 @@ export function ResumeProvider({ children }) {
       setCvs([])
       setActiveCv(null)
       setActiveCvPath(null)
+      setActivePreviewUrl('')
+      setActivePreviewLoading(false)
       setError('')
       setLoading(false)
       loadedUidRef.current = null
+      previewPathRef.current = null
+      clearPreviewCache()
       return
     }
 
@@ -61,6 +74,61 @@ export function ResumeProvider({ children }) {
 
     return () => { cancelled = true }
   }, [user, authLoading, applyCvData])
+
+  useEffect(() => {
+    if (!activeCvPath || !activeCv) {
+      setActivePreviewUrl('')
+      setActivePreviewLoading(false)
+      previewPathRef.current = null
+      return
+    }
+
+    const currentPath = activeCvPath
+    const currentUrl = activeCv.url ?? ''
+    previewPathRef.current = currentPath
+
+    const cached = getCachedPreviewUrl(currentPath)
+    if (cached) {
+      setActivePreviewUrl(cached)
+      setActivePreviewLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setActivePreviewLoading(true)
+
+    const resolveDirectUrl = async () => {
+      if (currentUrl) return currentUrl
+      return getCvDownloadUrl(currentPath)
+    }
+
+    void resolveDirectUrl()
+      .then((directUrl) => {
+        if (!cancelled && previewPathRef.current === currentPath) {
+          setActivePreviewUrl(directUrl)
+          setActivePreviewLoading(false)
+        }
+      })
+      .catch((err) => {
+        console.error('CV preview URL resolve failed:', err)
+        if (!cancelled && previewPathRef.current === currentPath) {
+          setActivePreviewUrl('')
+          setActivePreviewLoading(false)
+        }
+      })
+
+    void getOrCreatePreviewUrl(currentPath)
+      .then((blobUrl) => {
+        if (!cancelled && previewPathRef.current === currentPath) {
+          setActivePreviewUrl(blobUrl)
+        }
+      })
+      .catch((err) => {
+        console.error('CV preview cache warm failed:', err)
+      })
+
+    return () => { cancelled = true }
+  }, [activeCvPath, activeCv?.fullPath, activeCv?.url])
 
   const refreshCvs = useCallback(async () => {
     if (!user) return null
@@ -134,6 +202,8 @@ export function ResumeProvider({ children }) {
         activeCvPath,
         loading,
         error,
+        activePreviewUrl,
+        activePreviewLoading,
         refreshCvs,
         uploadUserCv,
         removeCv,
