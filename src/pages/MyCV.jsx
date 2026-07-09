@@ -138,11 +138,12 @@ export default function MyCV() {
             className="cv-slider-track"
             style={{ transform: `translateX(-${safeIndex * 100}%)` }}
           >
-            {otherCvs.map((cv) => (
+            {otherCvs.map((cv, i) => (
               <div className="cv-slider-slide" key={cv.id}>
                 <CvCard
                   cv={cv}
                   isActive={false}
+                  colorIndex={i}
                   onRename={renameUserCv}
                   onDelete={removeCv}
                   onSetActive={setActiveUserCv}

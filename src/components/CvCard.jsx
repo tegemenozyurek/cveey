@@ -82,6 +82,16 @@ function IconDelete() {
   )
 }
 
+const DOC_COLORS = ['#22d3ee', '#e879f9', '#fbbf24', '#a78bfa', '#34d399', '#60a5fa']
+
+function hashString(str) {
+  let h = 0
+  for (let i = 0; i < str.length; i += 1) {
+    h = (h * 31 + str.charCodeAt(i)) >>> 0
+  }
+  return h
+}
+
 function IconDoc() {
   return (
     <svg width="52" height="52" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -130,6 +140,7 @@ function buildCvDisplayName(baseName) {
 export default function CvCard({
   cv,
   isActive,
+  colorIndex = null,
   previewUrl = '',
   previewLoading = false,
   onRename,
@@ -363,6 +374,10 @@ export default function CvCard({
     </div>
   )
 
+  const docColor = colorIndex != null
+    ? DOC_COLORS[colorIndex % DOC_COLORS.length]
+    : DOC_COLORS[hashString(cv.id || cv.displayName || '') % DOC_COLORS.length]
+
   return (
     <article className={`cv-card${isActive ? ' cv-card--active' : ''}`}>
       {editing ? (
@@ -406,7 +421,15 @@ export default function CvCard({
         </>
       ) : (
         <div className="cv-card-tile">
-          <div className="cv-card-doc" aria-hidden="true">
+          <div
+            className="cv-card-doc"
+            aria-hidden="true"
+            style={{
+              color: docColor,
+              background: `${docColor}14`,
+              borderColor: `${docColor}55`,
+            }}
+          >
             <IconDoc />
           </div>
           <h2 className="cv-card-tile-name" title={cv.displayName}>{stripPdfExtension(cv.displayName)}</h2>
