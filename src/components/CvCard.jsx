@@ -98,6 +98,19 @@ function IconClose() {
   )
 }
 
+const PDF_EXTENSION = '.pdf'
+const MAX_CV_BASE_NAME_LENGTH = 116
+
+function stripPdfExtension(name) {
+  return name.replace(/\.pdf$/i, '')
+}
+
+function buildCvDisplayName(baseName) {
+  const trimmed = baseName.trim()
+  if (!trimmed) return ''
+  return `${stripPdfExtension(trimmed)}${PDF_EXTENSION}`
+}
+
 export default function CvCard({
   cv,
   isActive,
@@ -107,7 +120,7 @@ export default function CvCard({
 }) {
   const { lang, t } = useLanguage()
   const [editing, setEditing] = useState(false)
-  const [editName, setEditName] = useState(cv.displayName)
+  const [editName, setEditName] = useState(stripPdfExtension(cv.displayName))
   const [saving, setSaving] = useState(false)
   const [viewing, setViewing] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -120,7 +133,7 @@ export default function CvCard({
   const inputRef = useRef(null)
 
   useEffect(() => {
-    if (!editing) setEditName(cv.displayName)
+    if (!editing) setEditName(stripPdfExtension(cv.displayName))
   }, [cv.displayName, editing])
 
   useEffect(() => {
@@ -166,23 +179,23 @@ export default function CvCard({
   const startEdit = () => {
     setLocalError('')
     setConfirmDelete(false)
-    setEditName(cv.displayName)
+    setEditName(stripPdfExtension(cv.displayName))
     setEditing(true)
   }
 
   const cancelEdit = () => {
-    setEditName(cv.displayName)
+    setEditName(stripPdfExtension(cv.displayName))
     setEditing(false)
     setLocalError('')
   }
 
   const saveEdit = async () => {
-    const trimmed = editName.trim()
-    if (!trimmed) {
+    const nextName = buildCvDisplayName(editName)
+    if (!nextName) {
       setLocalError(t('myCv.errorEmptyName'))
       return
     }
-    if (trimmed === cv.displayName) {
+    if (nextName === cv.displayName) {
       setEditing(false)
       return
     }
@@ -190,7 +203,7 @@ export default function CvCard({
     setSaving(true)
     setLocalError('')
     try {
-      await onRename(cv.fullPath, trimmed)
+      await onRename(cv.fullPath, nextName)
       setEditing(false)
     } catch (err) {
       if (err?.message === 'NAME_TOO_LONG') {
@@ -268,18 +281,21 @@ export default function CvCard({
         <div className="cv-card-info">
           {editing ? (
             <div className="cv-card-edit">
-              <input
-                ref={inputRef}
-                className="cv-card-edit-input"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') saveEdit()
-                  if (e.key === 'Escape') cancelEdit()
-                }}
-                disabled={saving}
-                maxLength={120}
-              />
+              <div className="cv-card-edit-field">
+                <input
+                  ref={inputRef}
+                  className="cv-card-edit-input"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value.replace(/\.pdf/gi, ''))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveEdit()
+                    if (e.key === 'Escape') cancelEdit()
+                  }}
+                  disabled={saving}
+                  maxLength={MAX_CV_BASE_NAME_LENGTH}
+                />
+                <span className="cv-card-edit-ext">{PDF_EXTENSION}</span>
+              </div>
               <button
                 type="button"
                 className="cv-icon-btn cv-icon-btn--save"

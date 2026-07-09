@@ -23,10 +23,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
   width: 100%;
-  max-width: 920px;
-  padding: 8px 10px 8px 20px;
+  max-width: 960px;
+  padding: 10px 12px 10px 22px;
   background: var(--glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -38,7 +38,7 @@
 .navbar-end {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-shrink: 0;
   margin-left: auto;
 }
@@ -47,8 +47,8 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   border: 1px solid var(--glass-border);
   border-radius: 50%;
@@ -297,7 +297,7 @@
 }
 
 .logo {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.5px;
   color: var(--text);
@@ -321,8 +321,8 @@
 }
 
 .nav-link {
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 9px 18px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text-muted);
   text-decoration: none;
@@ -484,10 +484,15 @@
   border-radius: 9999px;
 }
 
+.header-signin--desktop .btn-gradient-inner {
+  padding: 9px 22px;
+  font-size: 14px;
+}
+
 .user-avatar,
 .profile-avatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   flex-shrink: 0;
   overflow: hidden;
@@ -539,8 +544,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   border: 1.5px solid transparent;
   border-radius: 50%;
@@ -1389,6 +1394,24 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 4px;
+  min-width: 0;
+}
+
+.cv-card-edit-field {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--glass-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  overflow: hidden;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.cv-card-edit-field:focus-within {
+  border-color: rgba(232, 121, 249, 0.5);
+  background: var(--input-bg-focus);
 }
 
 .cv-card-edit-input {
@@ -1399,15 +1422,18 @@
   font-family: inherit;
   font-weight: 500;
   color: var(--text);
-  background: var(--input-bg);
-  border: 1.5px solid var(--glass-border);
-  border-radius: 8px;
+  background: transparent;
+  border: none;
   outline: none;
-  transition: border-color 0.15s;
 }
 
-.cv-card-edit-input:focus {
-  border-color: rgba(232, 121, 249, 0.5);
+.cv-card-edit-ext {
+  flex-shrink: 0;
+  padding-right: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  user-select: none;
 }
 
 .cv-card-error {
@@ -2054,13 +2080,13 @@
   }
 
   .navbar-glass {
-    padding: 8px 10px 8px 16px;
-    gap: 12px;
+    padding: 9px 11px 9px 18px;
+    gap: 14px;
   }
 
   .nav-link {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 8px 14px;
+    font-size: 14px;
   }
 
   .main {
@@ -2095,12 +2121,12 @@
 
   .navbar-glass {
     border-radius: 16px;
-    padding: 8px 10px 8px 16px;
+    padding: 9px 11px 9px 18px;
     flex-wrap: nowrap;
   }
 
   .logo {
-    font-size: 17px;
+    font-size: 19px;
   }
 
   .profile-dropdown {
@@ -2116,7 +2142,7 @@
   }
 
   .navbar-glass {
-    padding: 8px 8px 8px 14px;
+    padding: 9px 10px 9px 16px;
   }
 
   .main {
