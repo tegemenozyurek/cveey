@@ -62,7 +62,7 @@ export const translations = {
     'jobs.emptyText': 'Job listings will appear here soon. Check back later.',
 
     'underConstruction.title': 'We\'re still building this',
-    'underConstruction.text': 'Our development is in progress. This page will be available soon.',
+    'underConstruction.text': 'Don\'t forget to drop your CV.',
 
     'myCv.title': 'My CV',
     'myCv.loading': 'Loading…',
@@ -169,7 +169,7 @@ export const translations = {
     'jobs.emptyText': 'İş ilanları yakında burada görünecek.',
 
     'underConstruction.title': 'Geliştirmelerimiz devam ediyor',
-    'underConstruction.text': 'Bu sayfa üzerinde çalışıyoruz. Yakında burada olacak.',
+    'underConstruction.text': 'CV\'nizi bırakmayı unutmayın.',
 
     'myCv.title': 'CV\'im',
     'myCv.loading': 'Yükleniyor…',

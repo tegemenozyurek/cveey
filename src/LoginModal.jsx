@@ -170,7 +170,7 @@ export default function LoginModal({ onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className={`modal${isSignUp ? ' modal--signup' : ' modal--signin'}`}
+        className={`modal modal--auth${isSignUp ? ' modal--signup' : ' modal--signin'}`}
         role="dialog"
         aria-labelledby="login-title"
         onClick={(e) => e.stopPropagation()}
@@ -179,46 +179,52 @@ export default function LoginModal({ onClose }) {
           ×
         </button>
 
-        {isSignUp ? (
-          <h2 id="login-title" className="modal-heading">{t('login.createAccountTitle')}</h2>
-        ) : (
-          <p id="login-title" className="modal-logo modal-logo--lg">cve<span>ey</span></p>
-        )}
+        <div className="modal-auth-header">
+          {isSignUp ? (
+            <h2 id="login-title" className="modal-heading">{t('login.createAccountTitle')}</h2>
+          ) : (
+            <p id="login-title" className="modal-logo modal-logo--lg">cve<span>ey</span></p>
+          )}
+        </div>
 
-        {isSignUp ? (
-          <>
-            <form className="login-form signup-form" onSubmit={handleSubmit}>
-              <div className="form-field">
-                <label className="form-label" htmlFor="signup-email">{t('login.email')}</label>
-                <input
-                  id="signup-email"
-                  className="form-input"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  disabled={isBusy}
-                />
-              </div>
+        <div className="modal-auth-body">
+          <form className="login-form" onSubmit={handleSubmit}>
+            <div className="form-field">
+              <label className="form-label" htmlFor={isSignUp ? 'signup-email' : 'email'}>
+                {t('login.email')}
+              </label>
+              <input
+                id={isSignUp ? 'signup-email' : 'email'}
+                className="form-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                placeholder="you@example.com"
+                disabled={isBusy}
+              />
+            </div>
 
-              <div className="form-field">
-                <label className="form-label" htmlFor="signup-password">{t('login.password')}</label>
-                <input
-                  id="signup-password"
-                  className="form-input"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                  placeholder={t('login.passwordPlaceholder')}
-                  disabled={isBusy}
-                />
-              </div>
+            <div className="form-field">
+              <label className="form-label" htmlFor={isSignUp ? 'signup-password' : 'password'}>
+                {t('login.password')}
+              </label>
+              <input
+                id={isSignUp ? 'signup-password' : 'password'}
+                className="form-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                placeholder={isSignUp ? t('login.passwordPlaceholder') : '••••••••'}
+                disabled={isBusy}
+              />
+            </div>
 
+            {isSignUp ? (
               <div className="form-field">
                 <label className="form-label" htmlFor="confirm-password">{t('login.confirmPassword')}</label>
                 <input
@@ -234,26 +240,37 @@ export default function LoginModal({ onClose }) {
                   disabled={isBusy}
                 />
               </div>
+            ) : (
+              <div className="form-field form-field--placeholder" aria-hidden="true">
+                <span className="form-label">{t('login.confirmPassword')}</span>
+                <div className="form-input form-input--placeholder" />
+              </div>
+            )}
 
-              <button
-                type="submit"
-                className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
-                disabled={isBusy}
-              >
-                <span className="btn-gradient-inner">
-                  {loading ? t('login.wait') : t('login.submitSignUp')}
-                </span>
-              </button>
-            </form>
+            <button
+              type="submit"
+              className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
+              disabled={isBusy}
+            >
+              <span className="btn-gradient-inner">
+                {loading ? t('login.wait') : isSignUp ? t('login.submitSignUp') : t('login.submitSignIn')}
+              </span>
+            </button>
+          </form>
 
+          <div className="modal-auth-error">
             {error && <AuthError message={error} />}
+          </div>
 
-            <div className="modal-or">
-              <span>{t('login.or')}</span>
-            </div>
+          <div className="modal-or">
+            <span>{t('login.or')}</span>
+          </div>
 
-            <OAuthButtons {...oauthProps} />
+          <OAuthButtons {...oauthProps} />
+        </div>
 
+        <div className="modal-auth-footer">
+          {isSignUp ? (
             <button
               type="button"
               className="login-back-btn"
@@ -262,72 +279,17 @@ export default function LoginModal({ onClose }) {
             >
               {t('login.backToSignIn')}
             </button>
-          </>
-        ) : (
-          <>
-            <form className="login-form" onSubmit={handleSubmit}>
-              <div className="form-field">
-                <label className="form-label" htmlFor="email">{t('login.email')}</label>
-                <input
-                  id="email"
-                  className="form-input"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  disabled={isBusy}
-                />
-              </div>
-
-              <div className="form-field">
-                <label className="form-label" htmlFor="password">{t('login.password')}</label>
-                <input
-                  id="password"
-                  className="form-input"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  autoComplete="current-password"
-                  placeholder="••••••••"
-                  disabled={isBusy}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
-                disabled={isBusy}
-              >
-                <span className="btn-gradient-inner">
-                  {loading ? t('login.wait') : t('login.submitSignIn')}
-                </span>
-              </button>
-            </form>
-
-            {error && <AuthError message={error} />}
-
-            <div className="modal-or">
-              <span>{t('login.or')}</span>
-            </div>
-
-            <OAuthButtons {...oauthProps} />
-
-            <div className="login-create-section">
-              <button
-                type="button"
-                className="login-create-btn"
-                onClick={switchMode}
-                disabled={isBusy}
-              >
-                {t('login.createAccountLink')}
-              </button>
-            </div>
-          </>
-        )}
+          ) : (
+            <button
+              type="button"
+              className="login-create-btn"
+              onClick={switchMode}
+              disabled={isBusy}
+            >
+              {t('login.createAccountLink')}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
