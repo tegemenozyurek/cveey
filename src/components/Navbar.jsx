@@ -11,10 +11,7 @@ const NAV_ITEMS = [
   { to: '/my-cv', key: 'nav.myCv' },
 ]
 
-const MOBILE_NAV_ITEMS = [
-  ...NAV_ITEMS,
-  { to: '/messages', key: 'nav.messages' },
-]
+const MOBILE_NAV_ITEMS = NAV_ITEMS
 
 function BurgerIcon({ open }) {
   return (
