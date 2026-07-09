@@ -218,18 +218,21 @@ export default function LoginModal({ onClose }) {
         </div>
 
         {!isSignUp ? (
-          <button
-            type="button"
-            className="modal-switch-btn"
-            onClick={switchMode}
-            disabled={isBusy}
-          >
-            {t('login.createAccountLink')}
-          </button>
+          <div className="login-create-section">
+            <button
+              type="button"
+              className="login-create-btn"
+              onClick={switchMode}
+              disabled={isBusy}
+            >
+              <span className="login-create-icon" aria-hidden="true">+</span>
+              <span>{t('login.createAccountLink')}</span>
+            </button>
+          </div>
         ) : (
           <button
             type="button"
-            className="modal-switch-btn"
+            className="login-back-btn"
             onClick={switchMode}
             disabled={isBusy}
           >
