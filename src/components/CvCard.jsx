@@ -82,6 +82,22 @@ function IconDelete() {
   )
 }
 
+function IconDoc() {
+  return (
+    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M14 3v5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 13h6M9 17h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 function IconCheck() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -262,139 +278,147 @@ export default function CvCard({
     }
   }
 
+  const editUi = (
+    <div className="cv-card-edit">
+      <div className="cv-card-edit-field">
+        <input
+          ref={inputRef}
+          className="cv-card-edit-input"
+          value={editName}
+          onChange={(e) => setEditName(e.target.value.replace(/\.pdf/gi, ''))}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') saveEdit()
+            if (e.key === 'Escape') cancelEdit()
+          }}
+          disabled={saving}
+          maxLength={MAX_CV_BASE_NAME_LENGTH}
+        />
+        <span className="cv-card-edit-ext">{PDF_EXTENSION}</span>
+      </div>
+      <button
+        type="button"
+        className="cv-icon-btn cv-icon-btn--save"
+        onClick={saveEdit}
+        disabled={saving}
+        aria-label={t('myCv.save')}
+      >
+        <IconCheck />
+      </button>
+      <button
+        type="button"
+        className="cv-icon-btn"
+        onClick={cancelEdit}
+        disabled={saving}
+        aria-label={t('myCv.cancel')}
+      >
+        <IconClose />
+      </button>
+    </div>
+  )
+
+  const toolButtons = (
+    <div className="cv-card-tools">
+      <button
+        type="button"
+        className="cv-icon-btn cv-icon-btn--edit"
+        onClick={startEdit}
+        aria-label={t('myCv.edit')}
+        title={t('myCv.edit')}
+      >
+        <IconEdit />
+      </button>
+      <button
+        type="button"
+        className="cv-icon-btn cv-icon-btn--view"
+        onClick={onView}
+        disabled={viewing}
+        aria-label={t('myCv.view')}
+        title={t('myCv.view')}
+      >
+        <IconView />
+      </button>
+      <button
+        type="button"
+        className="cv-icon-btn cv-icon-btn--download"
+        onClick={onDownload}
+        disabled={downloading}
+        aria-label={t('myCv.download')}
+        title={t('myCv.download')}
+      >
+        <IconDownload />
+      </button>
+      <button
+        type="button"
+        className="cv-icon-btn cv-icon-btn--danger"
+        onClick={() => {
+          setConfirmDelete(true)
+          setEditing(false)
+        }}
+        disabled={deleting}
+        aria-label={t('myCv.delete')}
+        title={t('myCv.delete')}
+      >
+        <IconDelete />
+      </button>
+    </div>
+  )
+
   return (
     <article className={`cv-card${isActive ? ' cv-card--active' : ''}`}>
-      <div className="cv-card-row">
-        <div className="cv-card-info">
-          {editing ? (
-            <div className="cv-card-edit">
-              <div className="cv-card-edit-field">
-                <input
-                  ref={inputRef}
-                  className="cv-card-edit-input"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value.replace(/\.pdf/gi, ''))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') saveEdit()
-                    if (e.key === 'Escape') cancelEdit()
-                  }}
-                  disabled={saving}
-                  maxLength={MAX_CV_BASE_NAME_LENGTH}
-                />
-                <span className="cv-card-edit-ext">{PDF_EXTENSION}</span>
-              </div>
-              <button
-                type="button"
-                className="cv-icon-btn cv-icon-btn--save"
-                onClick={saveEdit}
-                disabled={saving}
-                aria-label={t('myCv.save')}
-              >
-                <IconCheck />
-              </button>
-              <button
-                type="button"
-                className="cv-icon-btn"
-                onClick={cancelEdit}
-                disabled={saving}
-                aria-label={t('myCv.cancel')}
-              >
-                <IconClose />
-              </button>
-            </div>
-          ) : (
-            <>
-              <h2 className="cv-card-name" title={cv.displayName}>{cv.displayName}</h2>
+      {editing ? (
+        editUi
+      ) : isActive ? (
+        <>
+          <div className="cv-card-row">
+            <div className="cv-card-info">
+              <h2 className="cv-card-name" title={cv.displayName}>{stripPdfExtension(cv.displayName)}</h2>
               <p className="cv-card-meta">
                 {formatBytes(cv.size)} · {formatDate(cv.updated)}
               </p>
-            </>
-          )}
-        </div>
+            </div>
+            {toolButtons}
+          </div>
 
-        <div className="cv-card-tools">
-          {!editing && (
-            <button
-              type="button"
-              className="cv-icon-btn cv-icon-btn--edit"
-              onClick={startEdit}
-              aria-label={t('myCv.edit')}
-              title={t('myCv.edit')}
-            >
-              <IconEdit />
-            </button>
-          )}
-          <button
-            type="button"
-            className="cv-icon-btn cv-icon-btn--view"
-            onClick={onView}
-            disabled={viewing || editing}
-            aria-label={t('myCv.view')}
-            title={t('myCv.view')}
-          >
-            <IconView />
-          </button>
-          <button
-            type="button"
-            className="cv-icon-btn cv-icon-btn--download"
-            onClick={onDownload}
-            disabled={downloading || editing}
-            aria-label={t('myCv.download')}
-            title={t('myCv.download')}
-          >
-            <IconDownload />
-          </button>
-          <button
-            type="button"
-            className="cv-icon-btn cv-icon-btn--danger"
-            onClick={() => {
-              setConfirmDelete(true)
-              setEditing(false)
-            }}
-            disabled={deleting || editing}
-            aria-label={t('myCv.delete')}
-            title={t('myCv.delete')}
-          >
-            <IconDelete />
-          </button>
-        </div>
+          <div className="cv-card-preview">
+            {(previewLoading || (previewUrl && !iframeLoaded)) && (
+              <div className="cv-card-preview-status" aria-live="polite">
+                <span className="cv-preview-spinner" aria-hidden="true" />
+                <p className="cv-card-preview-loading">{t('myCv.previewLoading')}</p>
+              </div>
+            )}
 
-        {!isActive && !editing && (
+            {previewUrl && (
+              <iframe
+                key={cv.fullPath}
+                src={`${previewUrl}#toolbar=0&navpanes=0`}
+                title={cv.displayName}
+                className={`cv-card-preview-frame${iframeLoaded ? ' cv-card-preview-frame--ready' : ''}`}
+                onLoad={() => setIframeLoaded(true)}
+              />
+            )}
+
+            {!previewLoading && !previewUrl && (
+              <div className="cv-card-preview-status">
+                <p className="cv-card-preview-loading">{t('myCv.previewError')}</p>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="cv-card-tile">
+          <div className="cv-card-doc" aria-hidden="true">
+            <IconDoc />
+          </div>
+          <h2 className="cv-card-tile-name" title={cv.displayName}>{stripPdfExtension(cv.displayName)}</h2>
+          {toolButtons}
           <button
             type="button"
-            className="cv-set-active-link"
+            className="cv-card-activate"
             onClick={onActivate}
             disabled={activating}
           >
             {activating ? t('myCv.activating') : t('myCv.setActive')}
           </button>
-        )}
-      </div>
-
-      {isActive && (
-        <div className="cv-card-preview">
-          {(previewLoading || (previewUrl && !iframeLoaded)) && (
-            <div className="cv-card-preview-status" aria-live="polite">
-              <span className="cv-preview-spinner" aria-hidden="true" />
-              <p className="cv-card-preview-loading">{t('myCv.previewLoading')}</p>
-            </div>
-          )}
-
-          {previewUrl && (
-            <iframe
-              key={cv.fullPath}
-              src={`${previewUrl}#toolbar=0&navpanes=0`}
-              title={cv.displayName}
-              className={`cv-card-preview-frame${iframeLoaded ? ' cv-card-preview-frame--ready' : ''}`}
-              onLoad={() => setIframeLoaded(true)}
-            />
-          )}
-
-          {!previewLoading && !previewUrl && (
-            <div className="cv-card-preview-status">
-              <p className="cv-card-preview-loading">{t('myCv.previewError')}</p>
-            </div>
-          )}
         </div>
       )}
 

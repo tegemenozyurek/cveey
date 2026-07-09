@@ -29,6 +29,7 @@ export default function MyCV() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [actionError, setActionError] = useState('')
   const [dragging, setDragging] = useState(false)
+  const [otherIndex, setOtherIndex] = useState(0)
 
   const canUpload = cvs.length < MAX_CV_COUNT
 
@@ -84,6 +85,7 @@ export default function MyCV() {
   const showInitialLoading = loading && cvs.length === 0 && !error
   const activeCv = cvs.find((cv) => cv.id === activeCvPath || cv.fullPath === activeCvPath)
   const otherCvs = cvs.filter((cv) => cv !== activeCv)
+  const safeIndex = Math.min(otherIndex, Math.max(0, otherCvs.length - 1))
 
   return (
     <main className="main my-cv-main">
@@ -113,11 +115,11 @@ export default function MyCV() {
 
       {showInitialLoading && <p className="page-loading">{t('myCv.loading')}</p>}
 
-      {/* ── CV list ── */}
+      {/* ── CV workspace: active + others slider ── */}
       {!showInitialLoading && !error && cvs.length > 0 && (
-        <div className="cv-list">
+        <div className="cv-workspace">
           {activeCv && (
-            <section className="cv-section">
+            <section className="cv-section cv-active-col">
               <h3 className="cv-section-label">{t('myCv.sectionActive')}</h3>
               <CvCard
                 cv={activeCv}
@@ -130,20 +132,53 @@ export default function MyCV() {
               />
             </section>
           )}
+
           {otherCvs.length > 0 && (
-            <section className="cv-section">
-              <h3 className="cv-section-label">{t('myCv.sectionOthers')}</h3>
-              <div className="cv-section-list">
-                {otherCvs.map((cv) => (
-                  <CvCard
-                    key={cv.id}
-                    cv={cv}
-                    isActive={false}
-                    onRename={renameUserCv}
-                    onDelete={removeCv}
-                    onSetActive={setActiveUserCv}
-                  />
-                ))}
+            <section className="cv-section cv-others-col">
+              <div className="cv-others-head">
+                <h3 className="cv-section-label">{t('myCv.sectionOthers')}</h3>
+                {otherCvs.length > 1 && (
+                  <div className="cv-slider-nav">
+                    <button
+                      type="button"
+                      className="cv-slider-arrow"
+                      onClick={() => setOtherIndex((i) => Math.max(0, Math.min(i, otherCvs.length - 1) - 1))}
+                      disabled={safeIndex === 0}
+                      aria-label={t('myCv.prev')}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                    <span className="cv-slider-count">{safeIndex + 1} / {otherCvs.length}</span>
+                    <button
+                      type="button"
+                      className="cv-slider-arrow"
+                      onClick={() => setOtherIndex((i) => Math.min(otherCvs.length - 1, Math.min(i, otherCvs.length - 1) + 1))}
+                      disabled={safeIndex === otherCvs.length - 1}
+                      aria-label={t('myCv.next')}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="cv-slider-viewport">
+                <div
+                  className="cv-slider-track"
+                  style={{ transform: `translateX(-${safeIndex * 100}%)` }}
+                >
+                  {otherCvs.map((cv) => (
+                    <div className="cv-slider-slide" key={cv.id}>
+                      <CvCard
+                        cv={cv}
+                        isActive={false}
+                        onRename={renameUserCv}
+                        onDelete={removeCv}
+                        onSetActive={setActiveUserCv}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
           )}
