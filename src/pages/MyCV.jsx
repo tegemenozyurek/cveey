@@ -52,30 +52,6 @@ export default function MyCV() {
     }
   }
 
-  const guideItems = [
-    {
-      title: t('myCv.guide1Title'),
-      text: t('myCv.guide1Text'),
-      accent: 'cyan',
-    },
-    {
-      title: t('myCv.guide2Title'),
-      text: t('myCv.guide2Text'),
-      accent: 'pink',
-    },
-    {
-      title: t('myCv.guide3Title'),
-      text: t('myCv.guide3Text'),
-      accent: 'amber',
-      actions: (
-        <div className="cv-guide-actions">
-          <Link to="/create-cv" className="btn-gradient-wrap cv-guide-create">
-            <span className="btn-gradient-inner">{t('myCv.guideAtsCreate')}</span>
-          </Link>
-        </div>
-      ),
-    },
-  ]
 
   if (authLoading) {
     return (
@@ -112,24 +88,15 @@ export default function MyCV() {
   return (
     <main className="main my-cv-main">
 
-      {/* ── Hero row: title + guide slider ── */}
-      <div className="my-cv-hero">
-        <div className="my-cv-header">
-          <h1 className="page-title">{t('myCv.title')}</h1>
+      {/* ── Page header ── */}
+      <div className="my-cv-header">
+        <div className="my-cv-header-left">
+          <h1 className="my-cv-title">{t('myCv.title')}</h1>
           <p className="my-cv-subtitle">{t('myCv.subtitle')}</p>
         </div>
-
-        <section className="cv-guide" aria-label={t('myCv.guideTitle')}>
-          <div className="cv-guide-slider">
-            {guideItems.map((item, i) => (
-              <div key={i} className={`cv-guide-card cv-guide-card--${item.accent}`}>
-                <h3 className="cv-guide-card-title">{item.title}</h3>
-                <p className="cv-guide-card-text">{item.text}</p>
-                {item.actions}
-              </div>
-            ))}
-          </div>
-        </section>
+        <Link to="/create-cv" className="btn-gradient-wrap my-cv-cta">
+          <span className="btn-gradient-inner">{t('myCv.guideAtsCreate')}</span>
+        </Link>
       </div>
 
       {/* ── Errors ── */}

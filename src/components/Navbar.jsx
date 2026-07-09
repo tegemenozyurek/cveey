@@ -197,24 +197,34 @@ export default function Navbar() {
               </div>
             ) : user ? (
               <div className="mobile-nav-footer">
+                <div className="mobile-nav-footer-icons">
+                  <button
+                    type="button"
+                    className="navbar-icon-btn"
+                    onClick={() => goTo('/notifications')}
+                    aria-label={t('nav.notifications')}
+                    title={t('nav.notifications')}
+                  >
+                    <BellIcon />
+                  </button>
+                  <button
+                    type="button"
+                    className="navbar-icon-btn"
+                    onClick={() => goTo('/messages')}
+                    aria-label={t('nav.messages')}
+                    title={t('nav.messages')}
+                  >
+                    <InboxIcon />
+                  </button>
+                </div>
                 <button
                   type="button"
-                  className="mobile-nav-notifications"
-                  onClick={() => goTo('/notifications')}
-                >
-                  {t('nav.notifications')}
-                </button>
-
-                <button
-                  type="button"
-                  className="mobile-nav-profile"
+                  className="profile-trigger"
                   onClick={() => goTo('/profile')}
+                  aria-label={t('nav.profile')}
+                  title={t('nav.profile')}
                 >
-                  <UserAvatar user={user} className="user-avatar" />
-                  <div className="mobile-nav-profile-text">
-                    <span className="mobile-account-label">{t('nav.profile')}</span>
-                    <span className="mobile-account-email">{user.email}</span>
-                  </div>
+                  <UserAvatar user={user} />
                 </button>
               </div>
             ) : (

@@ -137,40 +137,19 @@
 
 .mobile-nav-footer {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
   margin-top: auto;
   padding-top: 20px;
+  border-top: 1px solid var(--glass-border);
 }
 
-.mobile-nav-notifications {
-  display: block;
-  width: 100%;
-  padding: 14px 16px;
-  border: 1px solid var(--glass-border);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text);
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.mobile-nav-notifications:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-[data-theme='light'] .mobile-nav-notifications {
-  background: rgba(15, 23, 42, 0.03);
-}
-
-[data-theme='light'] .mobile-nav-notifications:hover {
-  background: rgba(15, 23, 42, 0.06);
-  border-color: rgba(15, 23, 42, 0.12);
+.mobile-nav-footer-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .mobile-account {
@@ -1405,69 +1384,47 @@
 /* ── My CV ───────────────────────────────────────── */
 .my-cv-main {
   width: 100%;
-  max-width: 900px;
+  max-width: 760px;
   align-self: center;
 }
 
-/* ── Hero row ── */
-.my-cv-hero {
+/* ── Page header ── */
+.my-cv-header {
   display: flex;
   align-items: center;
-  gap: 28px;
+  justify-content: space-between;
+  gap: 20px;
   width: 100%;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
 }
 
-.my-cv-header {
-  flex: 0 0 200px;
+.my-cv-header-left {
+  min-width: 0;
 }
 
-.my-cv-header .page-title {
-  margin: 0 0 8px;
+.my-cv-title {
+  margin: 0 0 4px;
   font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
 }
 
 .my-cv-subtitle {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13.5px;
   color: var(--text-muted);
 }
 
-/* ── Guide slider ── */
+.my-cv-cta {
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+/* ── Guide (keep for old refs) ── */
 .cv-guide {
-  flex: 1;
-  min-width: 0;
-  margin-bottom: 0;
-}
-
-.cv-guide-title {
-  margin: 0 0 16px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-}
-
-.cv-guide-slider {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-bottom: 4px;
-}
-
-.cv-guide-slider::-webkit-scrollbar {
-  display: none;
-}
-
-.cv-guide-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  width: 100%;
+  margin-bottom: 32px;
 }
 
 .cv-guide-card {
@@ -2636,15 +2593,18 @@
   }
 }
 
-@media (max-width: 860px) {
-  .my-cv-hero {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+@media (max-width: 560px) {
+  .my-cv-header {
+    flex-wrap: wrap;
   }
 
-  .my-cv-header {
-    flex: none;
+  .my-cv-cta {
+    width: 100%;
+  }
+
+  .my-cv-cta .btn-gradient-inner {
+    display: flex;
+    justify-content: center;
     width: 100%;
   }
 }
