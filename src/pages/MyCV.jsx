@@ -109,7 +109,7 @@ export default function MyCV() {
     return (
       <div className="cv-others-group">
         <div className="cv-others-head">
-          <h3 className="cv-section-label">{t('myCv.sectionOthers')}</h3>
+          <h3 className="cv-section-label">{t('myCv.sectionOthers', { max: MAX_CV_COUNT })}</h3>
           {otherCvs.length > 1 && (
             <div className="cv-slider-nav">
               <button
