@@ -6,7 +6,7 @@ import {
   ref,
   uploadBytesResumable,
 } from 'firebase/storage'
-import { storage } from './firebase'
+import { auth, storage } from './firebase'
 import {
   clearActiveCvPath,
   getActiveCvPath,
@@ -155,27 +155,56 @@ export async function renameCv(uid, fullPath, newName) {
 }
 
 export async function getCvDownloadUrl(fullPath) {
-  return getDownloadURL(ref(storage, fullPath))
+  return getDownloadURL(ref(storage, normalizeStoragePath(fullPath)))
 }
 
-export async function downloadCvFile(fullPath, displayName) {
-  const url = await getCvDownloadUrl(fullPath)
-  const response = await fetch(url)
-  if (!response.ok) throw new Error('DOWNLOAD_FAILED')
+function normalizeStoragePath(fullPath) {
+  return fullPath.replace(/^\/+/, '')
+}
 
-  const blob = await response.blob()
-  const blobUrl = URL.createObjectURL(blob)
-  const fileName = displayName.toLowerCase().endsWith('.pdf')
-    ? displayName
-    : `${displayName}.pdf`
+function sanitizeDownloadFileName(displayName) {
+  const base = (displayName || 'cv').trim() || 'cv'
+  const withExt = base.toLowerCase().endsWith('.pdf') ? base : `${base}.pdf`
+  return withExt.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
+}
 
-  const anchor = document.createElement('a')
-  anchor.href = blobUrl
-  anchor.download = fileName
-  document.body.appendChild(anchor)
-  anchor.click()
-  anchor.remove()
-  URL.revokeObjectURL(blobUrl)
+async function ensureAuth() {
+  const user = auth.currentUser
+  if (!user) {
+    const err = new Error('NOT_AUTHENTICATED')
+    err.code = 'auth/not-authenticated'
+    throw err
+  }
+
+  await user.getIdToken()
+  return user
+}
+
+function buildAttachmentUrl(baseUrl, fileName) {
+  const separator = baseUrl.includes('?') ? '&' : '?'
+  const safeName = fileName.replace(/"/g, '')
+  const disposition = encodeURIComponent(`attachment; filename="${safeName}"`)
+  return `${baseUrl}${separator}response-content-disposition=${disposition}`
+}
+
+function triggerIframeDownload(url) {
+  const iframe = document.createElement('iframe')
+  iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0;visibility:hidden'
+  iframe.setAttribute('aria-hidden', 'true')
+  iframe.src = url
+  document.body.appendChild(iframe)
+  window.setTimeout(() => iframe.remove(), 120_000)
+}
+
+export async function downloadCvFile(fullPath, displayName, cachedUrl) {
+  await ensureAuth()
+
+  const fileName = sanitizeDownloadFileName(displayName)
+  const path = normalizeStoragePath(fullPath)
+  const baseUrl = cachedUrl || await getCvDownloadUrl(path)
+  const downloadUrl = buildAttachmentUrl(baseUrl, fileName)
+
+  triggerIframeDownload(downloadUrl)
 }
 
 export async function deleteCv(uid, fullPath) {
