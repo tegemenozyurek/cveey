@@ -29,10 +29,8 @@ export const translations = {
     'login.submitSignIn': 'Sign in',
     'login.submitSignUp': 'Create account',
     'login.wait': 'Please wait…',
-    'login.hasAccount': 'Already have an account?',
-    'login.noAccount': "Don't have an account?",
+    'login.createAccountLink': 'Create an account',
     'login.switchSignIn': 'Sign in',
-    'login.switchSignUp': 'Sign up for free',
     'login.close': 'Close',
 
     'auth.error.emailInUse': 'This email is already registered.',
@@ -131,10 +129,8 @@ export const translations = {
     'login.submitSignIn': 'Giriş yap',
     'login.submitSignUp': 'Hesap oluştur',
     'login.wait': 'Lütfen bekleyin…',
-    'login.hasAccount': 'Zaten hesabınız var mı?',
-    'login.noAccount': 'Hesabınız yok mu?',
+    'login.createAccountLink': 'Hesap oluştur',
     'login.switchSignIn': 'Giriş yap',
-    'login.switchSignUp': 'Ücretsiz kayıt ol',
     'login.close': 'Kapat',
 
     'auth.error.emailInUse': 'Bu e-posta zaten kayıtlı.',

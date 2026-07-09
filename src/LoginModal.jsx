@@ -136,40 +136,7 @@ export default function LoginModal({ onClose }) {
           ×
         </button>
 
-        <p className="modal-logo">cve<span>ey</span></p>
-
-        <h2 id="login-title" className="modal-title">
-          {isSignUp ? t('login.createAccount') : t('login.welcome')}
-        </h2>
-        <p className="modal-subtitle">
-          {isSignUp ? t('login.subtitleSignUp') : t('login.subtitleSignIn')}
-        </p>
-
-        <div className="oauth-buttons">
-          <button
-            type="button"
-            className="oauth-btn"
-            onClick={handleGoogleSignIn}
-            disabled={isBusy}
-          >
-            <GoogleIcon />
-            <span>{googleLoading ? t('login.wait') : t('login.google')}</span>
-          </button>
-
-          <button
-            type="button"
-            className="oauth-btn oauth-btn--github"
-            onClick={handleGitHubSignIn}
-            disabled={isBusy}
-          >
-            <GitHubIcon />
-            <span>{githubLoading ? t('login.wait') : t('login.github')}</span>
-          </button>
-        </div>
-
-        <div className="modal-or">
-          <span>{t('login.or')}</span>
-        </div>
+        <p id="login-title" className="modal-logo modal-logo--lg">cve<span>ey</span></p>
 
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-field">
@@ -203,16 +170,6 @@ export default function LoginModal({ onClose }) {
             />
           </div>
 
-          {error && (
-            <p className="form-error">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              {error}
-            </p>
-          )}
-
           <button
             type="submit"
             className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
@@ -224,14 +181,61 @@ export default function LoginModal({ onClose }) {
           </button>
         </form>
 
-        <hr className="modal-divider" />
+        {error && (
+          <p className="form-error login-form-error">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+              <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            {error}
+          </p>
+        )}
 
-        <p className="modal-switch">
-          {isSignUp ? t('login.hasAccount') : t('login.noAccount')}{' '}
-          <button type="button" className="link-btn" onClick={switchMode} disabled={isBusy}>
-            {isSignUp ? t('login.switchSignIn') : t('login.switchSignUp')}
+        <div className="modal-or">
+          <span>{t('login.or')}</span>
+        </div>
+
+        <div className="oauth-buttons">
+          <button
+            type="button"
+            className="oauth-btn"
+            onClick={handleGoogleSignIn}
+            disabled={isBusy}
+          >
+            <GoogleIcon />
+            <span>{googleLoading ? t('login.wait') : t('login.google')}</span>
           </button>
-        </p>
+
+          <button
+            type="button"
+            className="oauth-btn oauth-btn--github"
+            onClick={handleGitHubSignIn}
+            disabled={isBusy}
+          >
+            <GitHubIcon />
+            <span>{githubLoading ? t('login.wait') : t('login.github')}</span>
+          </button>
+        </div>
+
+        {!isSignUp ? (
+          <button
+            type="button"
+            className="modal-switch-btn"
+            onClick={switchMode}
+            disabled={isBusy}
+          >
+            {t('login.createAccountLink')}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="modal-switch-btn"
+            onClick={switchMode}
+            disabled={isBusy}
+          >
+            {t('login.switchSignIn')}
+          </button>
+        )}
       </div>
     </div>
   )

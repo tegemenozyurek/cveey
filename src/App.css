@@ -1470,6 +1470,13 @@
   -webkit-text-fill-color: transparent;
 }
 
+.modal-logo--lg {
+  font-size: 36px;
+  letter-spacing: -1px;
+  text-align: center;
+  margin: 0 0 28px;
+}
+
 .modal-title {
   margin: 0 0 4px;
   font-size: 22px;
@@ -1532,11 +1539,15 @@
   cursor: not-allowed;
 }
 
+.login-form-error {
+  margin-top: 12px;
+}
+
 .modal-or {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 20px 0 18px;
+  margin: 20px 0 16px;
   color: var(--text-dim);
   font-size: 12px;
   font-weight: 500;
@@ -1585,6 +1596,22 @@
   color: var(--text-dim);
 }
 
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus,
+.form-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--input-bg) inset;
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  border: 1.5px solid var(--glass-border);
+  transition: background-color 9999s ease-out 0s;
+}
+
+.form-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--input-bg-focus) inset;
+  border-color: rgba(232, 121, 249, 0.5);
+}
+
 .form-error {
   display: flex;
   align-items: center;
@@ -1628,11 +1655,31 @@
   border-top: 1px solid var(--glass-border);
 }
 
-.modal-switch {
-  margin: 0;
+.modal-switch-btn {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px 16px;
   font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
   color: var(--text-muted);
-  text-align: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.modal-switch-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--glass-hover);
+  border-color: var(--glass-border);
+}
+
+.modal-switch-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .link-btn {
@@ -1688,6 +1735,20 @@
 .confirm-actions .btn {
   flex: 1;
   justify-content: center;
+}
+
+.confirm-action-primary {
+  flex: 1;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.confirm-action-primary .btn-gradient-inner {
+  text-align: center;
+  width: 100%;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .btn-destructive {
