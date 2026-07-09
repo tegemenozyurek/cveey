@@ -23,10 +23,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
   width: 100%;
-  max-width: 920px;
-  padding: 8px 10px 8px 20px;
+  max-width: 960px;
+  padding: 10px 12px 10px 22px;
   background: var(--glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -38,17 +38,34 @@
 .navbar-end {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-shrink: 0;
   margin-left: auto;
+}
+
+.navbar-auth-placeholder {
+  display: inline-block;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--glass-hover);
+  border: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.navbar-auth-placeholder--mobile {
+  display: block;
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
 }
 
 .burger-btn {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   border: 1px solid var(--glass-border);
   border-radius: 50%;
@@ -297,7 +314,7 @@
 }
 
 .logo {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.5px;
   color: var(--text);
@@ -321,8 +338,8 @@
 }
 
 .nav-link {
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 9px 18px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text-muted);
   text-decoration: none;
@@ -484,10 +501,15 @@
   border-radius: 9999px;
 }
 
+.header-signin--desktop .btn-gradient-inner {
+  padding: 9px 22px;
+  font-size: 14px;
+}
+
 .user-avatar,
 .profile-avatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   flex-shrink: 0;
   overflow: hidden;
@@ -539,8 +561,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   border: 1.5px solid transparent;
   border-radius: 50%;
@@ -1140,7 +1162,7 @@
 /* ── My CV ───────────────────────────────────────── */
 .my-cv-main {
   width: 100%;
-  max-width: 640px;
+  max-width: 720px;
   align-self: center;
 }
 
@@ -1157,8 +1179,29 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 24px;
   margin-bottom: 16px;
+}
+
+.cv-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cv-section-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.cv-section-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .cv-card {
@@ -1188,77 +1231,102 @@
   min-width: 0;
 }
 
-.cv-card-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-  min-width: 0;
-}
-
 .cv-card-name {
-  margin: 0;
+  margin: 0 0 4px;
   font-size: 15px;
   font-weight: 600;
   color: var(--text);
   line-height: 1.35;
   min-width: 0;
-  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.cv-active-badge {
-  display: inline-flex;
-  align-items: center;
+.cv-set-active-link {
   flex-shrink: 0;
-  padding: 2px 8px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  color: var(--accent-cyan);
-  background: rgba(34, 211, 238, 0.12);
-  border: 1px solid rgba(34, 211, 238, 0.22);
-  border-radius: 9999px;
-  white-space: nowrap;
-}
-
-.cv-set-active-btn {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  gap: 4px;
-  padding: 2px 10px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
+  align-self: center;
+  margin-left: 8px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
   font-family: inherit;
-  color: var(--text-muted);
-  background: var(--glass-hover);
-  border: 1px solid var(--glass-border);
-  border-radius: 9999px;
+  color: var(--accent-cyan);
+  background: none;
+  border: none;
   white-space: nowrap;
   cursor: pointer;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: color 0.15s, opacity 0.15s;
 }
 
-.cv-set-active-btn:hover:not(:disabled) {
-  color: var(--accent-cyan);
-  background: rgba(34, 211, 238, 0.1);
-  border-color: rgba(34, 211, 238, 0.28);
-  box-shadow: 0 2px 10px rgba(34, 211, 238, 0.12);
+.cv-set-active-link:hover:not(:disabled) {
+  color: #67e8f9;
 }
 
-.cv-set-active-btn:disabled {
+.cv-set-active-link:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.cv-card-preview {
+  position: relative;
+  margin-top: 14px;
+  height: 420px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-strong);
+}
+
+.cv-card-preview-status {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--glass-strong);
+}
+
+.cv-preview-spinner {
+  width: 26px;
+  height: 26px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: cv-preview-spin 0.8s linear infinite;
+}
+
+[data-theme='light'] .cv-preview-spinner {
+  border-color: rgba(15, 23, 42, 0.1);
+  border-top-color: var(--text);
+}
+
+@keyframes cv-preview-spin {
+  to { transform: rotate(360deg); }
+}
+
+.cv-card-preview-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.cv-card-preview-frame--ready {
+  opacity: 1;
+}
+
+.cv-card-preview-loading {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
 }
 
 .cv-card-meta {
@@ -1377,6 +1445,24 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 4px;
+  min-width: 0;
+}
+
+.cv-card-edit-field {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--glass-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  overflow: hidden;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.cv-card-edit-field:focus-within {
+  border-color: rgba(232, 121, 249, 0.5);
+  background: var(--input-bg-focus);
 }
 
 .cv-card-edit-input {
@@ -1387,15 +1473,18 @@
   font-family: inherit;
   font-weight: 500;
   color: var(--text);
-  background: var(--input-bg);
-  border: 1.5px solid var(--glass-border);
-  border-radius: 8px;
+  background: transparent;
+  border: none;
   outline: none;
-  transition: border-color 0.15s;
 }
 
-.cv-card-edit-input:focus {
-  border-color: rgba(232, 121, 249, 0.5);
+.cv-card-edit-ext {
+  flex-shrink: 0;
+  padding-right: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  user-select: none;
 }
 
 .cv-card-error {
@@ -1490,12 +1579,46 @@
 
 .cv-delete-confirm {
   margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--glass-border);
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(248, 113, 113, 0.06);
+  border: 1px solid rgba(248, 113, 113, 0.18);
+}
+
+.cv-delete-confirm-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cv-delete-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+.cv-delete-copy {
+  min-width: 0;
+}
+
+.cv-delete-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
 }
 
 .cv-delete-text {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 13px;
   color: var(--text-muted);
   line-height: 1.5;
@@ -1504,6 +1627,11 @@
 .cv-delete-actions {
   display: flex;
   gap: 8px;
+}
+
+.cv-delete-actions .btn {
+  flex: 1;
+  justify-content: center;
 }
 
 .file-remove {
@@ -2042,13 +2170,13 @@
   }
 
   .navbar-glass {
-    padding: 8px 10px 8px 16px;
-    gap: 12px;
+    padding: 9px 11px 9px 18px;
+    gap: 14px;
   }
 
   .nav-link {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 8px 14px;
+    font-size: 14px;
   }
 
   .main {
@@ -2083,12 +2211,12 @@
 
   .navbar-glass {
     border-radius: 16px;
-    padding: 8px 10px 8px 16px;
+    padding: 9px 11px 9px 18px;
     flex-wrap: nowrap;
   }
 
   .logo {
-    font-size: 17px;
+    font-size: 19px;
   }
 
   .profile-dropdown {
@@ -2104,7 +2232,7 @@
   }
 
   .navbar-glass {
-    padding: 8px 8px 8px 14px;
+    padding: 9px 10px 9px 16px;
   }
 
   .main {
@@ -2145,6 +2273,15 @@
 
   .cv-card-tools {
     justify-content: flex-end;
+  }
+
+  .cv-set-active-link {
+    align-self: flex-end;
+    margin-left: 0;
+  }
+
+  .cv-card-preview {
+    height: 320px;
   }
 
   .cv-upload-card {

@@ -4,7 +4,7 @@ import { resolveAuthMethod } from './authUtils'
 import { db } from './firebase'
 import { deleteUserStorageFiles } from './storageService'
 
-export { getActiveCvPath, setActiveCvPath, clearActiveCvPath } from './activeCvService'
+export { getActiveFileId, setActiveFileId, clearActiveFileId } from './cvFileService'
 export { AUTH_METHOD_EMAIL_PASSWORD, AUTH_METHOD_GITHUB, AUTH_METHOD_GOOGLE, resolveAuthMethod } from './authUtils'
 
 function resolveUserEmail(user) {

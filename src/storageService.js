@@ -6,15 +6,25 @@ import {
   ref,
   uploadBytesResumable,
 } from 'firebase/storage'
-import { auth, storage } from './firebase'
+import { collection, doc } from 'firebase/firestore'
+import { auth, db, storage } from './firebase'
 import {
-  clearActiveCvPath,
-  getActiveCvPath,
-  getCvDisplayNames,
-  removeCvDisplayName,
-  setActiveCvPath,
-  setCvDisplayName,
-} from './activeCvService'
+  buildCvStoragePath,
+  clearActiveFileId,
+  createCvFileRecord,
+  deleteAllCvFileRecords,
+  deleteCvFileRecord,
+  getActiveFileId,
+  getCvFileRecord,
+  listCvFileRecords,
+  normalizeStoragePath,
+  pruneLegacyUserFields,
+  readLegacyMigrationData,
+  resolveLegacyDisplayName,
+  setActiveFileId,
+  updateCvFileDisplayName,
+} from './cvFileService'
+import { getCvBlob, releasePreviewUrl } from './cvPreviewCache'
 
 export const MAX_CV_COUNT = 5
 
@@ -25,47 +35,79 @@ export function invalidateCvCache(uid) {
   else cvCache.clear()
 }
 
-function sanitizeFileName(name) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, '_')
+async function fetchStorageUrl(filePath) {
+  return getDownloadURL(ref(storage, normalizeStoragePath(filePath)))
 }
 
-export function buildCvStoragePath(uid, fileName) {
-  return `users/${uid}/${Date.now()}_${sanitizeFileName(fileName)}`
-}
-
-function resolveDisplayName(fullPath, storageName, metadataName, displayNames) {
-  if (displayNames[fullPath]) return displayNames[fullPath]
-  if (metadataName) return metadataName
-  const parts = storageName.split('_')
-  if (parts.length > 1) return parts.slice(1).join('_')
-  return storageName
-}
-
-async function fetchCvItem(item, displayNames) {
+async function enrichCvRecord(record) {
   const [url, metadata] = await Promise.all([
-    getDownloadURL(item),
-    getMetadata(item),
+    fetchStorageUrl(record.filePath),
+    getMetadata(ref(storage, record.filePath)).catch(() => null),
   ])
 
-  const metadataName = metadata.customMetadata?.originalFileName
-
   return {
-    storageName: item.name,
-    displayName: resolveDisplayName(item.fullPath, item.name, metadataName, displayNames),
-    fullPath: item.fullPath,
+    ...record,
     url,
-    size: metadata.size,
-    updated: metadata.updated,
+    size: metadata?.size ?? 0,
+    updated: metadata?.updated ?? new Date().toISOString(),
   }
 }
 
-async function listStorageCvs(uid, displayNames) {
-  const userRef = ref(storage, `users/${uid}`)
-  const listing = await listAll(userRef)
+async function syncStorageWithFirestore(uid) {
+  const [records, listing, legacy] = await Promise.all([
+    listCvFileRecords(uid),
+    listAll(ref(storage, `users/${uid}`)),
+    readLegacyMigrationData(uid),
+  ])
 
-  const cvs = await Promise.all(listing.items.map((item) => fetchCvItem(item, displayNames)))
-  cvs.sort((a, b) => new Date(b.updated) - new Date(a.updated))
-  return cvs
+  const recordsByPath = new Map(records.map((record) => [record.filePath, record]))
+  const storagePaths = new Set()
+
+  for (const item of listing.items) {
+    const filePath = normalizeStoragePath(item.fullPath)
+    storagePaths.add(filePath)
+
+    if (recordsByPath.has(filePath)) continue
+
+    const metadata = await getMetadata(item)
+    const displayName = resolveLegacyDisplayName(
+      filePath,
+      item.name,
+      metadata.customMetadata?.originalFileName,
+      legacy.legacyNames,
+    )
+
+    const created = await createCvFileRecord(uid, {
+      displayName,
+      storageObject: item.name,
+    })
+    recordsByPath.set(filePath, created)
+  }
+
+  for (const record of [...recordsByPath.values()]) {
+    if (!storagePaths.has(record.filePath)) {
+      await deleteCvFileRecord(uid, record.id)
+      recordsByPath.delete(record.filePath)
+    }
+  }
+
+  const syncedRecords = [...recordsByPath.values()]
+
+  if (legacy.legacyActivePath && syncedRecords.length > 0) {
+    const activeFileId = await getActiveFileId(uid)
+    if (!activeFileId) {
+      const match = syncedRecords.find((record) => record.filePath === legacy.legacyActivePath)
+      if (match) await setActiveFileId(uid, match.id)
+    }
+  }
+
+  await pruneLegacyUserFields(uid)
+  return syncedRecords
+}
+
+async function listUserCvRecords(uid) {
+  const records = await syncStorageWithFirestore(uid)
+  return Promise.all(records.map((record) => enrichCvRecord(record)))
 }
 
 export async function getUserCvs(uid, { force = false } = {}) {
@@ -73,34 +115,37 @@ export async function getUserCvs(uid, { force = false } = {}) {
     return cvCache.get(uid)
   }
 
-  const [displayNames, activeCvPath] = await Promise.all([
-    getCvDisplayNames(uid),
-    getActiveCvPath(uid),
+  const [cvs, activeFileId] = await Promise.all([
+    listUserCvRecords(uid),
+    getActiveFileId(uid),
   ])
 
-  const cvs = await listStorageCvs(uid, displayNames)
+  cvs.sort((a, b) => new Date(b.updated) - new Date(a.updated))
 
-  let resolvedActivePath = activeCvPath
+  let resolvedActiveFileId = activeFileId
   if (cvs.length === 0) {
-    resolvedActivePath = null
+    resolvedActiveFileId = null
     try {
-      if (activeCvPath) await clearActiveCvPath(uid)
+      if (activeFileId) await clearActiveFileId(uid)
     } catch (err) {
-      console.warn('Could not clear active CV path:', err)
+      console.warn('Could not clear active CV id:', err)
     }
-  } else if (!activeCvPath || !cvs.some((cv) => cv.fullPath === activeCvPath)) {
-    resolvedActivePath = cvs[0].fullPath
+  } else if (!activeFileId || !cvs.some((cv) => cv.id === activeFileId)) {
+    resolvedActiveFileId = cvs[0].id
     try {
-      await setActiveCvPath(uid, resolvedActivePath)
+      await setActiveFileId(uid, resolvedActiveFileId)
     } catch (err) {
-      console.warn('Could not set active CV path:', err)
+      console.warn('Could not set active CV id:', err)
     }
   }
 
+  const activeCv = cvs.find((cv) => cv.id === resolvedActiveFileId) ?? null
+
   const data = {
     cvs,
-    activeCvPath: resolvedActivePath,
-    activeCv: cvs.find((cv) => cv.fullPath === resolvedActivePath) ?? null,
+    activeFileId: resolvedActiveFileId,
+    activeCvPath: activeCv?.filePath ?? null,
+    activeCv,
   }
 
   cvCache.set(uid, data)
@@ -116,13 +161,14 @@ export async function uploadCv(uid, file, onProgress) {
     throw err
   }
 
-  const path = buildCvStoragePath(uid, file.name)
-  const storageRef = ref(storage, path)
+  const fileRef = doc(collection(db, 'users', uid, 'files'))
+  const fileId = fileRef.id
+  const filePath = buildCvStoragePath(uid, fileId)
+  const storageRef = ref(storage, filePath)
 
   await new Promise((resolve, reject) => {
     const task = uploadBytesResumable(storageRef, file, {
       contentType: 'application/pdf',
-      customMetadata: { originalFileName: file.name },
     })
 
     task.on(
@@ -136,9 +182,14 @@ export async function uploadCv(uid, file, onProgress) {
     )
   })
 
+  await createCvFileRecord(uid, {
+    fileId,
+    displayName: file.name,
+  })
+
   if (cvs.length === 0) {
     try {
-      await setActiveCvPath(uid, path)
+      await setActiveFileId(uid, fileId)
     } catch (err) {
       console.warn('Could not set active CV after upload:', err)
     }
@@ -148,18 +199,19 @@ export async function uploadCv(uid, file, onProgress) {
   return getUserCvs(uid, { force: true })
 }
 
-export async function renameCv(uid, fullPath, newName) {
-  await setCvDisplayName(uid, fullPath, newName)
+export async function renameCv(uid, fileId, newName) {
+  try {
+    await updateCvFileDisplayName(uid, fileId, newName)
+  } catch (err) {
+    console.error('CV rename failed:', err)
+    throw err
+  }
   invalidateCvCache(uid)
   return getUserCvs(uid, { force: true })
 }
 
-export async function getCvDownloadUrl(fullPath) {
-  return getDownloadURL(ref(storage, normalizeStoragePath(fullPath)))
-}
-
-function normalizeStoragePath(fullPath) {
-  return fullPath.replace(/^\/+/, '')
+export async function getCvDownloadUrl(filePath) {
+  return fetchStorageUrl(filePath)
 }
 
 function sanitizeDownloadFileName(displayName) {
@@ -180,46 +232,58 @@ async function ensureAuth() {
   return user
 }
 
-function buildAttachmentUrl(baseUrl, fileName) {
-  const separator = baseUrl.includes('?') ? '&' : '?'
-  const safeName = fileName.replace(/"/g, '')
-  const disposition = encodeURIComponent(`attachment; filename="${safeName}"`)
-  return `${baseUrl}${separator}response-content-disposition=${disposition}`
+function triggerBlobDownload(blob, fileName) {
+  const blobUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = blobUrl
+  link.download = fileName
+  link.rel = 'noopener'
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
 }
 
-function triggerIframeDownload(url) {
-  const iframe = document.createElement('iframe')
-  iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0;visibility:hidden'
-  iframe.setAttribute('aria-hidden', 'true')
-  iframe.src = url
-  document.body.appendChild(iframe)
-  window.setTimeout(() => iframe.remove(), 120_000)
-}
-
-export async function downloadCvFile(fullPath, displayName, cachedUrl) {
+export async function downloadCvFile(filePath, displayName) {
   await ensureAuth()
 
   const fileName = sanitizeDownloadFileName(displayName)
-  const path = normalizeStoragePath(fullPath)
-  const baseUrl = cachedUrl || await getCvDownloadUrl(path)
-  const downloadUrl = buildAttachmentUrl(baseUrl, fileName)
-
-  triggerIframeDownload(downloadUrl)
+  const blob = await getCvBlob(filePath)
+  triggerBlobDownload(blob, fileName)
 }
 
-export async function deleteCv(uid, fullPath) {
-  await deleteObject(ref(storage, fullPath))
-  try {
-    await removeCvDisplayName(uid, fullPath)
-  } catch (err) {
-    console.warn('Could not remove CV display name:', err)
+export async function deleteCv(uid, fileId) {
+  const record = await getCvFileRecord(uid, fileId)
+  if (!record) {
+    invalidateCvCache(uid)
+    return getUserCvs(uid, { force: true })
   }
+
+  const activeFileId = await getActiveFileId(uid)
+  const pathKey = normalizeStoragePath(record.filePath)
+
+  await deleteObject(ref(storage, pathKey))
+  releasePreviewUrl(pathKey)
+  await deleteCvFileRecord(uid, fileId)
+
+  if (activeFileId === fileId) {
+    const remaining = (await listCvFileRecords(uid))
+      .filter((cv) => cv.id !== fileId)
+      .sort((a, b) => a.displayName.localeCompare(b.displayName))
+
+    if (remaining.length > 0) {
+      await setActiveFileId(uid, remaining[0].id)
+    } else {
+      await clearActiveFileId(uid)
+    }
+  }
+
   invalidateCvCache(uid)
   return getUserCvs(uid, { force: true })
 }
 
-export async function activateCv(uid, fullPath) {
-  await setActiveCvPath(uid, fullPath)
+export async function activateCv(uid, fileId) {
+  await setActiveFileId(uid, fileId)
   invalidateCvCache(uid)
   return getUserCvs(uid, { force: true })
 }
@@ -228,5 +292,10 @@ export async function deleteUserStorageFiles(uid) {
   const userRef = ref(storage, `users/${uid}`)
   const listing = await listAll(userRef)
   await Promise.all(listing.items.map((item) => deleteObject(item)))
+  await deleteAllCvFileRecords(uid)
+  await clearActiveFileId(uid)
+  await pruneLegacyUserFields(uid)
   invalidateCvCache(uid)
 }
+
+export { buildCvStoragePath }

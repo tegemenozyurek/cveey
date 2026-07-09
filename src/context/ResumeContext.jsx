@@ -3,22 +3,31 @@ import { useAuth } from './AuthContext'
 import {
   activateCv,
   deleteCv,
+  getCvDownloadUrl,
   getUserCvs,
   invalidateCvCache,
   renameCv,
   uploadCv,
 } from '../storageService'
+import {
+  clearPreviewCache,
+  getCachedPreviewUrl,
+  getOrCreatePreviewUrl,
+} from '../cvPreviewCache'
 
 const ResumeContext = createContext(null)
 
 export function ResumeProvider({ children }) {
-  const { user } = useAuth()
+  const { user, authLoading } = useAuth()
   const [cvs, setCvs] = useState([])
   const [activeCv, setActiveCv] = useState(null)
   const [activeCvPath, setActiveCvPath] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [activePreviewUrl, setActivePreviewUrl] = useState('')
+  const [activePreviewLoading, setActivePreviewLoading] = useState(false)
   const loadedUidRef = useRef(null)
+  const previewPathRef = useRef(null)
 
   const applyCvData = useCallback((data) => {
     setCvs(data.cvs)
@@ -27,13 +36,19 @@ export function ResumeProvider({ children }) {
   }, [])
 
   useEffect(() => {
+    if (authLoading) return
+
     if (!user) {
       setCvs([])
       setActiveCv(null)
       setActiveCvPath(null)
+      setActivePreviewUrl('')
+      setActivePreviewLoading(false)
       setError('')
       setLoading(false)
       loadedUidRef.current = null
+      previewPathRef.current = null
+      clearPreviewCache()
       return
     }
 
@@ -58,7 +73,62 @@ export function ResumeProvider({ children }) {
       })
 
     return () => { cancelled = true }
-  }, [user, applyCvData])
+  }, [user, authLoading, applyCvData])
+
+  useEffect(() => {
+    if (!activeCvPath || !activeCv) {
+      setActivePreviewUrl('')
+      setActivePreviewLoading(false)
+      previewPathRef.current = null
+      return
+    }
+
+    const currentPath = activeCvPath
+    const currentUrl = activeCv.url ?? ''
+    previewPathRef.current = currentPath
+
+    const cached = getCachedPreviewUrl(currentPath)
+    if (cached) {
+      setActivePreviewUrl(cached)
+      setActivePreviewLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setActivePreviewLoading(true)
+
+    const resolveDirectUrl = async () => {
+      if (currentUrl) return currentUrl
+      return getCvDownloadUrl(currentPath)
+    }
+
+    void resolveDirectUrl()
+      .then((directUrl) => {
+        if (!cancelled && previewPathRef.current === currentPath) {
+          setActivePreviewUrl(directUrl)
+          setActivePreviewLoading(false)
+        }
+      })
+      .catch((err) => {
+        console.error('CV preview URL resolve failed:', err)
+        if (!cancelled && previewPathRef.current === currentPath) {
+          setActivePreviewUrl('')
+          setActivePreviewLoading(false)
+        }
+      })
+
+    void getOrCreatePreviewUrl(currentPath)
+      .then((blobUrl) => {
+        if (!cancelled && previewPathRef.current === currentPath) {
+          setActivePreviewUrl(blobUrl)
+        }
+      })
+      .catch((err) => {
+        console.error('CV preview cache warm failed:', err)
+      })
+
+    return () => { cancelled = true }
+  }, [activeCvPath, activeCv?.fullPath, activeCv?.url])
 
   const refreshCvs = useCallback(async () => {
     if (!user) return null
@@ -89,31 +159,35 @@ export function ResumeProvider({ children }) {
     return data
   }, [user, applyCvData])
 
-  const removeCv = useCallback(async (fullPath) => {
+  const removeCv = useCallback(async (fileId) => {
     if (!user) return null
 
     setError('')
-    const data = await deleteCv(user.uid, fullPath)
+    const data = await deleteCv(user.uid, fileId)
     applyCvData(data)
     loadedUidRef.current = user.uid
     return data
   }, [user, applyCvData])
 
-  const renameUserCv = useCallback(async (fullPath, newName) => {
-    if (!user) return null
+  const renameUserCv = useCallback(async (fileId, newName) => {
+    if (!user) {
+      const err = new Error('NOT_AUTHENTICATED')
+      err.code = 'auth/not-authenticated'
+      throw err
+    }
 
     setError('')
-    const data = await renameCv(user.uid, fullPath, newName)
+    const data = await renameCv(user.uid, fileId, newName)
     applyCvData(data)
     loadedUidRef.current = user.uid
     return data
   }, [user, applyCvData])
 
-  const setActiveUserCv = useCallback(async (fullPath) => {
+  const setActiveUserCv = useCallback(async (fileId) => {
     if (!user) return null
 
     setError('')
-    const data = await activateCv(user.uid, fullPath)
+    const data = await activateCv(user.uid, fileId)
     applyCvData(data)
     loadedUidRef.current = user.uid
     return data
@@ -132,6 +206,8 @@ export function ResumeProvider({ children }) {
         activeCvPath,
         loading,
         error,
+        activePreviewUrl,
+        activePreviewLoading,
         refreshCvs,
         uploadUserCv,
         removeCv,

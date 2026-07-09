@@ -82,20 +82,6 @@ function IconDelete() {
   )
 }
 
-function IconStar() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 2l2.9 6.5L22 9.3l-5 4.4 1.5 6.5L12 17.3 5.5 20.2 7 13.7 2 9.3l7.1-.8L12 2z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 function IconCheck() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -112,16 +98,31 @@ function IconClose() {
   )
 }
 
+const PDF_EXTENSION = '.pdf'
+const MAX_CV_BASE_NAME_LENGTH = 116
+
+function stripPdfExtension(name) {
+  return name.replace(/\.pdf$/i, '')
+}
+
+function buildCvDisplayName(baseName) {
+  const trimmed = baseName.trim()
+  if (!trimmed) return ''
+  return `${stripPdfExtension(trimmed)}${PDF_EXTENSION}`
+}
+
 export default function CvCard({
   cv,
   isActive,
+  previewUrl = '',
+  previewLoading = false,
   onRename,
   onDelete,
   onSetActive,
 }) {
   const { lang, t } = useLanguage()
   const [editing, setEditing] = useState(false)
-  const [editName, setEditName] = useState(cv.displayName)
+  const [editName, setEditName] = useState(stripPdfExtension(cv.displayName))
   const [saving, setSaving] = useState(false)
   const [viewing, setViewing] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -129,15 +130,27 @@ export default function CvCard({
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [localError, setLocalError] = useState('')
+  const [iframeLoaded, setIframeLoaded] = useState(false)
   const inputRef = useRef(null)
 
   useEffect(() => {
-    if (!editing) setEditName(cv.displayName)
+    if (!editing) setEditName(stripPdfExtension(cv.displayName))
   }, [cv.displayName, editing])
 
   useEffect(() => {
     if (editing) inputRef.current?.focus()
   }, [editing])
+
+  useEffect(() => {
+    setIframeLoaded(false)
+    if (!previewUrl) return undefined
+
+    const timeout = window.setTimeout(() => {
+      setIframeLoaded(true)
+    }, 8000)
+
+    return () => window.clearTimeout(timeout)
+  }, [previewUrl, cv.fullPath])
 
   const formatBytes = (bytes) => {
     if (bytes < 1024) return `${bytes} B`
@@ -153,23 +166,23 @@ export default function CvCard({
   const startEdit = () => {
     setLocalError('')
     setConfirmDelete(false)
-    setEditName(cv.displayName)
+    setEditName(stripPdfExtension(cv.displayName))
     setEditing(true)
   }
 
   const cancelEdit = () => {
-    setEditName(cv.displayName)
+    setEditName(stripPdfExtension(cv.displayName))
     setEditing(false)
     setLocalError('')
   }
 
   const saveEdit = async () => {
-    const trimmed = editName.trim()
-    if (!trimmed) {
+    const nextName = buildCvDisplayName(editName)
+    if (!nextName) {
       setLocalError(t('myCv.errorEmptyName'))
       return
     }
-    if (trimmed === cv.displayName) {
+    if (nextName === cv.displayName) {
       setEditing(false)
       return
     }
@@ -177,7 +190,7 @@ export default function CvCard({
     setSaving(true)
     setLocalError('')
     try {
-      await onRename(cv.fullPath, trimmed)
+      await onRename(cv.id, nextName)
       setEditing(false)
     } catch (err) {
       if (err?.message === 'NAME_TOO_LONG') {
@@ -196,7 +209,7 @@ export default function CvCard({
     setViewing(true)
     setLocalError('')
     try {
-      const url = await getCvDownloadUrl(cv.fullPath)
+      const url = (isActive && previewUrl) || await getCvDownloadUrl(cv.fullPath)
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch {
       setLocalError(t('myCv.viewError'))
@@ -211,7 +224,7 @@ export default function CvCard({
     setDownloading(true)
     setLocalError('')
 
-    void downloadCvFile(cv.fullPath, cv.displayName, cv.url)
+    void downloadCvFile(cv.fullPath, cv.displayName)
       .catch((err) => {
         console.error('CV download failed:', err)
         setLocalError(t('myCv.downloadError'))
@@ -225,7 +238,7 @@ export default function CvCard({
     setDeleting(true)
     setLocalError('')
     try {
-      await onDelete(cv.fullPath)
+      await onDelete(cv.id)
       setConfirmDelete(false)
     } catch {
       setLocalError(t('myCv.deleteError'))
@@ -241,7 +254,7 @@ export default function CvCard({
     setLocalError('')
     setConfirmDelete(false)
     try {
-      await onSetActive(cv.fullPath)
+      await onSetActive(cv.id)
     } catch {
       setLocalError(t('myCv.activateError'))
     } finally {
@@ -255,18 +268,21 @@ export default function CvCard({
         <div className="cv-card-info">
           {editing ? (
             <div className="cv-card-edit">
-              <input
-                ref={inputRef}
-                className="cv-card-edit-input"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') saveEdit()
-                  if (e.key === 'Escape') cancelEdit()
-                }}
-                disabled={saving}
-                maxLength={120}
-              />
+              <div className="cv-card-edit-field">
+                <input
+                  ref={inputRef}
+                  className="cv-card-edit-input"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value.replace(/\.pdf/gi, ''))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveEdit()
+                    if (e.key === 'Escape') cancelEdit()
+                  }}
+                  disabled={saving}
+                  maxLength={MAX_CV_BASE_NAME_LENGTH}
+                />
+                <span className="cv-card-edit-ext">{PDF_EXTENSION}</span>
+              </div>
               <button
                 type="button"
                 className="cv-icon-btn cv-icon-btn--save"
@@ -287,28 +303,13 @@ export default function CvCard({
               </button>
             </div>
           ) : (
-            <div className="cv-card-title-row">
+            <>
               <h2 className="cv-card-name" title={cv.displayName}>{cv.displayName}</h2>
-              {isActive ? (
-                <span className="cv-active-badge">{t('myCv.active')}</span>
-              ) : (
-                <button
-                  type="button"
-                  className="cv-set-active-btn"
-                  onClick={onActivate}
-                  disabled={activating || editing}
-                  aria-label={t('myCv.setActive')}
-                  title={t('myCv.setActive')}
-                >
-                  <IconStar />
-                  {activating ? t('myCv.activating') : t('myCv.setActive')}
-                </button>
-              )}
-            </div>
+              <p className="cv-card-meta">
+                {formatBytes(cv.size)} · {formatDate(cv.updated)}
+              </p>
+            </>
           )}
-          <p className="cv-card-meta">
-            {formatBytes(cv.size)} · {formatDate(cv.updated)}
-          </p>
         </div>
 
         <div className="cv-card-tools">
@@ -357,13 +358,67 @@ export default function CvCard({
             <IconDelete />
           </button>
         </div>
+
+        {!isActive && !editing && (
+          <button
+            type="button"
+            className="cv-set-active-link"
+            onClick={onActivate}
+            disabled={activating}
+          >
+            {activating ? t('myCv.activating') : t('myCv.setActive')}
+          </button>
+        )}
       </div>
+
+      {isActive && (
+        <div className="cv-card-preview">
+          {(previewLoading || (previewUrl && !iframeLoaded)) && (
+            <div className="cv-card-preview-status" aria-live="polite">
+              <span className="cv-preview-spinner" aria-hidden="true" />
+              <p className="cv-card-preview-loading">{t('myCv.previewLoading')}</p>
+            </div>
+          )}
+
+          {previewUrl && (
+            <iframe
+              key={cv.fullPath}
+              src={`${previewUrl}#toolbar=0&navpanes=0`}
+              title={cv.displayName}
+              className={`cv-card-preview-frame${iframeLoaded ? ' cv-card-preview-frame--ready' : ''}`}
+              onLoad={() => setIframeLoaded(true)}
+            />
+          )}
+
+          {!previewLoading && !previewUrl && (
+            <div className="cv-card-preview-status">
+              <p className="cv-card-preview-loading">{t('myCv.previewError')}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {localError && <p className="cv-card-error">{localError}</p>}
 
       {confirmDelete && (
         <div className="cv-delete-confirm">
-          <p className="cv-delete-text">{t('myCv.deleteConfirm')}</p>
+          <div className="cv-delete-confirm-content">
+            <div className="cv-delete-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M3 6h18M8 6V4.5A1.5 1.5 0 019.5 3h5A1.5 1.5 0 0116 4.5V6M6 6l.8 14.2A2 2 0 008.8 22h6.4a2 2 0 001.99-1.8L18 6M10 11v5M14 11v5"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="cv-delete-copy">
+              <p className="cv-delete-title">{t('myCv.deleteTitle')}</p>
+              <p className="cv-delete-text">{t('myCv.deleteWarning')}</p>
+            </div>
+          </div>
           <div className="cv-delete-actions">
             <button
               type="button"

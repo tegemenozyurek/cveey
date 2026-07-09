@@ -39,7 +39,7 @@ function ChevronIcon({ open }) {
 }
 
 export default function Navbar() {
-  const { user, openLogin, setShowLogoutConfirm } = useAuth()
+  const { user, openLogin, setShowLogoutConfirm, authLoading } = useAuth()
   const { t } = useLanguage()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -146,7 +146,9 @@ export default function Navbar() {
         </nav>
 
         <div className="navbar-end">
-          {!user && (
+          {authLoading ? (
+            <span className="navbar-auth-placeholder" aria-hidden="true" />
+          ) : !user ? (
             <button
               type="button"
               className="btn-gradient-wrap header-signin--desktop"
@@ -154,9 +156,7 @@ export default function Navbar() {
             >
               <span className="btn-gradient-inner">{t('nav.signIn')}</span>
             </button>
-          )}
-
-          {user && (
+          ) : (
             <div className="profile-menu profile-menu--desktop" ref={profileRef}>
               <button
                 type="button"
@@ -219,7 +219,11 @@ export default function Navbar() {
               ))}
             </nav>
 
-            {user ? (
+            {authLoading ? (
+              <div className="mobile-nav-footer">
+                <span className="navbar-auth-placeholder navbar-auth-placeholder--mobile" aria-hidden="true" />
+              </div>
+            ) : user ? (
               <div className="mobile-nav-footer">
                 <div className={`mobile-account${mobileAccountOpen ? ' mobile-account--open' : ''}`}>
                   <button
