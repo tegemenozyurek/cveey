@@ -4,9 +4,10 @@ import {
   GithubAuthProvider,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
-  signInWithPopup,
 } from 'firebase/auth'
 import { auth } from './firebase'
+import { signInWithOAuthPopup } from './authOAuthService'
+import { sendVerificationEmail } from './authEmailService'
 import { useLanguage } from './context/LanguageContext'
 
 const googleProvider = new GoogleAuthProvider()
@@ -114,7 +115,8 @@ export default function LoginModal({ onClose }) {
 
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password)
+        const credential = await createUserWithEmailAndPassword(auth, email, password)
+        await sendVerificationEmail(credential.user)
       } else {
         await signInWithEmailAndPassword(auth, email, password)
       }
@@ -130,7 +132,7 @@ export default function LoginModal({ onClose }) {
     setError('')
     setGoogleLoading(true)
     try {
-      await signInWithPopup(auth, googleProvider)
+      await signInWithOAuthPopup(auth, googleProvider)
       onClose()
     } catch (err) {
       setError(getAuthErrorMessage(err))
@@ -143,7 +145,7 @@ export default function LoginModal({ onClose }) {
     setError('')
     setGithubLoading(true)
     try {
-      await signInWithPopup(auth, githubProvider)
+      await signInWithOAuthPopup(auth, githubProvider)
       onClose()
     } catch (err) {
       setError(getAuthErrorMessage(err))

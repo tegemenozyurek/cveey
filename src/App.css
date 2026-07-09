@@ -1964,6 +1964,119 @@
   gap: 10px;
 }
 
+.modal-backdrop--blocking {
+  cursor: default;
+}
+
+.modal.modal--verify {
+  min-height: auto;
+  max-width: 380px;
+  padding: 14px 28px 22px;
+}
+
+.modal--verify .modal-auth-header {
+  margin-bottom: 16px;
+}
+
+.verify-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 28px;
+}
+
+.verify-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-pink);
+  background: linear-gradient(135deg, rgba(232, 121, 249, 0.14), rgba(34, 211, 238, 0.14));
+  border: 1px solid rgba(232, 121, 249, 0.2);
+}
+
+.modal--verify .modal-heading {
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.modal--verify .modal-auth-body {
+  gap: 10px;
+}
+
+.modal--verify .modal-auth-footer {
+  margin-top: 14px;
+  min-height: 32px;
+}
+
+.verify-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.modal--verify .verify-hint {
+  margin: 0;
+  font-style: italic;
+}
+
+.modal--verify .modal-auth-error:empty {
+  display: none;
+}
+
+.verify-feedback {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.verify-feedback--success {
+  color: #4ade80;
+}
+
+.verify-feedback--error {
+  color: #f87171;
+}
+
+.verify-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 36px;
+}
+
+.verify-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.verify-resend-btn {
+  color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.08);
+  border-color: rgba(34, 211, 238, 0.2);
+}
+
+.verify-resend-btn:hover:not(:disabled) {
+  background: rgba(34, 211, 238, 0.14);
+  border-color: rgba(34, 211, 238, 0.32);
+}
+
+[data-theme='light'] .verify-resend-btn:hover:not(:disabled) {
+  background: rgba(34, 211, 238, 0.12);
+}
+
+.verify-signout-btn {
+  color: var(--text-muted);
+}
+
+.verify-signout-btn:hover:not(:disabled) {
+  color: var(--accent-rose);
+}
+
 .confirm-icon {
   width: 44px;
   height: 44px;
