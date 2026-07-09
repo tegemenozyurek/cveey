@@ -1,7 +1,6 @@
 import { deleteField, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
+import { resolveAuthMethod } from './authUtils'
 import { auth, db } from './firebase'
-
-const AUTH_METHOD = 'email-password'
 const MAX_NAME_LENGTH = 120
 
 async function ensureUserDoc(uid) {
@@ -17,7 +16,7 @@ async function ensureUserDoc(uid) {
   await setDoc(userRef, {
     uid: user.uid,
     email: user.email ?? '',
-    authMethod: AUTH_METHOD,
+    authMethod: resolveAuthMethod(user),
     createdAt: serverTimestamp(),
     lastLoginAt: serverTimestamp(),
   })

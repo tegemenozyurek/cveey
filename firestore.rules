@@ -11,7 +11,7 @@ rules_version = '2';
 //   - email: string (required, max 320) - user email
 //   - createdAt: timestamp (required on create, immutable)
 //   - lastLoginAt: timestamp (required)
-//   - authMethod: string (required, immutable) - e.g. "email-password"
+//   - authMethod: string (required, immutable) - e.g. "email-password" or "google"
 //   - activeCvPath: string (optional) - Storage path of the user's active CV
 //   - cvDisplayNames: map (optional) - Custom display names keyed by storage path
 //
@@ -36,7 +36,7 @@ service cloud.firestore {
     }
 
     function isValidAuthMethod(method) {
-      return method is string && method == 'email-password';
+      return method is string && (method == 'email-password' || method == 'google');
     }
 
     function isValidCvDisplayNames(names) {
@@ -73,11 +73,7 @@ service cloud.firestore {
       return isValidUser(data) &&
         data.uid == request.auth.uid &&
         'createdAt' in data &&
-        data.createdAt is timestamp &&
-        (
-          (request.auth.token.email != null && data.email == request.auth.token.email) ||
-          isValidEmail(data.email)
-        );
+        data.createdAt is timestamp;
     }
 
     function isValidUserUpdate(data) {
