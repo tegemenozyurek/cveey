@@ -29,10 +29,8 @@ export const translations = {
     'login.submitSignIn': 'Sign in',
     'login.submitSignUp': 'Create account',
     'login.wait': 'Please wait…',
-    'login.hasAccount': 'Already have an account?',
-    'login.noAccount': "Don't have an account?",
+    'login.createAccountLink': 'Create an account',
     'login.switchSignIn': 'Sign in',
-    'login.switchSignUp': 'Sign up for free',
     'login.close': 'Close',
 
     'auth.error.emailInUse': 'This email is already registered.',
@@ -45,11 +43,12 @@ export const translations = {
     'auth.error.accountExists': 'An account already exists with this email using a different sign-in method.',
     'auth.error.unauthorizedDomain': 'This domain is not authorized for sign-in.',
     'auth.error.popupBlocked': 'Popup was blocked. Allow popups and try again.',
-    'auth.error.operationNotAllowed': 'Google sign-in is not enabled for this app.',
-    'auth.error.emailMissing': 'No email address on this Google account.',
+    'auth.error.operationNotAllowed': 'This sign-in method is not enabled for this app.',
+    'auth.error.emailMissing': 'No email address on this account. Add a public email to your profile.',
     'auth.error.syncFailed': 'Signed in, but could not save your profile. Try again.',
 
     'login.google': 'Continue with Google',
+    'login.github': 'Continue with GitHub',
     'login.or': 'or',
 
     'jobs.title': 'Jobs',
@@ -130,10 +129,8 @@ export const translations = {
     'login.submitSignIn': 'Giriş yap',
     'login.submitSignUp': 'Hesap oluştur',
     'login.wait': 'Lütfen bekleyin…',
-    'login.hasAccount': 'Zaten hesabınız var mı?',
-    'login.noAccount': 'Hesabınız yok mu?',
+    'login.createAccountLink': 'Hesap oluştur',
     'login.switchSignIn': 'Giriş yap',
-    'login.switchSignUp': 'Ücretsiz kayıt ol',
     'login.close': 'Kapat',
 
     'auth.error.emailInUse': 'Bu e-posta zaten kayıtlı.',
@@ -146,11 +143,12 @@ export const translations = {
     'auth.error.accountExists': 'Bu e-posta farklı bir giriş yöntemiyle zaten kayıtlı.',
     'auth.error.unauthorizedDomain': 'Bu alan adı giriş için yetkili değil.',
     'auth.error.popupBlocked': 'Popup engellendi. İzin verip tekrar deneyin.',
-    'auth.error.operationNotAllowed': 'Bu uygulamada Google girişi etkin değil.',
-    'auth.error.emailMissing': 'Google hesabında e-posta adresi yok.',
+    'auth.error.operationNotAllowed': 'Bu giriş yöntemi uygulamada etkin değil.',
+    'auth.error.emailMissing': 'Hesapta e-posta yok. Profiline herkese açık bir e-posta ekle.',
     'auth.error.syncFailed': 'Giriş yapıldı ama profil kaydedilemedi. Tekrar deneyin.',
 
     'login.google': 'Google ile devam et',
+    'login.github': 'GitHub ile devam et',
     'login.or': 'veya',
 
     'jobs.title': 'İlanlar',

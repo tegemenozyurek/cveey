@@ -11,7 +11,7 @@ rules_version = '2';
 //   - email: string (required, max 320) - user email
 //   - createdAt: timestamp (required on create, immutable)
 //   - lastLoginAt: timestamp (required)
-//   - authMethod: string (required, immutable) - e.g. "email-password" or "google"
+//   - authMethod: string (required, immutable) - e.g. "email-password", "google", or "github"
 //   - activeCvPath: string (optional) - Storage path of the user's active CV
 //   - cvDisplayNames: map (optional) - Custom display names keyed by storage path
 //
@@ -36,7 +36,11 @@ service cloud.firestore {
     }
 
     function isValidAuthMethod(method) {
-      return method is string && (method == 'email-password' || method == 'google');
+      return method is string && (
+        method == 'email-password' ||
+        method == 'google' ||
+        method == 'github'
+      );
     }
 
     function isValidCvDisplayNames(names) {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   createUserWithEmailAndPassword,
+  GithubAuthProvider,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -10,6 +11,9 @@ import { useLanguage } from './context/LanguageContext'
 
 const googleProvider = new GoogleAuthProvider()
 googleProvider.setCustomParameters({ prompt: 'select_account' })
+
+const githubProvider = new GithubAuthProvider()
+githubProvider.addScope('user:email')
 
 const AUTH_ERROR_KEYS = {
   'auth/email-already-in-use': 'auth.error.emailInUse',
@@ -40,6 +44,14 @@ function GoogleIcon() {
   )
 }
 
+function GitHubIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.48 0-.24-.01-.87-.01-1.7-2.78.62-3.37-1.36-3.37-1.36-.45-1.18-1.1-1.5-1.1-1.5-.9-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.9 1.56 2.36 1.11 2.94.85.09-.67.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.32.1-2.74 0 0 .84-.27 2.75 1.05A9.2 9.2 0 0112 6.84c.85 0 1.71.12 2.51.34 1.91-1.32 2.75-1.05 2.75-1.05.55 1.42.2 2.48.1 2.74.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.07.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.8 0 .27.18.59.69.48A10.02 10.02 0 0022 12.26C22 6.58 17.52 2 12 2z"/>
+    </svg>
+  )
+}
+
 export default function LoginModal({ onClose }) {
   const { t } = useLanguage()
   const [email, setEmail] = useState('')
@@ -48,8 +60,9 @@ export default function LoginModal({ onClose }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [githubLoading, setGithubLoading] = useState(false)
 
-  const isBusy = loading || googleLoading
+  const isBusy = loading || googleLoading || githubLoading
 
   const getAuthErrorMessage = (err) => {
     const code = typeof err === 'string' ? err : err?.code || err?.message
@@ -92,6 +105,20 @@ export default function LoginModal({ onClose }) {
     }
   }
 
+  const handleGitHubSignIn = async () => {
+    setError('')
+    setGithubLoading(true)
+
+    try {
+      await signInWithPopup(auth, githubProvider)
+      onClose()
+    } catch (err) {
+      setError(getAuthErrorMessage(err))
+    } finally {
+      setGithubLoading(false)
+    }
+  }
+
   const switchMode = () => {
     setIsSignUp((v) => !v)
     setError('')
@@ -109,28 +136,7 @@ export default function LoginModal({ onClose }) {
           ×
         </button>
 
-        <p className="modal-logo">cve<span>ey</span></p>
-
-        <h2 id="login-title" className="modal-title">
-          {isSignUp ? t('login.createAccount') : t('login.welcome')}
-        </h2>
-        <p className="modal-subtitle">
-          {isSignUp ? t('login.subtitleSignUp') : t('login.subtitleSignIn')}
-        </p>
-
-        <button
-          type="button"
-          className="google-btn"
-          onClick={handleGoogleSignIn}
-          disabled={isBusy}
-        >
-          <GoogleIcon />
-          <span>{googleLoading ? t('login.wait') : t('login.google')}</span>
-        </button>
-
-        <div className="modal-or">
-          <span>{t('login.or')}</span>
-        </div>
+        <p id="login-title" className="modal-logo modal-logo--lg">cve<span>ey</span></p>
 
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-field">
@@ -164,16 +170,6 @@ export default function LoginModal({ onClose }) {
             />
           </div>
 
-          {error && (
-            <p className="form-error">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              {error}
-            </p>
-          )}
-
           <button
             type="submit"
             className="btn-gradient-wrap btn-gradient-wrap--block login-submit-btn"
@@ -185,14 +181,64 @@ export default function LoginModal({ onClose }) {
           </button>
         </form>
 
-        <hr className="modal-divider" />
+        {error && (
+          <p className="form-error login-form-error">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+              <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            {error}
+          </p>
+        )}
 
-        <p className="modal-switch">
-          {isSignUp ? t('login.hasAccount') : t('login.noAccount')}{' '}
-          <button type="button" className="link-btn" onClick={switchMode} disabled={isBusy}>
-            {isSignUp ? t('login.switchSignIn') : t('login.switchSignUp')}
+        <div className="modal-or">
+          <span>{t('login.or')}</span>
+        </div>
+
+        <div className="oauth-buttons">
+          <button
+            type="button"
+            className="oauth-btn"
+            onClick={handleGoogleSignIn}
+            disabled={isBusy}
+          >
+            <GoogleIcon />
+            <span>{googleLoading ? t('login.wait') : t('login.google')}</span>
           </button>
-        </p>
+
+          <button
+            type="button"
+            className="oauth-btn oauth-btn--github"
+            onClick={handleGitHubSignIn}
+            disabled={isBusy}
+          >
+            <GitHubIcon />
+            <span>{githubLoading ? t('login.wait') : t('login.github')}</span>
+          </button>
+        </div>
+
+        {!isSignUp ? (
+          <div className="login-create-section">
+            <button
+              type="button"
+              className="login-create-btn"
+              onClick={switchMode}
+              disabled={isBusy}
+            >
+              <span className="login-create-icon" aria-hidden="true">+</span>
+              <span>{t('login.createAccountLink')}</span>
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="login-back-btn"
+            onClick={switchMode}
+            disabled={isBusy}
+          >
+            {t('login.switchSignIn')}
+          </button>
+        )}
       </div>
     </div>
   )

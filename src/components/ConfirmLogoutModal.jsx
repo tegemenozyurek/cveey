@@ -17,8 +17,8 @@ export default function ConfirmLogoutModal({ onConfirm, onCancel }) {
           <button type="button" className="btn btn-ghost" onClick={onCancel}>
             {t('logout.cancel')}
           </button>
-          <button type="button" className="btn btn-primary" onClick={onConfirm}>
-            {t('logout.confirm')}
+          <button type="button" className="btn-gradient-wrap confirm-action-primary" onClick={onConfirm}>
+            <span className="btn-gradient-inner">{t('logout.confirm')}</span>
           </button>
         </div>
       </div>
