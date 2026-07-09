@@ -91,8 +91,8 @@ export default function MyCV() {
           </div>
           <h2 className="empty-state-title">{t('myCv.signInRequired')}</h2>
           <p className="empty-state-text">{t('myCv.signInText')}</p>
-          <button type="button" className="btn btn-primary" onClick={openLogin}>
-            {t('nav.signIn')}
+          <button type="button" className="btn-gradient-wrap" onClick={openLogin}>
+            <span className="btn-gradient-inner">{t('nav.signIn')}</span>
           </button>
         </div>
       </main>
