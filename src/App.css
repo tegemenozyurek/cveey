@@ -1490,7 +1490,13 @@
   gap: 14px;
 }
 
-.google-btn {
+.oauth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oauth-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1508,16 +1514,20 @@
   transition: background 0.15s, border-color 0.15s, opacity 0.15s;
 }
 
-.google-btn:hover:not(:disabled) {
+.oauth-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.16);
 }
 
-[data-theme='light'] .google-btn:hover:not(:disabled) {
+[data-theme='light'] .oauth-btn:hover:not(:disabled) {
   background: rgba(15, 23, 42, 0.06);
 }
 
-.google-btn:disabled {
+.oauth-btn--github:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.oauth-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

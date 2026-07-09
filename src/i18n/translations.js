@@ -45,11 +45,12 @@ export const translations = {
     'auth.error.accountExists': 'An account already exists with this email using a different sign-in method.',
     'auth.error.unauthorizedDomain': 'This domain is not authorized for sign-in.',
     'auth.error.popupBlocked': 'Popup was blocked. Allow popups and try again.',
-    'auth.error.operationNotAllowed': 'Google sign-in is not enabled for this app.',
-    'auth.error.emailMissing': 'No email address on this Google account.',
+    'auth.error.operationNotAllowed': 'This sign-in method is not enabled for this app.',
+    'auth.error.emailMissing': 'No email address on this account. Add a public email to your profile.',
     'auth.error.syncFailed': 'Signed in, but could not save your profile. Try again.',
 
     'login.google': 'Continue with Google',
+    'login.github': 'Continue with GitHub',
     'login.or': 'or',
 
     'jobs.title': 'Jobs',
@@ -146,11 +147,12 @@ export const translations = {
     'auth.error.accountExists': 'Bu e-posta farklı bir giriş yöntemiyle zaten kayıtlı.',
     'auth.error.unauthorizedDomain': 'Bu alan adı giriş için yetkili değil.',
     'auth.error.popupBlocked': 'Popup engellendi. İzin verip tekrar deneyin.',
-    'auth.error.operationNotAllowed': 'Bu uygulamada Google girişi etkin değil.',
-    'auth.error.emailMissing': 'Google hesabında e-posta adresi yok.',
+    'auth.error.operationNotAllowed': 'Bu giriş yöntemi uygulamada etkin değil.',
+    'auth.error.emailMissing': 'Hesapta e-posta yok. Profiline herkese açık bir e-posta ekle.',
     'auth.error.syncFailed': 'Giriş yapıldı ama profil kaydedilemedi. Tekrar deneyin.',
 
     'login.google': 'Google ile devam et',
+    'login.github': 'GitHub ile devam et',
     'login.or': 'veya',
 
     'jobs.title': 'İlanlar',
