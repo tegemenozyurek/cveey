@@ -2,6 +2,7 @@ export const translations = {
   en: {
     'nav.home': 'Home',
     'nav.jobs': 'Jobs',
+    'nav.connections': 'My Connections',
     'nav.createCv': 'Create CV',
     'nav.myCv': 'My CVs',
     'nav.signIn': 'Sign in',
@@ -118,6 +119,7 @@ export const translations = {
   tr: {
     'nav.home': 'Ana Sayfa',
     'nav.jobs': 'İlanlar',
+    'nav.connections': 'Bağlantılarım',
     'nav.createCv': 'CV Oluştur',
     'nav.myCv': 'CVlerim',
     'nav.signIn': 'Giriş yap',

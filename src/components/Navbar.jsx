@@ -7,6 +7,7 @@ import UserAvatar from './UserAvatar'
 const NAV_ITEMS = [
   { to: '/', key: 'nav.home', end: true },
   { to: '/jobs', key: 'nav.jobs' },
+  { to: '/connections', key: 'nav.connections' },
   { to: '/create-cv', key: 'nav.createCv' },
   { to: '/my-cv', key: 'nav.myCv' },
 ]
