@@ -1,27 +1,15 @@
 import { useRef, useState } from 'react'
+import CvCard from '../components/CvCard'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useResume } from '../context/ResumeContext'
-import { getCvDownloadUrl, MAX_CV_COUNT } from '../storageService'
+import { MAX_CV_COUNT } from '../storageService'
 
 const MAX_SIZE = 5 * 1024 * 1024
 
-function formatBytes(bytes) {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
-
-function formatDate(iso, lang) {
-  return new Intl.DateTimeFormat(lang === 'tr' ? 'tr-TR' : 'en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(iso))
-}
-
 export default function MyCV() {
   const { user, openLogin, authLoading } = useAuth()
-  const { lang, t } = useLanguage()
+  const { t } = useLanguage()
   const {
     cvs,
     activeCvPath,
@@ -29,16 +17,12 @@ export default function MyCV() {
     error,
     uploadUserCv,
     removeCv,
-    setActiveUserCv,
+    renameUserCv,
   } = useResume()
   const fileInputRef = useRef(null)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [actionError, setActionError] = useState('')
-  const [deletingPath, setDeletingPath] = useState(null)
-  const [confirmDeletePath, setConfirmDeletePath] = useState(null)
-  const [activatingPath, setActivatingPath] = useState(null)
-  const [viewingPath, setViewingPath] = useState(null)
   const [dragging, setDragging] = useState(false)
 
   const canUpload = cvs.length < MAX_CV_COUNT
@@ -84,44 +68,6 @@ export default function MyCV() {
     e.preventDefault()
     setDragging(false)
     handleFile(e.dataTransfer.files?.[0])
-  }
-
-  const onDelete = async (fullPath) => {
-    setDeletingPath(fullPath)
-    setActionError('')
-    try {
-      await removeCv(fullPath)
-      setConfirmDeletePath(null)
-    } catch {
-      setActionError(t('myCv.deleteError'))
-    } finally {
-      setDeletingPath(null)
-    }
-  }
-
-  const onSetActive = async (fullPath) => {
-    setActivatingPath(fullPath)
-    setActionError('')
-    try {
-      await setActiveUserCv(fullPath)
-    } catch {
-      setActionError(t('myCv.activateError'))
-    } finally {
-      setActivatingPath(null)
-    }
-  }
-
-  const onView = async (fullPath) => {
-    setViewingPath(fullPath)
-    setActionError('')
-    try {
-      const url = await getCvDownloadUrl(fullPath)
-      window.open(url, '_blank', 'noopener,noreferrer')
-    } catch {
-      setActionError(t('myCv.viewError'))
-    } finally {
-      setViewingPath(null)
-    }
   }
 
   if (authLoading) {
@@ -174,87 +120,15 @@ export default function MyCV() {
 
       {!showInitialLoading && !error && cvs.length > 0 && (
         <div className="cv-list">
-          {cvs.map((cv) => {
-            const isActive = cv.fullPath === activeCvPath
-            const isDeleting = deletingPath === cv.fullPath
-            const isActivating = activatingPath === cv.fullPath
-
-            return (
-              <article
-                key={cv.fullPath}
-                className={`cv-list-item${isActive ? ' cv-list-item--active' : ''}`}
-              >
-                <div className="cv-list-item-main">
-                  <div className="cv-list-item-info">
-                    <div className="cv-list-item-top">
-                      <h2 className="cv-list-item-name">{cv.displayName}</h2>
-                      {isActive && (
-                        <span className="cv-active-badge">{t('myCv.active')}</span>
-                      )}
-                    </div>
-                    <p className="cv-list-item-meta">
-                      {formatBytes(cv.size)} · {formatDate(cv.updated, lang)}
-                    </p>
-                  </div>
-
-                  <div className="cv-list-item-actions">
-                    <button
-                      type="button"
-                      className="btn-gradient-wrap btn-gradient-wrap--sm"
-                      onClick={() => onView(cv.fullPath)}
-                      disabled={viewingPath === cv.fullPath}
-                    >
-                      <span className="btn-gradient-inner">
-                        {viewingPath === cv.fullPath ? t('myCv.opening') : t('myCv.view')}
-                      </span>
-                    </button>
-                    {!isActive && (
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => onSetActive(cv.fullPath)}
-                        disabled={isActivating || isDeleting}
-                      >
-                        {isActivating ? t('myCv.activating') : t('myCv.setActive')}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className="btn btn-danger btn-sm"
-                      onClick={() => setConfirmDeletePath(cv.fullPath)}
-                      disabled={isDeleting || isActivating}
-                    >
-                      {t('myCv.delete')}
-                    </button>
-                  </div>
-                </div>
-
-                {confirmDeletePath === cv.fullPath && (
-                  <div className="cv-delete-confirm">
-                    <p className="cv-delete-text">{t('myCv.deleteConfirm')}</p>
-                    <div className="cv-delete-actions">
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => setConfirmDeletePath(null)}
-                        disabled={isDeleting}
-                      >
-                        {t('myCv.cancel')}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-destructive btn-sm"
-                        onClick={() => onDelete(cv.fullPath)}
-                        disabled={isDeleting}
-                      >
-                        {isDeleting ? t('myCv.deleting') : t('myCv.delete')}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </article>
-            )
-          })}
+          {cvs.map((cv) => (
+            <CvCard
+              key={cv.fullPath}
+              cv={cv}
+              isActive={cv.fullPath === activeCvPath}
+              onRename={renameUserCv}
+              onDelete={removeCv}
+            />
+          ))}
         </div>
       )}
 

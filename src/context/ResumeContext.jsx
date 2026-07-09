@@ -5,6 +5,7 @@ import {
   deleteCv,
   getUserCvs,
   invalidateCvCache,
+  renameCv,
   uploadCv,
 } from '../storageService'
 
@@ -98,6 +99,16 @@ export function ResumeProvider({ children }) {
     return data
   }, [user, applyCvData])
 
+  const renameUserCv = useCallback(async (fullPath, newName) => {
+    if (!user) return null
+
+    setError('')
+    const data = await renameCv(user.uid, fullPath, newName)
+    applyCvData(data)
+    loadedUidRef.current = user.uid
+    return data
+  }, [user, applyCvData])
+
   const setActiveUserCv = useCallback(async (fullPath) => {
     if (!user) return null
 
@@ -124,6 +135,7 @@ export function ResumeProvider({ children }) {
         refreshCvs,
         uploadUserCv,
         removeCv,
+        renameUserCv,
         setActiveUserCv,
         clearCvCache,
       }}
