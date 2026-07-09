@@ -552,6 +552,44 @@
   white-space: nowrap;
 }
 
+/* ── Navbar user actions ────────────────────────── */
+.navbar-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar-icon-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.navbar-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1.5px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.navbar-icon-btn:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--glass-hover);
+}
+
+[data-theme='light'] .navbar-icon-btn:hover {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
 /* ── Profile dropdown ───────────────────────────── */
 .profile-menu {
   position: relative;
@@ -2201,7 +2239,8 @@
   }
 
   .header-signin--desktop,
-  .profile-menu--desktop {
+  .profile-menu--desktop,
+  .navbar-icon-group {
     display: none;
   }
 

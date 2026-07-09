@@ -38,6 +38,48 @@ function ChevronIcon({ open }) {
   )
 }
 
+function InboxIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M22 12h-6l-2 3h-4l-2-3H2"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function BellIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10.3 21a1.94 1.94 0 003.4 0"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export default function Navbar() {
   const { user, openLogin, setShowLogoutConfirm, authLoading } = useAuth()
   const { t } = useLanguage()
@@ -157,27 +199,47 @@ export default function Navbar() {
               <span className="btn-gradient-inner">{t('nav.signIn')}</span>
             </button>
           ) : (
-            <div className="profile-menu profile-menu--desktop" ref={profileRef}>
-              <button
-                type="button"
-                className={`profile-trigger${profileOpen ? ' profile-trigger--open' : ''}`}
-                onClick={() => setProfileOpen((v) => !v)}
-                aria-expanded={profileOpen}
-                aria-haspopup="menu"
-                aria-label={t('nav.accountMenu')}
-              >
-                <UserAvatar user={user} />
-              </button>
+            <div className="navbar-user-actions">
+              <div className="navbar-icon-group">
+                <button
+                  type="button"
+                  className="navbar-icon-btn"
+                  aria-label={t('nav.notifications')}
+                  title={t('nav.notifications')}
+                >
+                  <BellIcon />
+                </button>
+                <button
+                  type="button"
+                  className="navbar-icon-btn"
+                  aria-label={t('nav.inbox')}
+                  title={t('nav.inbox')}
+                >
+                  <InboxIcon />
+                </button>
+              </div>
+              <div className="profile-menu profile-menu--desktop" ref={profileRef}>
+                <button
+                  type="button"
+                  className={`profile-trigger${profileOpen ? ' profile-trigger--open' : ''}`}
+                  onClick={() => setProfileOpen((v) => !v)}
+                  aria-expanded={profileOpen}
+                  aria-haspopup="menu"
+                  aria-label={t('nav.accountMenu')}
+                >
+                  <UserAvatar user={user} />
+                </button>
 
-              {profileOpen && (
-                <div className="profile-dropdown" role="menu">
-                  <div className="profile-dropdown-header">
-                    <span className="profile-dropdown-label">{t('nav.account')}</span>
-                    <span className="profile-dropdown-email">{user.email}</span>
+                {profileOpen && (
+                  <div className="profile-dropdown" role="menu">
+                    <div className="profile-dropdown-header">
+                      <span className="profile-dropdown-label">{t('nav.account')}</span>
+                      <span className="profile-dropdown-email">{user.email}</span>
+                    </div>
+                    {desktopProfileActions}
                   </div>
-                  {desktopProfileActions}
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
 

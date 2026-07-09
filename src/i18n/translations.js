@@ -13,6 +13,8 @@ export const translations = {
     'nav.mainNav': 'Main navigation',
     'nav.openMenu': 'Open menu',
     'nav.closeMenu': 'Close menu',
+    'nav.inbox': 'Inbox',
+    'nav.notifications': 'Notifications',
 
     'logout.title': 'Log out?',
     'logout.text': 'Are you sure you want to log out of your account?',
@@ -126,6 +128,8 @@ export const translations = {
     'nav.mainNav': 'Ana menü',
     'nav.openMenu': 'Menüyü aç',
     'nav.closeMenu': 'Menüyü kapat',
+    'nav.inbox': 'Gelen kutusu',
+    'nav.notifications': 'Bildirimler',
 
     'logout.title': 'Çıkış yapılsın mı?',
     'logout.text': 'Hesabınızdan çıkış yapmak istediğinize emin misiniz?',
