@@ -40,25 +40,47 @@ async function fetchStorageUrl(filePath) {
 }
 
 async function enrichCvRecord(record) {
-  const [url, metadata] = await Promise.all([
-    fetchStorageUrl(record.filePath),
-    getMetadata(ref(storage, record.filePath)).catch(() => null),
-  ])
+  try {
+    const [url, metadata] = await Promise.all([
+      fetchStorageUrl(record.filePath),
+      getMetadata(ref(storage, record.filePath)).catch(() => null),
+    ])
 
-  return {
-    ...record,
-    url,
-    size: metadata?.size ?? 0,
-    updated: metadata?.updated ?? new Date().toISOString(),
+    return {
+      ...record,
+      url,
+      size: metadata?.size ?? 0,
+      updated: metadata?.updated ?? new Date().toISOString(),
+    }
+  } catch (err) {
+    console.warn('Skipping CV with missing storage object:', record.filePath, err)
+    return null
   }
 }
 
 async function syncStorageWithFirestore(uid) {
-  const [records, listing, legacy] = await Promise.all([
-    listCvFileRecords(uid),
-    listAll(ref(storage, `users/${uid}`)),
-    readLegacyMigrationData(uid),
-  ])
+  let records = []
+  let listing = { items: [] }
+  let legacy = { legacyNames: {}, legacyActivePath: null }
+
+  try {
+    records = await listCvFileRecords(uid)
+  } catch (err) {
+    console.error('Could not list CV file records:', err)
+    throw err
+  }
+
+  try {
+    listing = await listAll(ref(storage, `users/${uid}`))
+  } catch (err) {
+    console.warn('Could not list storage CVs:', err)
+  }
+
+  try {
+    legacy = await readLegacyMigrationData(uid)
+  } catch (err) {
+    console.warn('Could not read legacy CV metadata:', err)
+  }
 
   const recordsByPath = new Map(records.map((record) => [record.filePath, record]))
   const storagePaths = new Set()
@@ -69,35 +91,47 @@ async function syncStorageWithFirestore(uid) {
 
     if (recordsByPath.has(filePath)) continue
 
-    const metadata = await getMetadata(item)
-    const displayName = resolveLegacyDisplayName(
-      filePath,
-      item.name,
-      metadata.customMetadata?.originalFileName,
-      legacy.legacyNames,
-    )
+    try {
+      const metadata = await getMetadata(item)
+      const displayName = resolveLegacyDisplayName(
+        filePath,
+        item.name,
+        metadata.customMetadata?.originalFileName,
+        legacy.legacyNames,
+      )
 
-    const created = await createCvFileRecord(uid, {
-      displayName,
-      storageObject: item.name,
-    })
-    recordsByPath.set(filePath, created)
+      const created = await createCvFileRecord(uid, {
+        displayName,
+        storageObject: item.name,
+      })
+      recordsByPath.set(created.filePath, created)
+    } catch (err) {
+      console.warn('Could not migrate storage CV:', filePath, err)
+    }
   }
 
   for (const record of [...recordsByPath.values()]) {
-    if (!storagePaths.has(record.filePath)) {
-      await deleteCvFileRecord(uid, record.id)
-      recordsByPath.delete(record.filePath)
+    if (storagePaths.size > 0 && !storagePaths.has(record.filePath)) {
+      try {
+        await deleteCvFileRecord(uid, record.id)
+        recordsByPath.delete(record.filePath)
+      } catch (err) {
+        console.warn('Could not remove orphan CV record:', record.id, err)
+      }
     }
   }
 
   const syncedRecords = [...recordsByPath.values()]
 
   if (legacy.legacyActivePath && syncedRecords.length > 0) {
-    const activeFileId = await getActiveFileId(uid)
-    if (!activeFileId) {
-      const match = syncedRecords.find((record) => record.filePath === legacy.legacyActivePath)
-      if (match) await setActiveFileId(uid, match.id)
+    try {
+      const activeFileId = await getActiveFileId(uid)
+      if (!activeFileId) {
+        const match = syncedRecords.find((record) => record.filePath === legacy.legacyActivePath)
+        if (match) await setActiveFileId(uid, match.id)
+      }
+    } catch (err) {
+      console.warn('Could not restore legacy active CV:', err)
     }
   }
 
@@ -107,7 +141,8 @@ async function syncStorageWithFirestore(uid) {
 
 async function listUserCvRecords(uid) {
   const records = await syncStorageWithFirestore(uid)
-  return Promise.all(records.map((record) => enrichCvRecord(record)))
+  const enriched = await Promise.all(records.map((record) => enrichCvRecord(record)))
+  return enriched.filter(Boolean)
 }
 
 export async function getUserCvs(uid, { force = false } = {}) {
@@ -115,10 +150,14 @@ export async function getUserCvs(uid, { force = false } = {}) {
     return cvCache.get(uid)
   }
 
-  const [cvs, activeFileId] = await Promise.all([
-    listUserCvRecords(uid),
-    getActiveFileId(uid),
-  ])
+  const cvs = await listUserCvRecords(uid)
+  let activeFileId = null
+
+  try {
+    activeFileId = await getActiveFileId(uid)
+  } catch (err) {
+    console.warn('Could not read active CV id:', err)
+  }
 
   cvs.sort((a, b) => new Date(b.updated) - new Date(a.updated))
 
@@ -262,7 +301,11 @@ export async function deleteCv(uid, fileId) {
   const activeFileId = await getActiveFileId(uid)
   const pathKey = normalizeStoragePath(record.filePath)
 
-  await deleteObject(ref(storage, pathKey))
+  try {
+    await deleteObject(ref(storage, pathKey))
+  } catch (err) {
+    console.warn('Storage delete skipped:', pathKey, err)
+  }
   releasePreviewUrl(pathKey)
   await deleteCvFileRecord(uid, fileId)
 

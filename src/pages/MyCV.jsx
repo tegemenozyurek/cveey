@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import CvCard from '../components/CvCard'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -105,6 +106,15 @@ export default function MyCV() {
 
   return (
     <main className="main my-cv-main">
+      <div className="page-header my-cv-header">
+        <div className="my-cv-header-text">
+          <h1 className="page-title">{t('myCv.title')}</h1>
+        </div>
+        <Link to="/create-cv" className="btn-gradient-wrap my-cv-create-btn">
+          <span className="btn-gradient-inner">{t('myCv.create')}</span>
+        </Link>
+      </div>
+
       {showInitialLoading && (
         <p className="page-loading">{t('myCv.loading')}</p>
       )}

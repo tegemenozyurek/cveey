@@ -69,6 +69,7 @@ export const translations = {
     'underConstruction.text': 'Don\'t forget to drop your CV.',
 
     'myCv.title': 'My CVs',
+    'myCv.create': 'Create',
     'myCv.loading': 'Loading…',
     'myCv.signInRequired': 'Sign in required',
     'myCv.signInText': 'Sign in to upload and manage your CVs.',
@@ -198,6 +199,7 @@ export const translations = {
     'underConstruction.text': 'CV\'nizi bırakmayı unutmayın.',
 
     'myCv.title': 'CVlerim',
+    'myCv.create': 'Oluştur',
     'myCv.loading': 'Yükleniyor…',
     'myCv.signInRequired': 'Giriş gerekli',
     'myCv.signInText': 'CV\'lerinizi yüklemek ve yönetmek için giriş yapın.',

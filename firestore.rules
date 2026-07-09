@@ -148,8 +148,7 @@ service cloud.firestore {
     }
 
     function isValidCvFileCompaction() {
-      return isValidCvFileCreate(request.resource.data) &&
-        request.resource.data.displayName == resource.data.displayName;
+      return isValidCvFileCreate(request.resource.data);
     }
 
     match /users/{userId} {

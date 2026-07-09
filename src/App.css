@@ -1409,6 +1409,27 @@
   align-self: center;
 }
 
+.my-cv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.my-cv-header-text {
+  min-width: 0;
+}
+
+.my-cv-header .page-title {
+  margin: 0;
+}
+
+.my-cv-create-btn {
+  flex-shrink: 0;
+}
+
 .cv-errors {
   width: 100%;
   margin-bottom: 16px;
