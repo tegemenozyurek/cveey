@@ -32,6 +32,8 @@ export async function syncPasswordAccountIndex(user) {
   const email = resolveUserEmail(user)
   if (!email) return
 
+  await user.getIdToken()
+
   const emailKey = normalizeEmailKey(email)
   const authMethod = resolveAccountAuthMethod(user)
 

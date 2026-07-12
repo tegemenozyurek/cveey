@@ -5,8 +5,9 @@ import LoginModal from '../LoginModal'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
 import ConfirmLogoutModal from '../components/ConfirmLogoutModal'
 import EmailVerificationModal from '../components/EmailVerificationModal'
+import LocationSetupModal from '../components/LocationSetupModal'
 import { requiresEmailVerification } from '../authUtils'
-import { deleteUserAccount, syncUserToFirestore } from '../userService'
+import { deleteUserAccount, needsLocationSetup, syncUserToFirestore } from '../userService'
 
 const AuthContext = createContext(null)
 
@@ -18,20 +19,45 @@ export function AuthProvider({ children }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [verificationDismissed, setVerificationDismissed] = useState(false)
+  const [locationSetupPending, setLocationSetupPending] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [userSyncReady, setUserSyncReady] = useState(false)
 
   useEffect(() => {
     return onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser)
       setVerificationDismissed(false)
+      setLocationSetupPending(false)
+      setUserSyncReady(false)
       setAuthLoading(false)
 
       if (nextUser) {
-        void syncUserToFirestore(nextUser).catch((err) => {
-          console.error('User sync failed:', err)
-        })
+        void syncUserToFirestore(nextUser)
+          .then(async () => {
+            const needed = await needsLocationSetup(nextUser.uid)
+            setLocationSetupPending(needed)
+            setUserSyncReady(true)
+          })
+          .catch((err) => {
+            console.error('User sync failed:', err)
+            setUserSyncReady(true)
+          })
+      } else {
+        setUserSyncReady(false)
       }
     })
   }, [])
+
+  useEffect(() => {
+    if (!user) {
+      setProfileLoading(false)
+      return undefined
+    }
+
+    setProfileLoading(!userSyncReady)
+
+    return undefined
+  }, [user, userSyncReady])
 
   const openLogin = () => setShowLogin(true)
   const closeLogin = () => setShowLogin(false)
@@ -63,9 +89,17 @@ export function AuthProvider({ children }) {
     user && requiresEmailVerification(user) && !verificationDismissed,
   )
 
+  const showLocationSetup = Boolean(
+    user && !showEmailVerification && locationSetupPending && !profileLoading,
+  )
+
   const handleEmailVerified = () => {
     setVerificationDismissed(true)
     setUser(auth.currentUser)
+  }
+
+  const handleLocationSetupComplete = () => {
+    setLocationSetupPending(false)
   }
 
   return (
@@ -97,6 +131,9 @@ export function AuthProvider({ children }) {
       )}
       {showEmailVerification && (
         <EmailVerificationModal user={user} onVerified={handleEmailVerified} />
+      )}
+      {showLocationSetup && (
+        <LocationSetupModal user={user} onComplete={handleLocationSetupComplete} />
       )}
     </AuthContext.Provider>
   )

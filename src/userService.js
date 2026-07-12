@@ -14,31 +14,58 @@ function resolveUserEmail(user) {
   return providerEmail || ''
 }
 
-export async function syncUserToFirestore(user) {
-  const userRef = doc(db, 'users', user.uid)
-  const snap = await getDoc(userRef)
-  const email = resolveUserEmail(user)
-
-  if (!email) {
-    throw new Error('USER_EMAIL_MISSING')
+async function withFirestoreAuthRetry(user, operation) {
+  await user.getIdToken()
+  try {
+    return await operation()
+  } catch (err) {
+    if (err?.code !== 'permission-denied') throw err
+    await user.getIdToken(true)
+    return operation()
   }
+}
 
-  if (!snap.exists()) {
-    await setDoc(userRef, {
-      uid: user.uid,
-      email,
-      authMethod: resolveAuthMethod(user),
-      createdAt: serverTimestamp(),
+export async function needsLocationSetup(userId) {
+  const snap = await getDoc(doc(db, 'users', userId))
+  if (!snap.exists()) return true
+  return snap.data().locationSetupComplete !== true
+}
+
+export async function saveUserLocation(userId, { homeCity, preferredWorkCities }) {
+  await updateDoc(doc(db, 'users', userId), {
+    homeCity,
+    preferredWorkCities,
+    locationSetupComplete: true,
+  })
+}
+
+export async function syncUserToFirestore(user) {
+  return withFirestoreAuthRetry(user, async () => {
+    const userRef = doc(db, 'users', user.uid)
+    const snap = await getDoc(userRef)
+    const email = resolveUserEmail(user)
+
+    if (!email) {
+      throw new Error('USER_EMAIL_MISSING')
+    }
+
+    if (!snap.exists()) {
+      await setDoc(userRef, {
+        uid: user.uid,
+        email,
+        authMethod: resolveAuthMethod(user),
+        createdAt: serverTimestamp(),
+        lastLoginAt: serverTimestamp(),
+      })
+      await syncPasswordAccountIndex(user)
+      return
+    }
+
+    await updateDoc(userRef, {
       lastLoginAt: serverTimestamp(),
     })
     await syncPasswordAccountIndex(user)
-    return
-  }
-
-  await updateDoc(userRef, {
-    lastLoginAt: serverTimestamp(),
   })
-  await syncPasswordAccountIndex(user)
 }
 
 export async function deleteUserAccount(user) {
