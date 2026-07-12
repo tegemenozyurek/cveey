@@ -151,18 +151,20 @@ export default function CreateCV() {
           </div>
         </div>
 
-        <div className="page-header create-cv-header">
-          <h1 className="page-title">{t('createCv.title')}</h1>
-          <p className="page-subtitle">{t('createCv.subtitle')}</p>
-          <OccupationSelect
-            value={document.occupationId}
-            onChange={selectOccupation}
-            t={t}
-          />
-        </div>
-
         <div className="create-cv-workspace">
           <div className="create-cv-editor">
+            <header className="create-cv-header">
+              <div className="create-cv-header-copy">
+                <h1 className="create-cv-title">{t('createCv.title')}</h1>
+                <p className="create-cv-subtitle">{t('createCv.subtitle')}</p>
+              </div>
+              <OccupationSelect
+                value={document.occupationId}
+                onChange={selectOccupation}
+                t={t}
+              />
+            </header>
+
             <nav className="create-cv-nav" aria-label={t('createCv.sectionsAria')}>
               {sections.map((section, index) => (
                 <button

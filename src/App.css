@@ -4331,7 +4331,35 @@
 }
 
 .create-cv-header {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 0 22px;
+  max-width: none;
+  text-align: left;
+}
+
+.create-cv-header-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.create-cv-title {
+  margin: 0;
+  font-size: clamp(1.45rem, 1.2rem + 0.8vw, 1.85rem);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.create-cv-subtitle {
+  margin: 0;
+  max-width: 42ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
 }
 
 .create-cv-template-picker {
@@ -4600,8 +4628,25 @@
 }
 
 .create-cv-occupation {
-  margin-top: 16px;
-  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  max-width: 360px;
+}
+
+.create-cv-occupation .form-label {
+  margin-bottom: 0;
+}
+
+.create-cv-occupation .form-input,
+.create-cv-occupation .form-select {
+  width: 100%;
+}
+
+.create-cv-occupation .create-cv-field-hint {
+  margin: 0;
+  max-width: 46ch;
 }
 
 .create-cv-repeater {
