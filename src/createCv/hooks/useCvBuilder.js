@@ -4,7 +4,6 @@ import {
   createEmptyCvDocument,
   normalizeCvDocument,
   prefillEmail,
-  setCvOccupation,
   setCvTemplate,
   updateCvContent,
 } from '../cvDocument'
@@ -12,7 +11,6 @@ import {
   resolveActiveSectionIds,
   resolvePersonalFieldVisibility,
 } from '../fieldVisibility'
-import { getCvOccupation } from '../occupations/registry'
 import { resolveCvSections } from '../sections/registry'
 import { getCvTemplate } from '../templates/registry'
 
@@ -21,9 +19,7 @@ export function useCvBuilder({ email = '' } = {}) {
     normalizeCvDocument(prefillEmail(createEmptyCvDocument(email), email)),
   )
   const [activeSectionId, setActiveSectionId] = useState(null)
-  const occupationIdRef = useRef(document.occupationId)
   const templateIdRef = useRef(document.templateId)
-  occupationIdRef.current = document.occupationId
   templateIdRef.current = document.templateId
 
   const template = useMemo(
@@ -31,14 +27,9 @@ export function useCvBuilder({ email = '' } = {}) {
     [document.templateId],
   )
 
-  const occupation = useMemo(
-    () => getCvOccupation(document.occupationId),
-    [document.occupationId],
-  )
-
   const activeSectionIds = useMemo(
-    () => resolveActiveSectionIds(occupation, template),
-    [occupation, template],
+    () => resolveActiveSectionIds(template),
+    [template],
   )
 
   const sections = useMemo(
@@ -47,8 +38,8 @@ export function useCvBuilder({ email = '' } = {}) {
   )
 
   const fieldVisibility = useMemo(
-    () => resolvePersonalFieldVisibility(occupation, template),
-    [occupation, template],
+    () => resolvePersonalFieldVisibility(template),
+    [template],
   )
 
   const currentSectionId = activeSectionId && sections.some((s) => s.id === activeSectionId)
@@ -63,7 +54,6 @@ export function useCvBuilder({ email = '' } = {}) {
 
   const replaceDocument = useCallback((nextDocument) => {
     const normalized = normalizeCvDocument(nextDocument)
-    occupationIdRef.current = normalized.occupationId
     templateIdRef.current = normalized.templateId
     setDocument(normalized)
     setActiveSectionId(null)
@@ -87,24 +77,7 @@ export function useCvBuilder({ email = '' } = {}) {
       })
     })
     setActiveSectionId((prev) => {
-      const nextIds = resolveActiveSectionIds(
-        getCvOccupation(occupationIdRef.current),
-        nextTemplate,
-      )
-      if (prev && nextIds.includes(prev)) return prev
-      return nextIds[0] || null
-    })
-  }, [])
-
-  const selectOccupation = useCallback((occupationId) => {
-    const nextOccupation = getCvOccupation(occupationId)
-    occupationIdRef.current = nextOccupation.id
-    setDocument((prev) => setCvOccupation(prev, nextOccupation.id))
-    setActiveSectionId((prev) => {
-      const nextIds = resolveActiveSectionIds(
-        nextOccupation,
-        getCvTemplate(templateIdRef.current),
-      )
+      const nextIds = resolveActiveSectionIds(nextTemplate)
       if (prev && nextIds.includes(prev)) return prev
       return nextIds[0] || null
     })
@@ -130,7 +103,6 @@ export function useCvBuilder({ email = '' } = {}) {
   return {
     document,
     template,
-    occupation,
     sections,
     fieldVisibility,
     currentSectionId,
@@ -141,7 +113,6 @@ export function useCvBuilder({ email = '' } = {}) {
     updateContent,
     replaceDocument,
     selectTemplate,
-    selectOccupation,
     goNext,
     goPrev,
     prefillUserEmail,

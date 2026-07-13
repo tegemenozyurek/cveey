@@ -32,10 +32,10 @@ export const DEFAULT_SECTION_VISIBILITY = {
   projects: VISIBILITY.OPTIONAL,
   certifications: VISIBILITY.OPTIONAL,
   languages: VISIBILITY.OPTIONAL,
-  awards: VISIBILITY.HIDDEN,
-  volunteer: VISIBILITY.HIDDEN,
+  awards: VISIBILITY.OPTIONAL,
+  volunteer: VISIBILITY.OPTIONAL,
   publications: VISIBILITY.HIDDEN,
-  references: VISIBILITY.HIDDEN,
+  references: VISIBILITY.OPTIONAL,
   sidebar: VISIBILITY.HIDDEN,
 }
 
@@ -92,17 +92,12 @@ function mergeVisibility(base, ...overrides) {
 }
 
 /**
- * @param {import('./occupations/registry').CvOccupationDefinition} occupation
  * @param {import('./templates/registry').CvTemplateDefinition} template
  * @param {string} sectionId
  * @returns {Visibility}
  */
-export function resolveSectionVisibility(occupation, template, sectionId) {
+export function resolveSectionVisibility(template, sectionId) {
   let visibility = DEFAULT_SECTION_VISIBILITY[sectionId] ?? VISIBILITY.OPTIONAL
-
-  if (occupation?.sections?.[sectionId]) {
-    visibility = occupation.sections[sectionId]
-  }
 
   if (template?.sectionConfig?.[sectionId]?.visibility) {
     visibility = template.sectionConfig[sectionId].visibility
@@ -116,28 +111,25 @@ export function resolveSectionVisibility(occupation, template, sectionId) {
 }
 
 /**
- * @param {import('./occupations/registry').CvOccupationDefinition} occupation
  * @param {import('./templates/registry').CvTemplateDefinition} template
  * @returns {Record<string, Visibility>}
  */
-export function resolvePersonalFieldVisibility(occupation, template) {
+export function resolvePersonalFieldVisibility(template) {
   return mergeVisibility(
     DEFAULT_PERSONAL_FIELD_VISIBILITY,
-    occupation?.personalFields,
     template?.sectionConfig?.personal?.fields,
   )
 }
 
 /**
- * @param {import('./occupations/registry').CvOccupationDefinition} occupation
  * @param {import('./templates/registry').CvTemplateDefinition} template
  * @returns {string[]}
  */
-export function resolveActiveSectionIds(occupation, template) {
+export function resolveActiveSectionIds(template) {
   const ordered = template?.sectionIds?.length ? template.sectionIds : CV_ALL_SECTION_IDS
 
   return ordered.filter((sectionId) => {
-    const visibility = resolveSectionVisibility(occupation, template, sectionId)
+    const visibility = resolveSectionVisibility(template, sectionId)
     return visibility !== VISIBILITY.HIDDEN
   })
 }

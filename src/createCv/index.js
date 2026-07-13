@@ -10,10 +10,8 @@ export {
   normalizeCvDocument,
   updateCvContent,
   setCvTemplate,
-  setCvOccupation,
 } from './cvDocument'
 export { VISIBILITY, CV_ALL_SECTION_IDS, resolveActiveSectionIds, resolvePersonalFieldVisibility } from './fieldVisibility'
 export { useCvBuilder } from './hooks/useCvBuilder'
 export { CV_SECTION_REGISTRY, resolveCvSections } from './sections/registry'
 export { CV_TEMPLATE_LIST, CV_TEMPLATE_REGISTRY, getCvTemplate } from './templates/registry'
-export { CV_OCCUPATION_LIST, CV_OCCUPATION_REGISTRY, getCvOccupation, DEFAULT_OCCUPATION_ID } from './occupations/registry'
