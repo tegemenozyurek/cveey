@@ -9,9 +9,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  A4_HEIGHT_MM,
   A4_HEIGHT_PX,
-  A4_WIDTH_MM,
   A4_WIDTH_PX,
 } from '../../createCv/constants'
 import { exportCvPdfFromRoot } from '../../createCv/exportCvPdf'
@@ -61,6 +59,7 @@ const CvPreviewPanel = forwardRef(function CvPreviewPanel({
   t,
 }, ref) {
   const fitRef = useRef(null)
+  const wrapRef = useRef(null)
   const stageRef = useRef(null)
   const previewHostRef = useRef(null)
   const magnifierRef = useRef(null)
@@ -103,31 +102,43 @@ const CvPreviewPanel = forwardRef(function CvPreviewPanel({
 
   useLayoutEffect(() => {
     const fitNode = fitRef.current
-    if (!fitNode || isExporting) return undefined
+    const wrapNode = wrapRef.current
+    if (!fitNode || !wrapNode || isExporting) return undefined
 
     const updateScale = () => {
-      const availableWidth = fitNode.clientWidth
-      const availableHeight = fitNode.clientHeight
-      if (!availableWidth || !availableHeight) return
+      // Golden rule: A4 height fills the same vertical frame as create-cv-panel.
+      const availableHeight = fitNode.clientHeight || wrapNode.clientHeight
+      if (!availableHeight) return
 
-      const scaleByWidth = availableWidth / A4_WIDTH_PX
-      const scaleByHeight = availableHeight / A4_HEIGHT_PX
-      const nextScale = Math.min(scaleByWidth, scaleByHeight, 1)
+      let nextScale = availableHeight / A4_HEIGHT_PX
+
+      // On stacked/mobile layouts the preview is full-width, so also fit width.
+      if (isMobilePreview) {
+        const availableWidth = wrapNode.clientWidth
+        if (availableWidth) nextScale = Math.min(nextScale, availableWidth / A4_WIDTH_PX)
+      }
+
+      nextScale = Math.min(nextScale, 1)
+      if (!Number.isFinite(nextScale) || nextScale <= 0) return
 
       scaleRef.current = nextScale
-      setScale(nextScale)
+      setScale((prev) => (Math.abs(prev - nextScale) < 0.001 ? prev : nextScale))
     }
 
     updateScale()
     const raf = requestAnimationFrame(updateScale)
 
     const observer = new ResizeObserver(updateScale)
+    observer.observe(wrapNode)
     observer.observe(fitNode)
+    const workspace = wrapNode.parentElement
+    if (workspace) observer.observe(workspace)
+
     return () => {
       cancelAnimationFrame(raf)
       observer.disconnect()
     }
-  }, [isExporting])
+  }, [isExporting, isMobilePreview])
 
   useLayoutEffect(() => {
     if (!isExpanded || !isMobilePreview) return undefined
@@ -439,25 +450,10 @@ const CvPreviewPanel = forwardRef(function CvPreviewPanel({
   )
 
   return (
-    <aside className={`create-cv-preview-wrap${isExporting ? ' create-cv-preview-wrap--exporting' : ''}`}>
-      <div className="create-cv-preview-toolbar">
-        <div>
-          <h2 className="create-cv-preview-label">{t('createCv.preview.title')}</h2>
-          <p className="create-cv-preview-template-name">
-            {t(template.nameKey)}
-            <span className="create-cv-preview-size">
-              {' · '}{A4_WIDTH_MM}×{A4_HEIGHT_MM} mm
-            </span>
-            {pageCount > 1 && (
-              <span className="create-cv-preview-page-count">
-                {' · '}{pageCount} {t('createCv.preview.pages')}
-              </span>
-            )}
-          </p>
-        </div>
-        <span className="create-cv-preview-live">{t('createCv.preview.live')}</span>
-      </div>
-
+    <aside
+      ref={wrapRef}
+      className={`create-cv-preview-wrap${isExporting ? ' create-cv-preview-wrap--exporting' : ''}`}
+    >
       {pageNav}
 
       <div className="create-cv-preview-fit" ref={fitRef}>

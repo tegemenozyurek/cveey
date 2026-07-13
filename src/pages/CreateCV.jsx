@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import CvPreviewPanel from '../components/createCv/CvPreviewPanel'
 import CvPreviewErrorBoundary from '../components/createCv/CvPreviewErrorBoundary'
 import CvSectionStepper from '../components/createCv/CvSectionStepper'
@@ -134,10 +133,8 @@ export default function CreateCV() {
         inert={showTemplateOverlay ? '' : undefined}
       >
         <div className="create-cv-topbar">
-          <Link to="/my-cv" className="create-cv-back">
-            <span aria-hidden="true">←</span>
-            {t('createCv.backToMyCv')}
-          </Link>
+          <h1 className="create-cv-page-title">{t('createCv.title')}</h1>
+
           <div className="create-cv-topbar-actions">
             <button
               type="button"
@@ -150,25 +147,18 @@ export default function CreateCV() {
           </div>
         </div>
 
+        <CvSectionStepper
+          sections={sections}
+          currentSectionId={currentSectionId}
+          currentSectionIndex={currentSectionIndex}
+          onSelect={setActiveSectionId}
+          t={t}
+          prevLabel={t('createCv.prev')}
+          nextLabel={t('createCv.next')}
+        />
+
         <div className="create-cv-workspace">
           <div className="create-cv-editor">
-            <header className="create-cv-header">
-              <div className="create-cv-header-copy">
-                <h1 className="create-cv-title">{t('createCv.title')}</h1>
-                <p className="create-cv-subtitle">{t('createCv.subtitle')}</p>
-              </div>
-            </header>
-
-            <CvSectionStepper
-              sections={sections}
-              currentSectionId={currentSectionId}
-              currentSectionIndex={currentSectionIndex}
-              onSelect={setActiveSectionId}
-              t={t}
-              prevLabel={t('createCv.prev')}
-              nextLabel={t('createCv.next')}
-            />
-
             <form className="create-cv-panel" onSubmit={handleSectionSubmit}>
               {SectionEditor && activeSection && (
                 <SectionEditor
@@ -184,17 +174,19 @@ export default function CreateCV() {
               )}
 
               <div className="create-cv-actions">
-                {!isFirstSection && (
-                  <button type="button" className="btn btn-ghost" onClick={goPrev}>
-                    {t('createCv.prev')}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="create-cv-nav-arrow-btn"
+                  onClick={goPrev}
+                  disabled={isFirstSection}
+                  aria-label={t('createCv.prev')}
+                >
+                  ‹
+                </button>
+
                 <div className="create-cv-actions-spacer" />
-                {!isLastSection ? (
-                  <button type="submit" className="btn-gradient-wrap">
-                    <span className="btn-gradient-inner">{t('createCv.next')}</span>
-                  </button>
-                ) : (
+
+                {isLastSection ? (
                   <div className="create-cv-final-actions">
                     <button type="button" className="btn-gradient-wrap" onClick={handleSaveDraft}>
                       <span className="btn-gradient-inner">{t('createCv.saveDraft')}</span>
@@ -210,6 +202,14 @@ export default function CreateCV() {
                       </button>
                     )}
                   </div>
+                ) : (
+                  <button
+                    type="submit"
+                    className="create-cv-nav-arrow-btn"
+                    aria-label={t('createCv.next')}
+                  >
+                    ›
+                  </button>
                 )}
               </div>
               {(saveStatus || downloadStatus) && (
