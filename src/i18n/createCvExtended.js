@@ -195,6 +195,8 @@ export const createCvExtendedEn = {
   'createCv.preview.errorMessage': 'Your form data is safe. Edit a field or change the template to retry.',
   'createCv.preview.prevPage': 'Previous page',
   'createCv.preview.nextPage': 'Next page',
+  'createCv.preview.expand': 'Expand preview',
+  'createCv.preview.collapse': 'Close expanded preview',
   'createCv.preview.positionPlaceholder': 'Position',
   'createCv.preview.degreePlaceholder': 'Degree',
 }
@@ -396,6 +398,8 @@ export const createCvExtendedTr = {
   'createCv.preview.errorMessage': 'Form verilerin güvende. Tekrar denemek için bir alanı düzenle veya şablonu değiştir.',
   'createCv.preview.prevPage': 'Önceki sayfa',
   'createCv.preview.nextPage': 'Sonraki sayfa',
+  'createCv.preview.expand': 'Önizlemeyi büyüt',
+  'createCv.preview.collapse': 'Büyütülmüş önizlemeyi kapat',
   'createCv.preview.positionPlaceholder': 'Pozisyon',
   'createCv.preview.degreePlaceholder': 'Derece',
 }
