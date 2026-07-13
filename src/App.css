@@ -1,9 +1,11 @@
 /* ── Layout ─────────────────────────────────────── */
 .page {
   min-height: 100svh;
+  height: 100svh;
+  max-height: 100svh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* ── Navbar ─────────────────────────────────────── */
@@ -1143,8 +1145,11 @@
   align-items: center;
   width: 100%;
   max-width: 100%;
+  min-height: 0;
   padding: 48px 24px 80px;
   gap: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .hero {
