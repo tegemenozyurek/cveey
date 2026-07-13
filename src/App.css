@@ -3054,6 +3054,215 @@
   color: var(--accent-rose);
 }
 
+/* ── Location setup modal ─────────────────────────── */
+.modal.modal--location {
+  min-height: auto;
+  max-width: 420px;
+  padding: 14px 28px 22px;
+}
+
+.modal--location .modal-auth-header {
+  margin-bottom: 12px;
+}
+
+.location-setup-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 28px;
+}
+
+.location-setup-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-cyan);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.14), rgba(232, 121, 249, 0.14));
+  border: 1px solid rgba(34, 211, 238, 0.2);
+}
+
+.modal--location .modal-heading {
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.location-setup-form {
+  gap: 14px;
+}
+
+.location-setup-text {
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+.location-setup-work-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.location-setup-work-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.location-setup-work-head .form-label {
+  margin: 0;
+}
+
+.location-setup-count {
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.location-setup-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.location-setup-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.location-setup-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text);
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.location-setup-chip:hover:not(:disabled) {
+  background: rgba(34, 211, 238, 0.16);
+  border-color: rgba(34, 211, 238, 0.32);
+}
+
+.location-setup-chip:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.location-setup-city-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme='light'] .location-setup-city-list {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.location-setup-city-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.location-setup-city-option:hover:not(:disabled) {
+  background: var(--glass-hover);
+}
+
+.location-setup-city-option--selected {
+  background: rgba(34, 211, 238, 0.08);
+  border-color: rgba(34, 211, 238, 0.18);
+}
+
+.location-setup-city-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.location-setup-city-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  flex-shrink: 0;
+}
+
+.location-setup-empty {
+  margin: 0;
+  padding: 12px 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.location-setup-error {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #f87171;
+}
+
+.modal--location .modal-auth-error:empty {
+  display: none;
+}
+
+.location-setup-actions {
+  margin-top: 8px;
+}
+
+.location-setup-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.location-setup-signout {
+  color: var(--text-dim);
+}
+
+@media (max-width: 480px) {
+  .modal.modal--location {
+    padding: 14px 20px 20px;
+  }
+
+  .location-setup-city-list {
+    max-height: 150px;
+  }
+}
+
 .confirm-icon {
   width: 44px;
   height: 44px;
