@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CvPreviewPanel from '../components/createCv/CvPreviewPanel'
 import CvPreviewErrorBoundary from '../components/createCv/CvPreviewErrorBoundary'
-import OccupationSelect from '../components/createCv/OccupationSelect'
+import CvSectionStepper from '../components/createCv/CvSectionStepper'
 import TemplateSelectOverlay from '../components/createCv/TemplateSelectOverlay'
 import { useCvBuilder } from '../createCv/hooks/useCvBuilder'
 import { getSectionEditorProps } from '../createCv/sections/registry'
@@ -34,7 +34,6 @@ export default function CreateCV() {
     updateContent,
     replaceDocument,
     selectTemplate,
-    selectOccupation,
     goNext,
     goPrev,
     prefillUserEmail,
@@ -158,27 +157,17 @@ export default function CreateCV() {
                 <h1 className="create-cv-title">{t('createCv.title')}</h1>
                 <p className="create-cv-subtitle">{t('createCv.subtitle')}</p>
               </div>
-              <OccupationSelect
-                value={document.occupationId}
-                onChange={selectOccupation}
-                t={t}
-              />
             </header>
 
-            <nav className="create-cv-nav" aria-label={t('createCv.sectionsAria')}>
-              {sections.map((section, index) => (
-                <button
-                  key={section.id}
-                  type="button"
-                  className={`create-cv-nav-item${currentSectionId === section.id ? ' create-cv-nav-item--active' : ''}`}
-                  onClick={() => setActiveSectionId(section.id)}
-                  aria-current={currentSectionId === section.id ? 'step' : undefined}
-                >
-                  <span className="create-cv-nav-index">{String(index + 1).padStart(2, '0')}</span>
-                  <span>{t(section.navKey)}</span>
-                </button>
-              ))}
-            </nav>
+            <CvSectionStepper
+              sections={sections}
+              currentSectionId={currentSectionId}
+              currentSectionIndex={currentSectionIndex}
+              onSelect={setActiveSectionId}
+              t={t}
+              prevLabel={t('createCv.prev')}
+              nextLabel={t('createCv.next')}
+            />
 
             <form className="create-cv-panel" onSubmit={handleSectionSubmit}>
               {SectionEditor && activeSection && (

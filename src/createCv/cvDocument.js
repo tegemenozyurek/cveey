@@ -1,5 +1,4 @@
 import { DEFAULT_TEMPLATE_ID } from './constants'
-import { DEFAULT_OCCUPATION_ID } from './occupations/registry'
 import { createItemId } from './ids'
 
 export function createEmptyExperienceItem() {
@@ -198,11 +197,9 @@ export function createEmptyCvContent(email = '') {
 export function createEmptyCvDocument(
   email = '',
   templateId = DEFAULT_TEMPLATE_ID,
-  occupationId = DEFAULT_OCCUPATION_ID,
 ) {
   return {
     templateId,
-    occupationId,
     content: createEmptyCvContent(email),
   }
 }
@@ -221,13 +218,6 @@ export function setCvTemplate(document, templateId) {
   return {
     ...document,
     templateId,
-  }
-}
-
-export function setCvOccupation(document, occupationId) {
-  return {
-    ...document,
-    occupationId,
   }
 }
 
@@ -321,7 +311,6 @@ export function normalizeCvContent(content, email = '') {
 export function normalizeCvDocument(document, email = '') {
   return {
     templateId: document?.templateId || DEFAULT_TEMPLATE_ID,
-    occupationId: document?.occupationId || DEFAULT_OCCUPATION_ID,
     content: normalizeCvContent(document?.content, email || document?.content?.personal?.email),
   }
 }
