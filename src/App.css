@@ -4197,6 +4197,8 @@
   justify-content: flex-end;
   gap: 10px;
   flex-shrink: 0;
+  grid-column: 3;
+  justify-self: end;
 }
 
 .create-cv-change-template {
@@ -4540,9 +4542,9 @@
 }
 
 .create-cv-topbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 12px 16px;
   margin-bottom: 18px;
   flex-shrink: 0;
@@ -4550,7 +4552,9 @@
 
 .create-cv-page-title {
   margin: 0;
-  text-align: left;
+  grid-column: 2;
+  justify-self: center;
+  text-align: center;
   font-size: clamp(1.2rem, 1.05rem + 0.55vw, 1.55rem);
   font-weight: 700;
   letter-spacing: -0.035em;
@@ -5370,18 +5374,21 @@
 
 @media (max-width: 640px) {
   .create-cv-topbar {
-    flex-wrap: wrap;
+    grid-template-columns: 1fr;
     gap: 10px 12px;
   }
 
   .create-cv-page-title {
+    grid-column: 1;
+    justify-self: center;
     white-space: normal;
     font-size: 1.25rem;
-    flex: 1 1 auto;
     min-width: 0;
   }
 
   .create-cv-topbar-actions {
+    grid-column: 1;
+    justify-self: center;
     flex-wrap: wrap;
   }
 
