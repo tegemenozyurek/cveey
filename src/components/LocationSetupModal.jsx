@@ -1,22 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { signOut } from 'firebase/auth'
 import { useLanguage } from '../context/LanguageContext'
-import { TURKISH_CITIES, filterTurkishCities } from '../data/turkishCities'
+import { TURKISH_CITIES } from '../data/turkishCities'
 import { auth } from '../firebase'
 import { saveUserLocation } from '../userService'
 
-const MAX_WORK_CITIES = 10
+const MAX_WORK_CITIES = 3
 
-function LocationIcon() {
+function ChevronIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="11" r="2.5" stroke="currentColor" strokeWidth="2" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -25,11 +19,27 @@ export default function LocationSetupModal({ user, onComplete }) {
   const { t } = useLanguage()
   const [homeCity, setHomeCity] = useState('')
   const [workCities, setWorkCities] = useState([])
-  const [search, setSearch] = useState('')
+  const [homeOpen, setHomeOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const homeFieldRef = useRef(null)
 
-  const filteredCities = useMemo(() => filterTurkishCities(search), [search])
+  useEffect(() => {
+    if (!homeOpen) return undefined
+    const handleClickOutside = (event) => {
+      if (homeFieldRef.current && !homeFieldRef.current.contains(event.target)) {
+        setHomeOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [homeOpen])
+
+  const selectHomeCity = (city) => {
+    setError('')
+    setHomeCity(city)
+    setHomeOpen(false)
+  }
 
   const toggleWorkCity = (city) => {
     setError('')
@@ -81,9 +91,6 @@ export default function LocationSetupModal({ user, onComplete }) {
       >
         <div className="modal-auth-header">
           <div className="location-setup-header">
-            <div className="location-setup-icon">
-              <LocationIcon />
-            </div>
             <h2 id="location-setup-title" className="modal-heading">
               {t('locationSetup.title')}
             </h2>
@@ -93,33 +100,55 @@ export default function LocationSetupModal({ user, onComplete }) {
         <form className="modal-auth-body location-setup-form" onSubmit={handleSubmit}>
           <p className="location-setup-text">{t('locationSetup.subtitle')}</p>
 
-          <div className="form-field">
-            <label className="form-label" htmlFor="home-city">
+          <div className="form-field location-setup-home-field" ref={homeFieldRef}>
+            <label className="form-label" htmlFor="home-city-trigger">
               {t('locationSetup.homeCity')}
             </label>
-            <select
-              id="home-city"
-              className="form-input form-select"
-              value={homeCity}
-              onChange={(event) => {
-                setError('')
-                setHomeCity(event.target.value)
-              }}
+            <button
+              type="button"
+              id="home-city-trigger"
+              className={`form-input location-setup-select-trigger${homeCity ? '' : ' location-setup-select-trigger--placeholder'}`}
+              onClick={() => setHomeOpen((open) => !open)}
               disabled={saving}
-              required
+              aria-haspopup="listbox"
+              aria-expanded={homeOpen}
             >
-              <option value="">{t('locationSetup.homeCityPlaceholder')}</option>
-              {TURKISH_CITIES.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
+              <span>{homeCity || t('locationSetup.homeCityPlaceholder')}</span>
+              <span className="location-setup-select-arrow" aria-hidden="true">
+                <ChevronIcon />
+              </span>
+            </button>
+
+            {homeOpen && (
+              <div className="location-setup-dropdown">
+                <div className="location-setup-dropdown-list" role="listbox">
+                  {TURKISH_CITIES.map((city) => {
+                    const selected = homeCity === city
+                    return (
+                      <button
+                        key={city}
+                        type="button"
+                        role="option"
+                        aria-selected={selected}
+                        className={`location-setup-city-option${selected ? ' location-setup-city-option--selected' : ''}`}
+                        onClick={() => selectHomeCity(city)}
+                        disabled={saving}
+                      >
+                        <span className="location-setup-city-check" aria-hidden="true">
+                          {selected ? '✓' : ''}
+                        </span>
+                        <span>{city}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="form-field location-setup-work-field">
             <div className="location-setup-work-head">
-              <label className="form-label" htmlFor="work-city-search">
+              <label className="form-label">
                 {t('locationSetup.workCities')}
               </label>
               <span className="location-setup-count">
@@ -145,43 +174,28 @@ export default function LocationSetupModal({ user, onComplete }) {
               </div>
             )}
 
-            <input
-              id="work-city-search"
-              className="form-input"
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder={t('locationSetup.searchPlaceholder')}
-              disabled={saving}
-              autoComplete="off"
-            />
-
             <div className="location-setup-city-list" role="listbox" aria-multiselectable="true">
-              {filteredCities.length === 0 ? (
-                <p className="location-setup-empty">{t('locationSetup.noResults')}</p>
-              ) : (
-                filteredCities.map((city) => {
-                  const selected = workCities.includes(city)
-                  const disabled = saving || (!selected && workCities.length >= MAX_WORK_CITIES)
+              {TURKISH_CITIES.map((city) => {
+                const selected = workCities.includes(city)
+                const disabled = saving || (!selected && workCities.length >= MAX_WORK_CITIES)
 
-                  return (
-                    <button
-                      key={city}
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      className={`location-setup-city-option${selected ? ' location-setup-city-option--selected' : ''}`}
-                      onClick={() => toggleWorkCity(city)}
-                      disabled={disabled}
-                    >
-                      <span className="location-setup-city-check" aria-hidden="true">
-                        {selected ? '✓' : ''}
-                      </span>
-                      <span>{city}</span>
-                    </button>
-                  )
-                })
-              )}
+                return (
+                  <button
+                    key={city}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    className={`location-setup-city-option${selected ? ' location-setup-city-option--selected' : ''}`}
+                    onClick={() => toggleWorkCity(city)}
+                    disabled={disabled}
+                  >
+                    <span className="location-setup-city-check" aria-hidden="true">
+                      {selected ? '✓' : ''}
+                    </span>
+                    <span>{city}</span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
