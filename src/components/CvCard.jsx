@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import ConfirmDeleteCvModal from './ConfirmDeleteCvModal'
 import { useLanguage } from '../context/LanguageContext'
 import { downloadCvFile, getCvDownloadUrl } from '../storageService'
 
@@ -379,7 +380,8 @@ export default function CvCard({
     : DOC_COLORS[hashString(cv.id || cv.displayName || '') % DOC_COLORS.length]
 
   return (
-    <article className={`cv-card${isActive ? ' cv-card--active' : ''}`}>
+    <>
+      <article className={`cv-card${isActive ? ' cv-card--active' : ''}`}>
       {editing ? (
         editUi
       ) : isActive ? (
@@ -445,47 +447,17 @@ export default function CvCard({
         </div>
       )}
 
-      {localError && <p className="cv-card-error">{localError}</p>}
+        {localError && <p className="cv-card-error">{localError}</p>}
+      </article>
 
       {confirmDelete && (
-        <div className="cv-delete-confirm">
-          <div className="cv-delete-confirm-content">
-            <div className="cv-delete-icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M3 6h18M8 6V4.5A1.5 1.5 0 019.5 3h5A1.5 1.5 0 0116 4.5V6M6 6l.8 14.2A2 2 0 008.8 22h6.4a2 2 0 001.99-1.8L18 6M10 11v5M14 11v5"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div className="cv-delete-copy">
-              <p className="cv-delete-title">{t('myCv.deleteTitle')}</p>
-              <p className="cv-delete-text">{t('myCv.deleteWarning')}</p>
-            </div>
-          </div>
-          <div className="cv-delete-actions">
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setConfirmDelete(false)}
-              disabled={deleting}
-            >
-              {t('myCv.cancel')}
-            </button>
-            <button
-              type="button"
-              className="btn btn-destructive btn-sm"
-              onClick={onConfirmDelete}
-              disabled={deleting}
-            >
-              {deleting ? t('myCv.deleting') : t('myCv.delete')}
-            </button>
-          </div>
-        </div>
+        <ConfirmDeleteCvModal
+          cvName={cv.displayName}
+          onConfirm={onConfirmDelete}
+          onCancel={() => setConfirmDelete(false)}
+          loading={deleting}
+        />
       )}
-    </article>
+    </>
   )
 }
