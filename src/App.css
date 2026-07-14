@@ -2065,6 +2065,41 @@
   min-height: 280px;
 }
 
+.cv-slider-viewport.cv-others-slot {
+  position: relative;
+}
+
+.cv-others-slot--dragging {
+  box-shadow: inset 0 0 0 2px rgba(34, 211, 238, 0.35);
+  border-radius: 14px;
+}
+
+.cv-others-drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  text-align: center;
+  pointer-events: none;
+  border-radius: 14px;
+  background: rgba(34, 211, 238, 0.12);
+  border: 1.5px dashed var(--accent-cyan);
+  box-shadow: inset 0 0 0 3px rgba(34, 211, 238, 0.16);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.cv-others-drop-overlay .cv-others-dropzone-icon {
+  width: 48px;
+  height: 48px;
+}
+
 .cv-others-dropzone {
   display: flex;
   flex-direction: column;

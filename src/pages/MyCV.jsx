@@ -122,27 +122,71 @@ export default function MyCV() {
   const activeCv = cvs.find((cv) => cv.id === activeCvPath || cv.fullPath === activeCvPath)
   const otherCvs = cvs.filter((cv) => cv !== activeCv)
 
+  const renderOthersDropzone = () => (
+    <button
+      type="button"
+      className={`cv-others-dropzone${dragging ? ' cv-others-dropzone--dragging' : ''}`}
+      onClick={() => !uploading && fileInputRef.current?.click()}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      disabled={uploading}
+    >
+      <span className="cv-others-dropzone-icon" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.49" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </span>
+      <span className="cv-others-dropzone-title">{t('myCv.addNew')}</span>
+      {uploading ? (
+        <div className="cv-dropzone-progress">
+          <div className="cv-dropzone-progress-bar">
+            <span style={{ width: `${Math.round(uploadProgress)}%` }} />
+          </div>
+          <span className="cv-dropzone-progress-text">
+            {t('myCv.uploading', { progress: Math.round(uploadProgress) })}
+          </span>
+        </div>
+      ) : (
+        <span className="cv-others-dropzone-hint">{t('myCv.uploadHint')}</span>
+      )}
+      <span className="cv-dropzone-formats">{t('myCv.emptyUploadText')}</span>
+    </button>
+  )
+
   const renderOthersSlider = (index, setIndex) => {
-    const safeIndex = Math.min(index, Math.max(0, otherCvs.length - 1))
+    const hasUploadSlide = canUpload
+    const slideCount = otherCvs.length + (hasUploadSlide ? 1 : 0)
+    const maxIndex = Math.max(0, slideCount - 1)
+    const safeIndex = Math.min(index, maxIndex)
+
+    const dropHandlers = hasUploadSlide ? {
+      onDragOver: handleDragOver,
+      onDragEnter: handleDragOver,
+      onDragLeave: handleDragLeave,
+      onDrop: handleDrop,
+    } : {}
+
     return (
       <div className="cv-others-group">
         <div className="cv-others-head">
           <h3 className="cv-section-label">{t('myCv.sectionOthers', { max: MAX_CV_COUNT })}</h3>
-          {otherCvs.length > 1 && (
+          {slideCount > 1 && (
             <div className="cv-slider-nav">
               <button
                 type="button"
                 className="cv-slider-arrow"
-                onClick={() => setIndex((safeIndex - 1 + otherCvs.length) % otherCvs.length)}
+                onClick={() => setIndex((safeIndex - 1 + slideCount) % slideCount)}
                 aria-label={t('myCv.prev')}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
-              <span className="cv-slider-count">{safeIndex + 1} / {otherCvs.length}</span>
+              <span className="cv-slider-count">{safeIndex + 1} / {slideCount}</span>
               <button
                 type="button"
                 className="cv-slider-arrow"
-                onClick={() => setIndex((safeIndex + 1) % otherCvs.length)}
+                onClick={() => setIndex((safeIndex + 1) % slideCount)}
                 aria-label={t('myCv.next')}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -151,47 +195,31 @@ export default function MyCV() {
           )}
         </div>
 
-        {otherCvs.length === 0 ? (
+        {slideCount === 0 ? (
           <div className="cv-slider-viewport cv-others-slot">
-            {canUpload ? (
-              <button
-                type="button"
-                className={`cv-others-dropzone${dragging ? ' cv-others-dropzone--dragging' : ''}`}
-                onClick={() => !uploading && fileInputRef.current?.click()}
-                onDragOver={handleDragOver}
-                onDragEnter={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                disabled={uploading}
-              >
-                <span className="cv-others-dropzone-icon" aria-hidden="true">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+            <div className="cv-others-empty cv-others-empty--full">
+              <p className="cv-others-empty-text">{t('myCv.othersEmpty')}</p>
+            </div>
+          </div>
+        ) : otherCvs.length === 0 ? (
+          <div className="cv-slider-viewport cv-others-slot">
+            {renderOthersDropzone()}
+          </div>
+        ) : (
+          <div
+            className={`cv-slider-viewport cv-others-slot${dragging && hasUploadSlide ? ' cv-others-slot--dragging' : ''}`}
+            {...dropHandlers}
+          >
+            {dragging && hasUploadSlide && (
+              <div className="cv-others-drop-overlay" aria-hidden="true">
+                <span className="cv-others-dropzone-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                     <path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.49" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </span>
-                <span className="cv-others-dropzone-title">{t('myCv.addNew')}</span>
-                {uploading ? (
-                  <div className="cv-dropzone-progress">
-                    <div className="cv-dropzone-progress-bar">
-                      <span style={{ width: `${Math.round(uploadProgress)}%` }} />
-                    </div>
-                    <span className="cv-dropzone-progress-text">
-                      {t('myCv.uploading', { progress: Math.round(uploadProgress) })}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="cv-others-dropzone-hint">{t('myCv.uploadHint')}</span>
-                )}
-                <span className="cv-dropzone-formats">{t('myCv.emptyUploadText')}</span>
-              </button>
-            ) : (
-              <div className="cv-others-empty cv-others-empty--full">
-                <p className="cv-others-empty-text">{t('myCv.othersEmpty')}</p>
+                <span>{t('myCv.uploadHint')}</span>
               </div>
             )}
-          </div>
-        ) : (
-          <div className="cv-slider-viewport cv-others-slot">
             <div
               className="cv-slider-track"
               style={{ transform: `translateX(-${safeIndex * 100}%)` }}
@@ -208,6 +236,11 @@ export default function MyCV() {
                   />
                 </div>
               ))}
+              {hasUploadSlide && (
+                <div className="cv-slider-slide">
+                  {renderOthersDropzone()}
+                </div>
+              )}
             </div>
           </div>
         )}
