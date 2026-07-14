@@ -166,7 +166,7 @@ export default function MyCV() {
           <p className="my-cv-subtitle">{t('myCv.subtitle')}</p>
         </div>
         <div className="my-cv-actions">
-          {canUpload && (
+          {cvs.length > 0 && canUpload && (
             <button
               type="button"
               className="my-cv-upload-btn"
@@ -194,9 +194,11 @@ export default function MyCV() {
             onChange={(e) => handleFile(e.target.files?.[0])}
             disabled={uploading}
           />
-          <Link to="/create-cv" className="btn-gradient-wrap my-cv-cta">
-            <span className="btn-gradient-inner">{t('myCv.guideAtsCreate')}</span>
-          </Link>
+          {cvs.length > 0 && (
+            <Link to="/create-cv" className="btn-gradient-wrap my-cv-cta">
+              <span className="btn-gradient-inner">{t('myCv.guideAtsCreate')}</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -292,6 +294,53 @@ export default function MyCV() {
               {renderOthersSlider(otherIndexBottom, setOtherIndexBottom)}
             </section>
           )}
+        </div>
+      )}
+
+      {/* ── Empty state: no CVs yet ── */}
+      {!showInitialLoading && !error && cvs.length === 0 && (
+        <div className="cv-empty">
+          <div className="cv-empty-hero">
+            <span className="cv-empty-badge">{t('myCv.emptyBadge')}</span>
+            <h2 className="cv-empty-title">{t('myCv.emptyTitle')}</h2>
+            <p className="cv-empty-text">{t('myCv.emptyText')}</p>
+          </div>
+
+          <div className="cv-empty-options">
+            <Link to="/create-cv" className="cv-empty-card cv-empty-card--create">
+              <span className="cv-empty-card-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3l2.09 4.99L19 9.27l-3.5 3.34.92 5.09L12 15.4l-4.42 2.3.92-5.09L5 9.27l4.91-1.28L12 3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              <h3 className="cv-empty-card-title">{t('myCv.emptyCreateTitle')}</h3>
+              <p className="cv-empty-card-text">{t('myCv.emptyCreateText')}</p>
+              <span className="cv-empty-card-action btn-gradient-wrap">
+                <span className="btn-gradient-inner">{t('myCv.guideAtsCreate')}</span>
+              </span>
+            </Link>
+
+            <button
+              type="button"
+              className="cv-empty-card cv-empty-card--upload"
+              onClick={() => !uploading && fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              <span className="cv-empty-card-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              </span>
+              <h3 className="cv-empty-card-title">{t('myCv.emptyUploadTitle')}</h3>
+              <p className="cv-empty-card-text">{t('myCv.emptyUploadText')}</p>
+              <span className="cv-empty-card-action cv-empty-card-action--ghost">
+                {uploading
+                  ? t('myCv.uploading', { progress: Math.round(uploadProgress) })
+                  : t('myCv.addNew')}
+              </span>
+            </button>
+          </div>
         </div>
       )}
 
