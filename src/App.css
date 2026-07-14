@@ -2659,63 +2659,6 @@
   text-align: center;
 }
 
-.cv-delete-confirm {
-  margin-top: 14px;
-  padding: 14px;
-  border-radius: 12px;
-  background: rgba(248, 113, 113, 0.06);
-  border: 1px solid rgba(248, 113, 113, 0.18);
-}
-
-.cv-delete-confirm-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.cv-delete-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  color: #f87171;
-  background: rgba(248, 113, 113, 0.12);
-  border: 1px solid rgba(248, 113, 113, 0.2);
-}
-
-.cv-delete-copy {
-  min-width: 0;
-}
-
-.cv-delete-title {
-  margin: 0 0 4px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  line-height: 1.35;
-}
-
-.cv-delete-text {
-  margin: 0;
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.cv-delete-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.cv-delete-actions .btn {
-  flex: 1;
-  justify-content: center;
-}
-
 .file-remove {
   flex-shrink: 0;
   width: 28px;
@@ -3307,6 +3250,26 @@
 .confirm-actions--logout {
   display: flex;
   gap: 10px;
+}
+
+.confirm-delete-cv-icon {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.24);
+}
+
+.confirm-delete-cv-name {
+  margin: 14px 0 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--glass-hover);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .modal-backdrop--blocking {
