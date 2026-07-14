@@ -151,25 +151,66 @@ export default function MyCV() {
           )}
         </div>
 
-        <div className="cv-slider-viewport">
-          <div
-            className="cv-slider-track"
-            style={{ transform: `translateX(-${safeIndex * 100}%)` }}
-          >
-            {otherCvs.map((cv, i) => (
-              <div className="cv-slider-slide" key={cv.id}>
-                <CvCard
-                  cv={cv}
-                  isActive={false}
-                  colorIndex={i}
-                  onRename={renameUserCv}
-                  onDelete={removeCv}
-                  onSetActive={setActiveUserCv}
-                />
+        {otherCvs.length === 0 ? (
+          <div className="cv-slider-viewport cv-others-slot">
+            {canUpload ? (
+              <button
+                type="button"
+                className={`cv-others-dropzone${dragging ? ' cv-others-dropzone--dragging' : ''}`}
+                onClick={() => !uploading && fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                disabled={uploading}
+              >
+                <span className="cv-others-dropzone-icon" aria-hidden="true">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                    <path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.49" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                <span className="cv-others-dropzone-title">{t('myCv.addNew')}</span>
+                {uploading ? (
+                  <div className="cv-dropzone-progress">
+                    <div className="cv-dropzone-progress-bar">
+                      <span style={{ width: `${Math.round(uploadProgress)}%` }} />
+                    </div>
+                    <span className="cv-dropzone-progress-text">
+                      {t('myCv.uploading', { progress: Math.round(uploadProgress) })}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="cv-others-dropzone-hint">{t('myCv.uploadHint')}</span>
+                )}
+                <span className="cv-dropzone-formats">{t('myCv.emptyUploadText')}</span>
+              </button>
+            ) : (
+              <div className="cv-others-empty cv-others-empty--full">
+                <p className="cv-others-empty-text">{t('myCv.othersEmpty')}</p>
               </div>
-            ))}
+            )}
           </div>
-        </div>
+        ) : (
+          <div className="cv-slider-viewport cv-others-slot">
+            <div
+              className="cv-slider-track"
+              style={{ transform: `translateX(-${safeIndex * 100}%)` }}
+            >
+              {otherCvs.map((cv, i) => (
+                <div className="cv-slider-slide" key={cv.id}>
+                  <CvCard
+                    cv={cv}
+                    isActive={false}
+                    colorIndex={i}
+                    onRename={renameUserCv}
+                    onDelete={removeCv}
+                    onSetActive={setActiveUserCv}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -253,8 +294,7 @@ export default function MyCV() {
             </section>
           )}
 
-          {otherCvs.length > 0 && (
-            <section className="cv-section cv-others-col">
+          <section className="cv-section cv-others-col">
               <div className="cv-others-group cv-promo-group">
                 <div className="cv-others-head">
                   <h3 className="cv-section-label">{t('myCv.promoHeading')}</h3>
@@ -312,7 +352,6 @@ export default function MyCV() {
 
               {renderOthersSlider(otherIndexBottom, setOtherIndexBottom)}
             </section>
-          )}
         </div>
       )}
 

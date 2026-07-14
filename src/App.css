@@ -2027,6 +2027,106 @@
   margin: 0;
 }
 
+.cv-others-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+  border: 1px dashed var(--glass-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cv-others-empty--full {
+  width: 100%;
+  min-height: 280px;
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+[data-theme='light'] .cv-others-empty {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+[data-theme='light'] .cv-others-empty--full {
+  background: var(--glass);
+}
+
+.cv-others-empty-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.cv-others-slot {
+  min-height: 280px;
+}
+
+.cv-others-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 280px;
+  padding: 28px 20px;
+  text-align: center;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px dashed var(--upload-border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.cv-others-dropzone:hover:not(:disabled) {
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.05);
+}
+
+.cv-others-dropzone--dragging {
+  border-color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.1);
+  box-shadow: inset 0 0 0 3px rgba(34, 211, 238, 0.16);
+}
+
+.cv-others-dropzone:disabled {
+  opacity: 0.85;
+  cursor: default;
+}
+
+.cv-others-dropzone-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.12);
+  border: 1px solid rgba(34, 211, 238, 0.22);
+}
+
+.cv-others-dropzone-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cv-others-dropzone-hint {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 220px;
+}
+
 .cv-slider-nav {
   display: flex;
   align-items: center;
