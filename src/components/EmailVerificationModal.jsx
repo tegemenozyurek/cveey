@@ -4,26 +4,6 @@ import { refreshAuthUser, sendVerificationEmail } from '../authEmailService'
 import { useLanguage } from '../context/LanguageContext'
 import { auth } from '../firebase'
 
-function MailIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M22 8l-10 6L2 8"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 export default function EmailVerificationModal({ user, onVerified }) {
   const { t } = useLanguage()
   const [resending, setResending] = useState(false)
@@ -83,16 +63,38 @@ export default function EmailVerificationModal({ user, onVerified }) {
       >
         <div className="modal-auth-header">
           <div className="verify-header">
-            <div className="verify-icon">
-              <MailIcon />
-            </div>
             <h2 id="verify-title" className="modal-heading">{t('verify.title')}</h2>
+            <p className="verify-lead">{t('verify.leadLine')}</p>
+            <span className="verify-email-chip" title={user.email}>{user.email}</span>
           </div>
         </div>
 
         <div className="modal-auth-body">
-          <p className="verify-text">{t('verify.subtitle', { email: user.email })}</p>
           <p className="modal-subtitle verify-hint">{t('verify.instructions')}</p>
+
+          <p className="verify-spam-note">
+            <span className="verify-spam-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+                <path d="M12 7.5v5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="12" cy="16.5" r="1.25" fill="currentColor" />
+              </svg>
+            </span>
+            <span>
+              {t('verify.spamNote')
+                .split('{spam}')
+                .flatMap((part, i) =>
+                  i === 0
+                    ? [part]
+                    : [
+                        <mark key="spam" className="verify-spam-word">
+                          {t('verify.spamWord')}
+                        </mark>,
+                        part,
+                      ],
+                )}
+            </span>
+          </p>
 
           <div className="modal-auth-error">
             {message && <p className="verify-feedback verify-feedback--success">{message}</p>}

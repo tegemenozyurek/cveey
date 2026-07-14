@@ -2947,58 +2947,84 @@
 
 .modal.modal--verify {
   min-height: auto;
-  max-width: 380px;
-  padding: 14px 28px 22px;
+  max-width: 384px;
+  padding: 26px 28px 22px;
 }
 
 .modal--verify .modal-auth-header {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  padding-right: 0;
 }
 
 .verify-header {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-right: 28px;
-}
-
-.verify-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent-pink);
-  background: linear-gradient(135deg, rgba(232, 121, 249, 0.14), rgba(34, 211, 238, 0.14));
-  border: 1px solid rgba(232, 121, 249, 0.2);
-}
-
-.modal--verify .modal-heading {
-  font-size: 24px;
-  line-height: 1.25;
-}
-
-.modal--verify .modal-auth-body {
   gap: 10px;
 }
 
-.modal--verify .modal-auth-footer {
-  margin-top: 14px;
-  min-height: 32px;
+.modal--verify .modal-heading {
+  font-size: 23px;
+  line-height: 1.25;
 }
 
-.verify-text {
-  margin: 0;
+.verify-lead {
+  margin: 2px 0 0;
   font-size: 14px;
-  line-height: 1.65;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.verify-email-chip {
+  display: inline-block;
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text);
-  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal--verify .modal-auth-body {
+  gap: 12px;
+}
+
+.modal--verify .modal-auth-footer {
+  margin-top: 16px;
+  min-height: 32px;
 }
 
 .modal--verify .verify-hint {
   margin: 0;
-  font-style: italic;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.verify-spam-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  background: rgba(248, 113, 113, 0.09);
+  border: 1px solid rgba(248, 113, 113, 0.28);
+  border-radius: 10px;
+}
+
+.verify-spam-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: #f87171;
+}
+
+.verify-spam-word {
+  font-weight: 600;
+  color: #f87171;
+  background: transparent;
 }
 
 .modal--verify .modal-auth-error:empty {
@@ -3023,7 +3049,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 36px;
+  margin-top: auto;
+  padding-top: 20px;
 }
 
 .verify-submit-btn:disabled {
