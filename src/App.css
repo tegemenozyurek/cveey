@@ -1490,8 +1490,8 @@
 .cv-empty-badge {
   display: inline-flex;
   align-items: center;
-  padding: 5px 14px;
-  font-size: 11.5px;
+  padding: 8px 20px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1517,12 +1517,13 @@
   color: var(--text-muted);
 }
 
-.cv-empty-options {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
+.cv-empty-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
   width: 100%;
-  max-width: 720px;
+  max-width: 640px;
 }
 
 .cv-empty-card {
@@ -1562,12 +1563,47 @@
   opacity: 0.8;
 }
 
-.cv-empty-card--create {
-  background:
-    radial-gradient(120% 90% at 0% 0%, rgba(232, 121, 249, 0.16), transparent 55%),
-    radial-gradient(120% 90% at 100% 0%, rgba(34, 211, 238, 0.13), transparent 55%),
-    var(--glass);
-  border-color: rgba(232, 121, 249, 0.3);
+/* Upload card = full drag & drop zone */
+.cv-empty-card--upload {
+  width: 100%;
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  padding: 40px 32px;
+  border-style: dashed;
+  border-width: 1.5px;
+  border-color: var(--upload-border);
+  background: transparent;
+}
+
+.cv-empty-card--upload .cv-empty-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+}
+
+.cv-empty-card--upload:hover:not(:disabled) {
+  transform: none;
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.05);
+  box-shadow: none;
+}
+
+.cv-empty-card--upload.cv-empty-card--dragging {
+  transform: none;
+  border-color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.1);
+  box-shadow: inset 0 0 0 3px rgba(34, 211, 238, 0.16);
+}
+
+.cv-empty-card--upload .cv-empty-card-text {
+  flex: 0 0 auto;
+}
+
+.cv-empty-card--upload:disabled {
+  opacity: 1;
 }
 
 .cv-empty-card-icon {
@@ -1582,10 +1618,46 @@
   border: 1px solid rgba(34, 211, 238, 0.22);
 }
 
-.cv-empty-card--create .cv-empty-card-icon {
-  color: var(--accent-pink);
-  background: rgba(232, 121, 249, 0.14);
-  border-color: rgba(232, 121, 249, 0.28);
+.cv-empty-or {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 320px;
+  color: var(--text-dim);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cv-empty-or::before,
+.cv-empty-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border);
+}
+
+.cv-empty-create-link {
+  text-decoration: none;
+}
+
+.cv-empty-cta-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 26px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cv-empty-cta-inner svg {
+  transition: transform 0.18s ease;
+}
+
+.cv-empty-create-link:hover .cv-empty-cta-inner svg {
+  transform: translateX(3px);
 }
 
 .cv-empty-card-title {
@@ -1609,34 +1681,53 @@
   display: inline-block;
 }
 
-.cv-empty-card-action--ghost {
-  display: inline-flex;
-  align-items: center;
-  padding: 9px 20px;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--text);
-  background: transparent;
-  border: 1px solid var(--glass-border);
-  border-radius: 9999px;
-  font-variant-numeric: tabular-nums;
-  transition: background 0.15s, border-color 0.15s;
+.cv-dropzone-formats {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-dim);
 }
 
-.cv-empty-card--upload:hover:not(:disabled) .cv-empty-card-action--ghost {
+.cv-dropzone-progress {
+  width: 100%;
+  max-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.cv-dropzone-progress-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
   background: var(--glass-hover);
-  border-color: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.cv-dropzone-progress-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--gradient-border);
+  transition: width 0.2s ease;
+}
+
+.cv-dropzone-progress-text {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--accent-cyan);
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 640px) {
-  .cv-empty-options {
-    grid-template-columns: 1fr;
-    max-width: 440px;
-  }
-
   .cv-empty {
     gap: 26px;
     padding: 8px 0 36px;
+  }
+
+  .cv-empty-card--upload {
+    min-height: 220px;
+    padding: 32px 22px;
   }
 }
 
