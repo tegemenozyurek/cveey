@@ -37,25 +37,30 @@ export default function App() {
                     <AdBanner position="left" />
                   </aside>
                   <div className="app-body-main">
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/jobs" element={<Jobs />} />
-                      <Route path="/network" element={<Network />} />
-                      <Route path="/create-cv" element={<CreateCV />} />
-                      <Route path="/my-cv" element={<MyCV />} />
-                      <Route path="/messages" element={<Messages />} />
-                      <Route path="/notifications" element={<Notifications />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/preferences" element={<Preferences />} />
-                      <Route path="/privacy" element={<PrivacyPolicy />} />
-                      <Route path="/terms" element={<TermsOfService />} />
-                    </Routes>
+                    <div className="app-scroll">
+                      <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/jobs" element={<Jobs />} />
+                        <Route path="/network" element={<Network />} />
+                        <Route path="/create-cv" element={<CreateCV />} />
+                        <Route path="/my-cv" element={<MyCV />} />
+                        <Route path="/messages" element={<Messages />} />
+                        <Route path="/notifications" element={<Notifications />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/preferences" element={<Preferences />} />
+                        <Route path="/privacy" element={<PrivacyPolicy />} />
+                        <Route path="/terms" element={<TermsOfService />} />
+                      </Routes>
+                      <SiteFooter />
+                    </div>
                   </div>
                   <aside className="ad-rail ad-rail--right">
                     <AdBanner position="right" />
                   </aside>
                 </div>
-                <SiteFooter />
+                <div className="ad-bottom-bar">
+                  <AdBanner position="bottom" format="horizontal" />
+                </div>
               </div>
               <CookieConsent />
             </ResumeProvider>

@@ -8,9 +8,7 @@ export default function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="site-footer-inner">
-        <p className="site-footer-copy">
-          © {year} cveey. {t('footer.rights')}
-        </p>
+        <p className="site-footer-copy">© {year} cveey</p>
         <nav className="site-footer-nav" aria-label={t('footer.legalNav')}>
           <Link to="/privacy">{t('legal.privacy')}</Link>
           <Link to="/terms">{t('legal.terms')}</Link>

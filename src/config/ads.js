@@ -21,11 +21,12 @@ export const ADS_CONFIG = {
 
   /**
    * Slot IDs from AdSense → Ads → By ad unit.
-   * Left / right vertical banners (160x600 or responsive vertical).
+   * left/right: vertical (160x600). bottom: mobile horizontal (320x50).
    */
   slots: {
     left: import.meta.env.VITE_ADSENSE_SLOT_LEFT?.trim() || '',
     right: import.meta.env.VITE_ADSENSE_SLOT_RIGHT?.trim() || '',
+    bottom: import.meta.env.VITE_ADSENSE_SLOT_BOTTOM?.trim() || '',
   },
 
   /** Master switch — false shows labeled placeholders only */

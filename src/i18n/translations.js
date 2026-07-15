@@ -281,7 +281,6 @@ export const translations = {
     'ads.placeholderLabel': 'Ad placeholder',
     'ads.placeholderHint': 'Test slot — AdSense not loaded yet',
 
-    'footer.rights': 'All rights reserved.',
     'footer.legalNav': 'Legal',
 
     'legal.privacy': 'Privacy Policy',
@@ -618,7 +617,6 @@ export const translations = {
     'ads.placeholderLabel': 'Reklam yer tutucu',
     'ads.placeholderHint': 'Test alanı — AdSense henüz yüklenmedi',
 
-    'footer.rights': 'Tüm hakları saklıdır.',
     'footer.legalNav': 'Yasal',
 
     'legal.privacy': 'Gizlilik Politikası',
