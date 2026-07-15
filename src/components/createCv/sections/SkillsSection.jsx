@@ -124,9 +124,10 @@ export default function SkillsSection({
       </div>
 
       {!isRated ? (
-        <div className="create-cv-repeater">
+        <>
+          <div className="create-cv-repeater">
           {categories.map((category, catIndex) => (
-            <article key={category.id} className="create-cv-repeater-card">
+            <article key={category.id} className="create-cv-repeater-card create-cv-skill-category-card">
               <div className="create-cv-repeater-card-head">
                 <h3 className="create-cv-repeater-card-title">{t('createCv.skillCategory')} {catIndex + 1}</h3>
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => removeCategory(catIndex)}>
@@ -176,12 +177,14 @@ export default function SkillsSection({
               </button>
             </article>
           ))}
+          </div>
           <button type="button" className="btn btn-ghost create-cv-add-card" onClick={addCategory}>
             + {t('createCv.addCategory')}
           </button>
-        </div>
+        </>
       ) : (
-        <div className="create-cv-repeater">
+        <>
+          <div className="create-cv-repeater">
           {rated.map((item, index) => (
             <article key={item.id} className="create-cv-repeater-card create-cv-rated-skill-row">
               <div className="form-field create-cv-rated-skill-name">
@@ -204,10 +207,11 @@ export default function SkillsSection({
               </button>
             </article>
           ))}
+          </div>
           <button type="button" className="btn btn-ghost create-cv-add-card" onClick={addRated}>
             + {t('createCv.addSkill')}
           </button>
-        </div>
+        </>
       )}
     </div>
   )

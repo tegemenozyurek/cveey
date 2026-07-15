@@ -5,6 +5,7 @@ const CLOSE_MS = 420
 
 export default function TemplateSelectOverlay({ initialTemplateId, onConfirm, onCancel, t }) {
   const templates = getSelectableTemplates()
+  const hasMultiple = templates.length > 1
   const initialIndex = Math.max(0, templates.findIndex((item) => item.id === initialTemplateId))
 
   const [activeIndex, setActiveIndex] = useState(initialIndex)
@@ -109,14 +110,16 @@ export default function TemplateSelectOverlay({ initialTemplateId, onConfirm, on
 
         <div className="template-select-carousel">
           <div className="template-select-preview-row">
-            <button
-              type="button"
-              className="template-select-arrow template-select-arrow--prev"
-              onClick={goPrev}
-              aria-label={t('createCv.template.prev')}
-            >
-              <span aria-hidden="true">‹</span>
-            </button>
+            {hasMultiple && (
+              <button
+                type="button"
+                className="template-select-arrow template-select-arrow--prev"
+                onClick={goPrev}
+                aria-label={t('createCv.template.prev')}
+              >
+                <span aria-hidden="true">‹</span>
+              </button>
+            )}
 
             <div className="template-select-viewport">
               <div
@@ -136,14 +139,16 @@ export default function TemplateSelectOverlay({ initialTemplateId, onConfirm, on
               </div>
             </div>
 
-            <button
-              type="button"
-              className="template-select-arrow template-select-arrow--next"
-              onClick={goNext}
-              aria-label={t('createCv.template.next')}
-            >
-              <span aria-hidden="true">›</span>
-            </button>
+            {hasMultiple && (
+              <button
+                type="button"
+                className="template-select-arrow template-select-arrow--next"
+                onClick={goNext}
+                aria-label={t('createCv.template.next')}
+              >
+                <span aria-hidden="true">›</span>
+              </button>
+            )}
           </div>
 
           <div className="template-select-meta" aria-live="polite">
@@ -157,20 +162,24 @@ export default function TemplateSelectOverlay({ initialTemplateId, onConfirm, on
           </div>
         </div>
 
-        <div className="template-select-dots" role="group" aria-label={t('createCv.template.aria')}>
-          {templates.map((template, index) => (
-            <button
-              key={template.id}
-              type="button"
-              aria-pressed={index === activeIndex}
-              aria-label={t(template.nameKey)}
-              className={`template-select-dot${index === activeIndex ? ' template-select-dot--active' : ''}`}
-              onClick={() => goTo(index)}
-            />
-          ))}
-        </div>
+        {hasMultiple && (
+          <div className="template-select-dots" role="group" aria-label={t('createCv.template.aria')}>
+            {templates.map((template, index) => (
+              <button
+                key={template.id}
+                type="button"
+                aria-pressed={index === activeIndex}
+                aria-label={t(template.nameKey)}
+                className={`template-select-dot${index === activeIndex ? ' template-select-dot--active' : ''}`}
+                onClick={() => goTo(index)}
+              />
+            ))}
+          </div>
+        )}
 
-        <p id="template-select-hint" className="template-select-hint">{t('createCv.template.keyboardHint')}</p>
+        {hasMultiple && (
+          <p id="template-select-hint" className="template-select-hint">{t('createCv.template.keyboardHint')}</p>
+        )}
 
         <button
           type="button"
