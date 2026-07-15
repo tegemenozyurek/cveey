@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import UserAvatar from '../components/UserAvatar'
+import { searchUsersByEmail } from '../userService'
 
 const MOCK_SUGGESTED = [
   {
@@ -40,6 +42,8 @@ const MOCK_SUGGESTED = [
   },
 ]
 
+const SEARCH_DEBOUNCE_MS = 300
+
 function SearchIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -51,16 +55,62 @@ function SearchIcon() {
 
 export default function Network() {
   const { t } = useLanguage()
+  const { user, openLogin } = useAuth()
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [searchError, setSearchError] = useState('')
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return MOCK_SUGGESTED
-    return MOCK_SUGGESTED.filter((person) => {
-      const haystack = `${person.displayName} ${person.headline} ${person.location}`.toLowerCase()
-      return haystack.includes(q)
-    })
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setDebouncedQuery(query.trim())
+    }, SEARCH_DEBOUNCE_MS)
+    return () => window.clearTimeout(id)
   }, [query])
+
+  const isSearching = debouncedQuery.length >= 2
+
+  useEffect(() => {
+    if (!isSearching) {
+      setResults([])
+      setSearching(false)
+      setSearchError('')
+      return
+    }
+
+    if (!user) {
+      setResults([])
+      setSearching(false)
+      setSearchError('')
+      return
+    }
+
+    let cancelled = false
+    setSearching(true)
+    setSearchError('')
+
+    searchUsersByEmail(debouncedQuery, { excludeUid: user.uid })
+      .then((people) => {
+        if (!cancelled) {
+          setResults(people)
+          setSearching(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setResults([])
+          setSearching(false)
+          setSearchError(t('network.searchError'))
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [debouncedQuery, isSearching, user, t])
+
+  const suggested = useMemo(() => MOCK_SUGGESTED, [])
 
   return (
     <main className="main">
@@ -85,19 +135,58 @@ export default function Network() {
           />
         </div>
 
-        <section className="network-suggested" aria-labelledby="network-suggested-heading">
-          <div className="network-section-head">
-            <h2 id="network-suggested-heading" className="network-section-title">
-              {t('network.suggested')}
-            </h2>
-            <p className="network-section-hint">{t('network.suggestedHint')}</p>
-          </div>
+        {isSearching ? (
+          <section className="network-suggested" aria-labelledby="network-results-heading">
+            <div className="network-section-head">
+              <h2 id="network-results-heading" className="network-section-title">
+                {t('network.results')}
+              </h2>
+              <p className="network-section-hint">{t('network.resultsHint')}</p>
+            </div>
 
-          {filtered.length === 0 ? (
-            <p className="network-empty">{t('network.noResults')}</p>
-          ) : (
+            {!user ? (
+              <div className="network-empty network-empty--action">
+                <p>{t('network.signInToSearch')}</p>
+                <button type="button" className="btn-gradient-wrap" onClick={openLogin}>
+                  <span className="btn-gradient-inner">{t('nav.signIn')}</span>
+                </button>
+              </div>
+            ) : searching ? (
+              <p className="network-empty">{t('network.searching')}</p>
+            ) : searchError ? (
+              <p className="network-empty">{searchError}</p>
+            ) : results.length === 0 ? (
+              <p className="network-empty">{t('network.noResults')}</p>
+            ) : (
+              <ul className="network-people-list">
+                {results.map((person) => (
+                  <li key={person.id} className="network-person">
+                    <UserAvatar user={person} className="network-person-avatar" />
+                    <div className="network-person-info">
+                      <p className="network-person-name">{person.email}</p>
+                      {person.homeCity ? (
+                        <p className="network-person-location">{person.homeCity}</p>
+                      ) : null}
+                    </div>
+                    <button type="button" className="network-connect-btn">
+                      {t('network.connect')}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : (
+          <section className="network-suggested" aria-labelledby="network-suggested-heading">
+            <div className="network-section-head">
+              <h2 id="network-suggested-heading" className="network-section-title">
+                {t('network.suggested')}
+              </h2>
+              <p className="network-section-hint">{t('network.suggestedHint')}</p>
+            </div>
+
             <ul className="network-people-list">
-              {filtered.map((person) => (
+              {suggested.map((person) => (
                 <li key={person.id} className="network-person">
                   <UserAvatar user={person} className="network-person-avatar" />
                   <div className="network-person-info">
@@ -111,8 +200,8 @@ export default function Network() {
                 </li>
               ))}
             </ul>
-          )}
-        </section>
+          </section>
+        )}
       </div>
     </main>
   )

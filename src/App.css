@@ -6963,6 +6963,17 @@
   background: var(--glass);
 }
 
+.network-empty--action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.network-empty--action p {
+  margin: 0;
+}
+
 @media (max-width: 560px) {
   .network-search-input {
     height: 52px;
