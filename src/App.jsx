@@ -32,12 +32,12 @@ export default function App() {
               <AdSenseLoader />
               <div className="page">
                 <Navbar />
-                <div className="app-body">
-                  <aside className="ad-rail ad-rail--left">
-                    <AdBanner position="left" />
-                  </aside>
-                  <div className="app-body-main">
-                    <div className="app-scroll">
+                <div className="app-scroll">
+                  <div className="app-body">
+                    <aside className="ad-rail ad-rail--left">
+                      <AdBanner position="left" />
+                    </aside>
+                    <div className="app-body-main">
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/jobs" element={<Jobs />} />
@@ -51,12 +51,12 @@ export default function App() {
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/terms" element={<TermsOfService />} />
                       </Routes>
-                      <SiteFooter />
                     </div>
+                    <aside className="ad-rail ad-rail--right">
+                      <AdBanner position="right" />
+                    </aside>
                   </div>
-                  <aside className="ad-rail ad-rail--right">
-                    <AdBanner position="right" />
-                  </aside>
+                  <SiteFooter />
                 </div>
                 <div className="ad-bottom-bar">
                   <AdBanner position="bottom" format="horizontal" />
