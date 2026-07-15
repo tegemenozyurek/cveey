@@ -276,6 +276,66 @@ export const translations = {
     'profile.authEmail': 'Email & password',
     'profile.authGoogle': 'Google',
     'profile.authGithub': 'GitHub',
+
+    'ads.label': 'Advertisement',
+    'ads.placeholderLabel': 'Ad placeholder',
+    'ads.placeholderHint': 'Test slot — AdSense not loaded yet',
+
+    'footer.rights': 'All rights reserved.',
+    'footer.legalNav': 'Legal',
+
+    'legal.privacy': 'Privacy Policy',
+    'legal.terms': 'Terms of Service',
+    'legal.backHome': '← Back to home',
+    'legal.updated': 'Last updated',
+
+    'cookie.title': 'Cookies & ads',
+    'cookie.text':
+      'We use cookies and may show personalized ads (Google AdSense). You can accept or continue without personalized ads. See our',
+    'cookie.accept': 'Accept',
+    'cookie.reject': 'Reject personalized ads',
+
+    'privacy.title': 'Privacy Policy',
+    'privacy.s1.title': '1. Who we are',
+    'privacy.s1.body':
+      'cveey (“we”, “us”) provides a resume (CV) creation and management service. This policy explains what information we collect and how we use it.',
+    'privacy.s2.title': '2. Information we collect',
+    'privacy.s2.body': 'Depending on how you use the service, we may process:',
+    'privacy.s2.item1': 'Account data: email address, display name, and authentication provider details.',
+    'privacy.s2.item2': 'Resume content you upload or create (text, files, and related metadata).',
+    'privacy.s2.item3': 'Usage data: pages viewed, device/browser type, approximate location, and diagnostics.',
+    'privacy.s2.item4': 'Cookies and similar technologies used for login, preferences, analytics, and advertising.',
+    'privacy.s3.title': '3. How we use information',
+    'privacy.s3.body':
+      'We use this information to operate and improve cveey, authenticate users, store your resumes, provide customer support, measure performance, and — where you consent — show relevant ads.',
+    'privacy.s4.title': '4. Advertising (Google AdSense)',
+    'privacy.s4.body':
+      'We use Google AdSense to display advertisements. Google and its partners may use cookies or similar technologies to serve ads based on your prior visits to this or other websites. You can manage ad personalization in your Google settings and via our cookie banner.',
+    'privacy.s4.link': 'How Google uses data for ads',
+    'privacy.s5.title': '5. Your choices',
+    'privacy.s5.body':
+      'You may update preferences in the app, reject personalized ads via the cookie banner, or request account deletion by contacting us. Local browser settings also let you block or clear cookies.',
+    'privacy.s6.title': '6. Contact',
+    'privacy.s6.body':
+      'For privacy questions, contact the site operator through the support channel published on cveey once available. This policy may be updated; the “Last updated” date above will change when it does.',
+
+    'terms.title': 'Terms of Service',
+    'terms.s1.title': '1. Acceptance',
+    'terms.s1.body':
+      'By accessing or using cveey you agree to these Terms of Service and our Privacy Policy. If you do not agree, do not use the service.',
+    'terms.s2.title': '2. The service',
+    'terms.s2.body':
+      'cveey lets you create, upload, preview, and manage resumes. Features may change, be limited, or become unavailable as the product evolves.',
+    'terms.s3.title': '3. Your content & account',
+    'terms.s3.body':
+      'You are responsible for the accuracy of resume content you submit and for keeping your account credentials secure. Do not upload unlawful, infringing, or harmful content.',
+    'terms.s4.title': '4. Acceptable use',
+    'terms.s4.body':
+      'You must not abuse the platform, attempt unauthorized access, interfere with other users, or use cveey to spam or violate applicable laws. Ads must not be clicked by site operators or incentivized clicks.',
+    'terms.s5.title': '5. Disclaimers',
+    'terms.s5.body':
+      'The service is provided “as is” without warranties of uninterrupted availability or fitness for a particular career outcome. We are not liable for indirect or consequential damages to the extent permitted by law.',
+
     ...createCvExtendedEn,
   },
   tr: {
@@ -553,6 +613,66 @@ export const translations = {
     'profile.authEmail': 'E-posta & şifre',
     'profile.authGoogle': 'Google',
     'profile.authGithub': 'GitHub',
+
+    'ads.label': 'Reklam',
+    'ads.placeholderLabel': 'Reklam yer tutucu',
+    'ads.placeholderHint': 'Test alanı — AdSense henüz yüklenmedi',
+
+    'footer.rights': 'Tüm hakları saklıdır.',
+    'footer.legalNav': 'Yasal',
+
+    'legal.privacy': 'Gizlilik Politikası',
+    'legal.terms': 'Kullanım Şartları',
+    'legal.backHome': '← Ana sayfaya dön',
+    'legal.updated': 'Son güncelleme',
+
+    'cookie.title': 'Çerezler ve reklamlar',
+    'cookie.text':
+      'Çerez kullanıyoruz ve kişiselleştirilmiş reklamlar (Google AdSense) gösterebiliriz. Kabul edebilir veya kişiselleştirilmiş reklamlar olmadan devam edebilirsiniz. Ayrıntılar:',
+    'cookie.accept': 'Kabul et',
+    'cookie.reject': 'Kişiselleştirilmiş reklamları reddet',
+
+    'privacy.title': 'Gizlilik Politikası',
+    'privacy.s1.title': '1. Kimiz',
+    'privacy.s1.body':
+      'cveey (“biz”) özgeçmiş (CV) oluşturma ve yönetim hizmeti sunar. Bu politika hangi bilgileri topladığımızı ve nasıl kullandığımızı açıklar.',
+    'privacy.s2.title': '2. Topladığımız bilgiler',
+    'privacy.s2.body': 'Hizmeti nasıl kullandığınıza bağlı olarak şunları işleyebiliriz:',
+    'privacy.s2.item1': 'Hesap verileri: e-posta, görünen ad ve kimlik doğrulama sağlayıcısı bilgileri.',
+    'privacy.s2.item2': 'Yüklediğiniz veya oluşturduğunuz özgeçmiş içeriği (metin, dosya ve ilgili meta veriler).',
+    'privacy.s2.item3': 'Kullanım verileri: görüntülenen sayfalar, cihaz/tarayıcı türü, yaklaşık konum ve tanılama bilgileri.',
+    'privacy.s2.item4': 'Oturum, tercihler, analiz ve reklam için kullanılan çerezler ve benzer teknolojiler.',
+    'privacy.s3.title': '3. Bilgileri nasıl kullanırız',
+    'privacy.s3.body':
+      'Bu bilgileri cveey’i işletmek ve geliştirmek, kullanıcıları doğrulamak, özgeçmişlerinizi saklamak, destek vermek, performansı ölçmek ve — onay verdiğinizde — ilgili reklamlar göstermek için kullanırız.',
+    'privacy.s4.title': '4. Reklamlar (Google AdSense)',
+    'privacy.s4.body':
+      'Reklam göstermek için Google AdSense kullanırız. Google ve iş ortakları, bu siteye veya diğer sitelere yaptığınız önceki ziyaretlere dayalı reklam sunmak için çerez veya benzer teknolojiler kullanabilir. Reklam kişiselleştirmesini Google ayarlarınızdan ve çerez banner’ımızdan yönetebilirsiniz.',
+    'privacy.s4.link': 'Google’ın reklamlar için verileri nasıl kullandığı',
+    'privacy.s5.title': '5. Seçenekleriniz',
+    'privacy.s5.body':
+      'Uygulamadaki tercihleri güncelleyebilir, çerez banner’ından kişiselleştirilmiş reklamları reddedebilir veya hesap silme talebinde bulunabilirsiniz. Tarayıcı ayarlarıyla da çerezleri engelleyebilir veya silebilirsiniz.',
+    'privacy.s6.title': '6. İletişim',
+    'privacy.s6.body':
+      'Gizlilik sorularınız için cveey’de yayınlanacak destek kanalı üzerinden site işletmecisine ulaşın. Bu politika güncellenebilir; güncellemede yukarıdaki “Son güncelleme” tarihi değişir.',
+
+    'terms.title': 'Kullanım Şartları',
+    'terms.s1.title': '1. Kabul',
+    'terms.s1.body':
+      'cveey’e erişerek veya kullanarak bu Kullanım Şartları’nı ve Gizlilik Politikası’nı kabul etmiş olursunuz. Kabul etmiyorsanız hizmeti kullanmayın.',
+    'terms.s2.title': '2. Hizmet',
+    'terms.s2.body':
+      'cveey özgeçmiş oluşturmanızı, yüklemenizi, önizlemenizi ve yönetmenizi sağlar. Özellikler ürün geliştikçe değişebilir, sınırlanabilir veya kullanılamaz hale gelebilir.',
+    'terms.s3.title': '3. İçeriğiniz ve hesabınız',
+    'terms.s3.body':
+      'Gönderdiğiniz özgeçmiş içeriğinin doğruluğundan ve hesap bilgilerinizin güvenliğinden siz sorumlusunuz. Yasadışı, ihlal edici veya zararlı içerik yüklemeyin.',
+    'terms.s4.title': '4. Kabul edilebilir kullanım',
+    'terms.s4.body':
+      'Platformu kötüye kullanmamalı, yetkisiz erişim denememeli, diğer kullanıcıları engellememeli veya cveey’i spam / yasa dışı amaçlarla kullanmamalısınız. Site işletmecileri kendi reklamlarına tıklamamalı ve tıklama teşvik etmemelidir.',
+    'terms.s5.title': '5. Sorumluluk redleri',
+    'terms.s5.body':
+      'Hizmet “olduğu gibi” sunulur; kesintisiz erişim veya belirli bir kariyer sonucu garanti edilmez. Yasaların izin verdiği ölçüde dolaylı veya sonuçsal zararlardan sorumlu değiliz.',
+
     ...createCvExtendedTr,
   },
 }
