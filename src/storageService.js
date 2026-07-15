@@ -24,6 +24,7 @@ import {
   setActiveFileId,
   updateCvFileDisplayName,
 } from './cvFileService'
+import { extractTextFromPdf } from './cvTextService'
 import { getCvBlob, releasePreviewUrl } from './cvPreviewCache'
 
 export const MAX_CV_COUNT = 5
@@ -205,7 +206,7 @@ export async function uploadCv(uid, file, onProgress) {
   const filePath = buildCvStoragePath(uid, fileId)
   const storageRef = ref(storage, filePath)
 
-  await new Promise((resolve, reject) => {
+  const uploadPromise = new Promise((resolve, reject) => {
     const task = uploadBytesResumable(storageRef, file, {
       contentType: 'application/pdf',
     })
@@ -221,9 +222,17 @@ export async function uploadCv(uid, file, onProgress) {
     )
   })
 
+  const textPromise = extractTextFromPdf(file).catch((err) => {
+    console.warn('CV text extraction failed:', err)
+    return ''
+  })
+
+  const [, extractedText] = await Promise.all([uploadPromise, textPromise])
+
   await createCvFileRecord(uid, {
     fileId,
     displayName: file.name,
+    ...(extractedText ? { extractedText } : {}),
   })
 
   if (cvs.length === 0) {

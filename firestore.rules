@@ -11,6 +11,7 @@ rules_version = '2';
 // users/{userId}/files/{fileId}
 //   displayName: string
 //   storageObject?: string  (only for legacy/non-default storage names)
+//   extractedText?: string  (plain text extracted from the PDF on upload)
 //
 // Default storage path: users/{userId}/{fileId}.pdf
 //
@@ -154,13 +155,22 @@ service cloud.firestore {
         name.matches('^[a-zA-Z0-9._-]+$');
     }
 
-    function isValidCvFileCreate(data) {
-      return data.keys().hasOnly(['displayName', 'storageObject']) &&
+    function isValidExtractedText(text) {
+      return text is string && text.size() <= 100000;
+    }
+
+    function isValidCvFileFields(data) {
+      return data.keys().hasOnly(['displayName', 'storageObject', 'extractedText']) &&
         data.displayName is string &&
         data.displayName.size() > 0 &&
         data.displayName.size() <= 120 &&
         data.displayName.matches('^.+\\.pdf$') &&
-        (!('storageObject' in data) || isValidStorageObject(data.storageObject));
+        (!('storageObject' in data) || isValidStorageObject(data.storageObject)) &&
+        (!('extractedText' in data) || isValidExtractedText(data.extractedText));
+    }
+
+    function isValidCvFileCreate(data) {
+      return isValidCvFileFields(data);
     }
 
     function storageObjectUnchanged() {
@@ -169,14 +179,29 @@ service cloud.firestore {
           request.resource.data.storageObject == resource.data.storageObject);
     }
 
-    function isValidCvFileUpdate(data) {
+    function extractedTextUnchanged() {
+      return (!('extractedText' in resource.data) && !('extractedText' in request.resource.data)) ||
+        (('extractedText' in resource.data) && ('extractedText' in request.resource.data) &&
+          request.resource.data.extractedText == resource.data.extractedText);
+    }
+
+    function isValidCvFileDisplayNameUpdate(data) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName']) &&
-        data.keys().hasOnly(['displayName', 'storageObject']) &&
-        data.displayName is string &&
-        data.displayName.size() > 0 &&
-        data.displayName.size() <= 120 &&
-        data.displayName.matches('^.+\\.pdf$') &&
-        storageObjectUnchanged();
+        isValidCvFileFields(data) &&
+        storageObjectUnchanged() &&
+        extractedTextUnchanged();
+    }
+
+    function isValidCvFileExtractedTextUpdate(data) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['extractedText']) &&
+        isValidCvFileFields(data) &&
+        storageObjectUnchanged() &&
+        data.displayName == resource.data.displayName &&
+        isValidExtractedText(data.extractedText);
+    }
+
+    function isValidCvFileUpdate(data) {
+      return isValidCvFileDisplayNameUpdate(data) || isValidCvFileExtractedTextUpdate(data);
     }
 
     function isValidCvFileCompaction() {

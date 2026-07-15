@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore'
 import { resolveAuthMethod } from './authUtils'
 import { auth, db } from './firebase'
+import { normalizeExtractedText } from './cvTextService'
 
 export const MAX_CV_NAME_LENGTH = 120
 const PDF_EXTENSION = '.pdf'
@@ -83,6 +84,10 @@ function compactFileData(uid, fileId, data) {
     displayName: normalizeCvDisplayName(data.displayName || 'cv.pdf'),
   }
 
+  if (typeof data.extractedText === 'string') {
+    compact.extractedText = data.extractedText
+  }
+
   const filePath = resolveFilePath(uid, fileId, data)
   if (!isDefaultStoragePath(uid, fileId, filePath)) {
     compact.storageObject = storageObjectFromData(uid, fileId, data)
@@ -92,7 +97,7 @@ function compactFileData(uid, fileId, data) {
 }
 
 function needsFileCompaction(uid, fileId, data) {
-  const allowed = new Set(['displayName', 'storageObject'])
+  const allowed = new Set(['displayName', 'storageObject', 'extractedText'])
   const keys = Object.keys(data ?? {})
   if (keys.some((key) => !allowed.has(key))) return true
 
@@ -111,6 +116,7 @@ function mapFileDoc(uid, id, data) {
     fullPath: filePath,
     displayName: data.displayName || storageNameFromPath(filePath),
     storageName: storageNameFromPath(filePath),
+    ...(typeof data.extractedText === 'string' ? { extractedText: data.extractedText } : {}),
   }
 }
 
@@ -181,7 +187,7 @@ export async function getCvFileRecord(uid, fileId) {
   return compactFileRecord(uid, snap.id, snap.data())
 }
 
-export async function createCvFileRecord(uid, { displayName, fileId, storageObject }) {
+export async function createCvFileRecord(uid, { displayName, fileId, storageObject, extractedText }) {
   await ensureUserDoc(uid)
 
   const fileRef = fileId ? fileDoc(uid, fileId) : doc(filesCollection(uid))
@@ -193,9 +199,19 @@ export async function createCvFileRecord(uid, { displayName, fileId, storageObje
     payload.storageObject = storageObject
   }
 
+  if (typeof extractedText === 'string') {
+    payload.extractedText = normalizeExtractedText(extractedText)
+  }
+
   await setDoc(fileRef, payload)
   const saved = await getDoc(fileRef)
   return mapFileDoc(uid, saved.id, saved.data())
+}
+
+export async function updateCvFileExtractedText(uid, fileId, extractedText) {
+  await updateDoc(fileDoc(uid, fileId), {
+    extractedText: normalizeExtractedText(extractedText),
+  })
 }
 
 export async function updateCvFileDisplayName(uid, fileId, displayName) {
