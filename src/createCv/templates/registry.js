@@ -1,8 +1,6 @@
-import ClassicAtsPreview from './previews/ClassicAtsPreview'
-import CompactAtsPreview from './previews/CompactAtsPreview'
-import ModernSidebarPreview from './previews/ModernSidebarPreview'
+import ScandiAtsPreview from './previews/ScandiAtsPreview'
 import { DEFAULT_TEMPLATE_ID } from '../constants'
-import { CV_ALL_SECTION_IDS, VISIBILITY } from '../fieldVisibility'
+import { CV_ALL_SECTION_IDS } from '../fieldVisibility'
 
 /**
  * @typedef {object} CvTemplateDefinition
@@ -21,49 +19,18 @@ import { CV_ALL_SECTION_IDS, VISIBILITY } from '../fieldVisibility'
 /** @type {CvTemplateDefinition[]} */
 export const CV_TEMPLATE_LIST = [
   {
-    id: 'classic-ats',
-    nameKey: 'createCv.template.classicAts.name',
-    descriptionKey: 'createCv.template.classicAts.description',
-    badgeKey: 'createCv.template.classicAts.badge',
+    id: 'scandi-ats',
+    nameKey: 'createCv.template.scandiAts.name',
+    descriptionKey: 'createCv.template.scandiAts.description',
+    badgeKey: 'createCv.template.scandiAts.badge',
     layout: 'single',
-    thumbClass: 'classic-ats',
+    thumbClass: 'scandi-ats',
     sectionIds: CV_ALL_SECTION_IDS,
-    Preview: ClassicAtsPreview,
-    previewClassName: 'cv-preview-doc cv-preview-doc--classic-ats',
+    Preview: ScandiAtsPreview,
+    previewClassName: 'cv-preview-doc cv-preview-doc--scandi',
     sectionConfig: {
       summary: { maxLength: 600 },
       skills: { mode: 'categories' },
-    },
-  },
-  {
-    id: 'modern-sidebar',
-    nameKey: 'createCv.template.modernSidebar.name',
-    descriptionKey: 'createCv.template.modernSidebar.description',
-    badgeKey: 'createCv.template.modernSidebar.badge',
-    layout: 'sidebar',
-    thumbClass: 'modern-sidebar',
-    sectionIds: CV_ALL_SECTION_IDS,
-    Preview: ModernSidebarPreview,
-    previewClassName: 'cv-preview-doc cv-preview-doc--modern-sidebar',
-    sectionConfig: {
-      summary: { maxLength: 600 },
-      skills: { mode: 'categories' },
-      sidebar: { visibility: VISIBILITY.REQUIRED },
-    },
-  },
-  {
-    id: 'compact-ats',
-    nameKey: 'createCv.template.compactAts.name',
-    descriptionKey: 'createCv.template.compactAts.description',
-    badgeKey: 'createCv.template.compactAts.badge',
-    layout: 'compact',
-    thumbClass: 'compact-ats',
-    sectionIds: CV_ALL_SECTION_IDS,
-    Preview: CompactAtsPreview,
-    previewClassName: 'cv-preview-doc cv-preview-doc--compact-ats',
-    sectionConfig: {
-      summary: { maxLength: 500 },
-      skills: { mode: 'rated' },
     },
   },
 ]
@@ -74,9 +41,11 @@ export const CV_TEMPLATE_REGISTRY = Object.fromEntries(
 )
 
 export function getCvTemplate(templateId = DEFAULT_TEMPLATE_ID) {
-  const template = CV_TEMPLATE_REGISTRY[templateId]
-  if (!template) throw new Error(`Unknown CV template: ${templateId}`)
-  return template
+  // Fall back to the default template for unknown/legacy ids (e.g. drafts saved
+  // with a template that no longer exists) instead of throwing.
+  return CV_TEMPLATE_REGISTRY[templateId]
+    ?? CV_TEMPLATE_REGISTRY[DEFAULT_TEMPLATE_ID]
+    ?? CV_TEMPLATE_LIST[0]
 }
 
 export function getSelectableTemplates() {

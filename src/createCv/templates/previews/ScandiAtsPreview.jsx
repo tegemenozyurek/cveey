@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { buildClassicPreviewBlocks } from './buildPreviewBlocks'
 import PaginatedPreviewRenderer from './PaginatedPreviewRenderer'
 
-export default function ClassicAtsPreview({
+export default function ScandiAtsPreview({
   document,
   t,
   className,
@@ -25,7 +25,7 @@ export default function ClassicAtsPreview({
   return (
     <PaginatedPreviewRenderer
       blocks={blocks}
-      templateId="classic-ats"
+      templateId="scandi-ats"
       previewClassName={className}
       ariaLabel={t('createCv.preview.aria')}
       onPageCountChange={onPageCountChange}

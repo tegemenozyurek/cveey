@@ -2,13 +2,12 @@ import { A4_HEIGHT_PX, MM_TO_PX } from '../constants.js'
 
 /** Usable content height inside each template (px), excluding vertical padding. */
 export const CV_PAGE_CONTENT_HEIGHT_PX = {
-  'classic-ats': A4_HEIGHT_PX - ((20 + 18) * MM_TO_PX),
-  'compact-ats': A4_HEIGHT_PX - ((14 + 16) * MM_TO_PX),
-  'modern-sidebar': A4_HEIGHT_PX - (20 * MM_TO_PX),
+  // Matches .cv-preview-doc--scandi padding: 22mm top + 20mm bottom.
+  'scandi-ats': A4_HEIGHT_PX - ((22 + 20) * MM_TO_PX),
 }
 
 export function getCvPageContentHeight(templateId) {
-  return CV_PAGE_CONTENT_HEIGHT_PX[templateId] ?? CV_PAGE_CONTENT_HEIGHT_PX['classic-ats']
+  return CV_PAGE_CONTENT_HEIGHT_PX[templateId] ?? CV_PAGE_CONTENT_HEIGHT_PX['scandi-ats']
 }
 
 /**

@@ -1,4 +1,4 @@
-export const DEFAULT_TEMPLATE_ID = 'classic-ats'
+export const DEFAULT_TEMPLATE_ID = 'scandi-ats'
 
 export const A4_WIDTH_MM = 210
 export const A4_HEIGHT_MM = 297

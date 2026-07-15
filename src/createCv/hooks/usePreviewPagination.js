@@ -25,10 +25,20 @@ export function usePreviewPagination(blocks, templateId, onPageCountChange) {
       const nodes = root.querySelectorAll('[data-cv-page-block]')
       const heights = Array.from(nodes).map((node) => {
         const id = node.getAttribute('data-cv-page-block')
+        // offsetHeight excludes margins, and the inner section's vertical
+        // margin collapses out of this wrapper, so read it explicitly. Without
+        // this the summed heights under-count each section's spacing and the
+        // last block on a page overflows/gets clipped.
+        const child = node.firstElementChild
+        let margins = 0
+        if (child) {
+          const style = window.getComputedStyle(child)
+          margins = (parseFloat(style.marginTop) || 0) + (parseFloat(style.marginBottom) || 0)
+        }
         return {
           id,
           groupId: blockMap.get(id)?.groupId,
-          height: node.offsetHeight,
+          height: node.offsetHeight + margins,
         }
       })
 
