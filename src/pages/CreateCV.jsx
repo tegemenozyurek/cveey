@@ -130,7 +130,7 @@ export default function CreateCV() {
       <div
         className={`create-cv-page-content${showTemplateOverlay ? ' create-cv-page-content--hidden' : ' create-cv-page-content--visible'}`}
         aria-hidden={showTemplateOverlay}
-        inert={showTemplateOverlay ? '' : undefined}
+        inert={showTemplateOverlay}
       >
         <div className="create-cv-topbar">
           <h1 className="create-cv-page-title">{t('createCv.title')}</h1>
