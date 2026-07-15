@@ -112,6 +112,15 @@ export const translations = {
     'jobs.emptyTitle': 'No jobs yet',
     'jobs.emptyText': 'Job listings will appear here soon. Check back later.',
 
+    'network.title': 'Network',
+    'network.subtitle': 'Find people and grow your professional circle.',
+    'network.searchPlaceholder': 'Search people by name, title, or location…',
+    'network.searchAria': 'Search people',
+    'network.suggested': 'Suggested',
+    'network.suggestedHint': 'People you may want to connect with.',
+    'network.connect': 'Connect',
+    'network.noResults': 'No people match your search.',
+
     'underConstruction.title': 'We\'re still building this',
     'underConstruction.text': 'Don\'t forget to drop your CV.',
 
@@ -447,6 +456,15 @@ export const translations = {
     'jobs.subtitle': 'Açık pozisyonlara göz atın ve yeni fırsatınızı bulun.',
     'jobs.emptyTitle': 'Henüz ilan yok',
     'jobs.emptyText': 'İş ilanları yakında burada görünecek.',
+
+    'network.title': 'Bağlantılarım',
+    'network.subtitle': 'İnsanları bulun ve profesyonel çevrenizi büyütün.',
+    'network.searchPlaceholder': 'İsim, ünvan veya konuma göre ara…',
+    'network.searchAria': 'Kişi ara',
+    'network.suggested': 'Önerilenler',
+    'network.suggestedHint': 'Bağlantı kurmak isteyebileceğiniz kişiler.',
+    'network.connect': 'Bağlan',
+    'network.noResults': 'Aramanızla eşleşen kimse yok.',
 
     'underConstruction.title': 'Geliştirmelerimiz devam ediyor',
     'underConstruction.text': 'CV\'nizi bırakmayı unutmayın.',
