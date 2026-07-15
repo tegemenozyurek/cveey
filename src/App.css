@@ -4074,9 +4074,12 @@
 
 /* ── Create CV builder ──────────────────────────── */
 .create-cv-main {
-  /* Match navbar-glass width + same horizontal inset as .navbar */
-  width: min(960px, 100%);
-  max-width: 960px;
+  /* The 24px horizontal padding (inherited from .main) sits inside this box,
+     so the box is 960 (navbar-glass width) + 2*24 padding = 1008. That makes
+     the *content* area exactly 960px and flush with the navbar-glass edges:
+     panel left edge == navbar-glass left, preview-stage right == navbar-glass right. */
+  width: min(1008px, 100%);
+  max-width: 1008px;
   margin: 0 auto;
   align-self: center;
   flex: 1;
