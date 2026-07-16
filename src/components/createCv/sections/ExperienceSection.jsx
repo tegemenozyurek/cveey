@@ -3,6 +3,7 @@ import BulletListEditor from '../shared/BulletListEditor'
 import CreateCvSectionHead from '../shared/CreateCvSectionHead'
 import DateRangeFields from '../shared/DateRangeFields'
 import FieldLabel from '../shared/FieldLabel'
+import LocationFields from '../shared/LocationFields'
 import { VISIBILITY } from '../../../createCv/fieldVisibility'
 
 export default function ExperienceSection({
@@ -88,16 +89,14 @@ export default function ExperienceSection({
                   required
                 />
               </div>
-              <div className="form-field create-cv-field--full">
-                <FieldLabel htmlFor={`exp-location-${item.id}`} label={t('createCv.location')} visibility={VISIBILITY.REQUIRED} t={t} />
-                <input
-                  id={`exp-location-${item.id}`}
-                  className="form-input"
-                  value={item.location}
-                  onChange={(e) => updateItem(index, { location: e.target.value })}
-                  required
-                />
-              </div>
+              <LocationFields
+                idPrefix={`exp-location-${item.id}`}
+                value={item.location}
+                onChange={(location) => updateItem(index, { location })}
+                visibility={VISIBILITY.REQUIRED}
+                t={t}
+                required
+              />
             </div>
 
             <DateRangeFields
@@ -126,7 +125,7 @@ export default function ExperienceSection({
               placeholder={t('createCv.bulletPlaceholder')}
               addLabel={t('createCv.addBullet')}
               removeLabel={t('createCv.removeItem')}
-              visibility={VISIBILITY.REQUIRED}
+              visibility={VISIBILITY.OPTIONAL}
               t={t}
             />
 

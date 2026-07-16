@@ -134,6 +134,61 @@ export function createEmptySidebar() {
   }
 }
 
+export function createCustomSectionId() {
+  return `custom-${createItemId()}`
+}
+
+export function isCustomSectionId(sectionId) {
+  return typeof sectionId === 'string' && sectionId.startsWith('custom-')
+}
+
+export function createEmptyCustomSection(id = createCustomSectionId()) {
+  return {
+    id,
+    title: '',
+    subtitle: '',
+    mode: 'text',
+    body: '',
+    bullets: [''],
+  }
+}
+
+export function hasCustomSectionContent(section) {
+  if (!section || typeof section !== 'object') return false
+  if (section.title?.trim() || section.subtitle?.trim() || section.body?.trim()) return true
+  return Array.isArray(section.bullets) && section.bullets.some((item) => item?.trim())
+}
+
+function normalizeCustomSection(raw, fallbackId) {
+  const base = createEmptyCustomSection(fallbackId || createCustomSectionId())
+  const id = typeof raw?.id === 'string' && raw.id.startsWith('custom-')
+    ? raw.id
+    : base.id
+  return {
+    ...base,
+    ...raw,
+    id,
+    title: typeof raw?.title === 'string' ? raw.title : '',
+    subtitle: typeof raw?.subtitle === 'string' ? raw.subtitle : '',
+    mode: raw?.mode === 'bullets' ? 'bullets' : 'text',
+    body: typeof raw?.body === 'string' ? raw.body : '',
+    bullets: Array.isArray(raw?.bullets) && raw.bullets.length > 0
+      ? raw.bullets.map((item) => (typeof item === 'string' ? item : ''))
+      : [''],
+  }
+}
+
+export function normalizeCustomSections(customSections) {
+  if (!customSections || typeof customSections !== 'object') return {}
+
+  const result = {}
+  for (const [key, value] of Object.entries(customSections)) {
+    const normalized = normalizeCustomSection(value, key.startsWith('custom-') ? key : undefined)
+    result[normalized.id] = normalized
+  }
+  return result
+}
+
 export function createEmptyPersonalInfo(email = '') {
   return {
     fullName: '',
@@ -191,15 +246,18 @@ export function createEmptyCvContent(email = '') {
     publications: [createEmptyPublicationItem()],
     references: [createEmptyReferenceItem()],
     sidebar: createEmptySidebar(),
+    customSections: {},
   }
 }
 
 export function createEmptyCvDocument(
   email = '',
   templateId = DEFAULT_TEMPLATE_ID,
+  sectionOrder = null,
 ) {
   return {
     templateId,
+    sectionOrder: Array.isArray(sectionOrder) ? sectionOrder : null,
     content: createEmptyCvContent(email),
   }
 }
@@ -305,12 +363,18 @@ export function normalizeCvContent(content, email = '') {
         ? content.sidebar.highlights
         : [''],
     },
+    customSections: normalizeCustomSections(content?.customSections),
   }
 }
 
 export function normalizeCvDocument(document, email = '') {
+  const sectionOrder = Array.isArray(document?.sectionOrder)
+    ? document.sectionOrder.filter((id) => typeof id === 'string' && id.trim())
+    : null
+
   return {
     templateId: document?.templateId || DEFAULT_TEMPLATE_ID,
+    sectionOrder: sectionOrder && sectionOrder.length > 0 ? sectionOrder : null,
     content: normalizeCvContent(document?.content, email || document?.content?.personal?.email),
   }
 }

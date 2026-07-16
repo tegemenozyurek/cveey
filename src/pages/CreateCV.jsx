@@ -1,24 +1,47 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
+import ConfirmResetCvModal from '../components/createCv/ConfirmResetCvModal'
+import CreateCvMaxCvModal from '../components/createCv/CreateCvMaxCvModal'
 import CvPreviewPanel from '../components/createCv/CvPreviewPanel'
 import CvPreviewErrorBoundary from '../components/createCv/CvPreviewErrorBoundary'
 import CvSectionStepper from '../components/createCv/CvSectionStepper'
 import TemplateSelectOverlay from '../components/createCv/TemplateSelectOverlay'
 import { useCvBuilder } from '../createCv/hooks/useCvBuilder'
-import { getSectionEditorProps } from '../createCv/sections/registry'
+import {
+  createSectionDefault,
+  getSectionEditorProps,
+} from '../createCv/sections/registry'
+import {
+  createEmptyCvDocument,
+  isCustomSectionId,
+  prefillEmail,
+} from '../createCv/cvDocument'
 import { loadCvDraft, saveCvDraft } from '../createCv/draftStorage'
 import { buildCvPdfFileName } from '../createCv/exportCvPdf'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useResume } from '../context/ResumeContext'
+import { MAX_CV_COUNT } from '../storageService'
+
+const MAX_CV_BYTES = 5 * 1024 * 1024
 
 export default function CreateCV() {
+  const navigate = useNavigate()
   const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
+  const { cvs, uploadUserCv, refreshCvs } = useResume()
   const [showTemplateOverlay, setShowTemplateOverlay] = useState(true)
   const [saveStatus, setSaveStatus] = useState('')
-  const [draftSaved, setDraftSaved] = useState(false)
   const [downloadStatus, setDownloadStatus] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
+  const [myCvNotice, setMyCvNotice] = useState(null)
+  const [isSavingToMyCv, setIsSavingToMyCv] = useState(false)
+  const [showMaxCvModal, setShowMaxCvModal] = useState(false)
+  const [resetTarget, setResetTarget] = useState(null)
+  const [deleteCustomId, setDeleteCustomId] = useState(null)
   const loadedDraftUserRef = useRef(null)
+  const pendingStatusRef = useRef('')
   const previewRef = useRef(null)
   const {
     document,
@@ -36,6 +59,11 @@ export default function CreateCV() {
     goNext,
     goPrev,
     prefillUserEmail,
+    addCustomSection,
+    moveCustomSection,
+    removeCustomSection,
+    canMoveCustomUp,
+    canMoveCustomDown,
   } = useCvBuilder()
 
   useEffect(() => {
@@ -50,10 +78,22 @@ export default function CreateCV() {
   }, [replaceDocument, user?.email, user?.uid])
 
   useEffect(() => {
+    if (pendingStatusRef.current) {
+      setSaveStatus(pendingStatusRef.current)
+      pendingStatusRef.current = ''
+      setDownloadStatus('')
+      setMyCvNotice(null)
+      return
+    }
     setSaveStatus('')
-    setDraftSaved(false)
     setDownloadStatus('')
   }, [document])
+
+  useEffect(() => {
+    if (!myCvNotice) return undefined
+    const timer = window.setTimeout(() => setMyCvNotice(null), 6000)
+    return () => window.clearTimeout(timer)
+  }, [myCvNotice])
 
   if (authLoading) {
     return (
@@ -79,6 +119,10 @@ export default function CreateCV() {
 
   const activeSection = sections.find((section) => section.id === currentSectionId)
   const SectionEditor = activeSection?.Editor
+  const activeSectionLabel = activeSection
+    ? (activeSection.navLabel
+      || (activeSection.navKey ? t(activeSection.navKey) : t('createCv.custom.fallbackTitle')))
+    : ''
 
   const handleTemplateConfirm = (templateId) => {
     selectTemplate(templateId)
@@ -89,10 +133,8 @@ export default function CreateCV() {
     const saved = saveCvDraft(user.uid, document)
     if (saved) {
       setSaveStatus(t('createCv.draftSaved'))
-      setDraftSaved(true)
     } else {
       setSaveStatus(t('createCv.draftSaveFailed'))
-      setDraftSaved(false)
     }
   }
 
@@ -101,6 +143,7 @@ export default function CreateCV() {
 
     setIsDownloading(true)
     setDownloadStatus('')
+    setMyCvNotice(null)
     try {
       const fileName = buildCvPdfFileName(document.content.personal.fullName)
       await previewRef.current.downloadPdf(fileName)
@@ -112,10 +155,115 @@ export default function CreateCV() {
     }
   }
 
+  const showMyCvNotice = (type, message) => {
+    setMyCvNotice({ type, message })
+  }
+
+  const handleSaveToMyCv = async () => {
+    if (!previewRef.current || !user) return
+
+    setMyCvNotice(null)
+    setDownloadStatus('')
+
+    let currentCount = cvs.length
+    try {
+      const data = await refreshCvs()
+      currentCount = data?.cvs?.length ?? cvs.length
+    } catch {
+      currentCount = cvs.length
+    }
+
+    if (currentCount >= MAX_CV_COUNT) {
+      setShowMaxCvModal(true)
+      return
+    }
+
+    setIsSavingToMyCv(true)
+    try {
+      const fileName = buildCvPdfFileName(document.content.personal.fullName)
+      const { blob } = await previewRef.current.getPdfBlob(fileName)
+
+      if (blob.size > MAX_CV_BYTES) {
+        showMyCvNotice('error', t('createCv.saveToMyCvTooLarge'))
+        return
+      }
+
+      const file = new File([blob], fileName, { type: 'application/pdf' })
+      await uploadUserCv(file)
+      showMyCvNotice('success', t('createCv.saveToMyCvSuccess'))
+    } catch (err) {
+      if (err?.code === 'MAX_CV_COUNT') {
+        setShowMaxCvModal(true)
+      } else {
+        showMyCvNotice('error', t('createCv.saveToMyCvFailed'))
+      }
+    } finally {
+      setIsSavingToMyCv(false)
+    }
+  }
+
+  const isExportBusy = isDownloading || isSavingToMyCv
+
   const handleSectionSubmit = (event) => {
     event.preventDefault()
     goNext()
   }
+
+  const handleConfirmReset = () => {
+    if (resetTarget === 'current' && currentSectionId) {
+      const empty = createSectionDefault(currentSectionId, {
+        email: user.email || '',
+        skillsMode: document.content.skills?.mode ?? template.sectionConfig?.skills?.mode,
+        customSections: document.content.customSections,
+      })
+      pendingStatusRef.current = t('createCv.resetCurrentDone')
+      if (isCustomSectionId(currentSectionId)) {
+        updateContent({
+          customSections: {
+            ...(document.content.customSections || {}),
+            [currentSectionId]: empty,
+          },
+        })
+      } else {
+        updateContent({ [currentSectionId]: empty })
+      }
+    }
+
+    if (resetTarget === 'all') {
+      const emptyDoc = prefillEmail(
+        createEmptyCvDocument(user.email || '', document.templateId),
+        user.email || '',
+      )
+      pendingStatusRef.current = t('createCv.resetAllDone')
+      replaceDocument(emptyDoc)
+      saveCvDraft(user.uid, emptyDoc)
+    }
+
+    setResetTarget(null)
+  }
+
+  const handleConfirmDeleteCustom = () => {
+    if (!deleteCustomId) return
+    pendingStatusRef.current = t('createCv.custom.deleted')
+    removeCustomSection(deleteCustomId)
+    setDeleteCustomId(null)
+  }
+
+  const editorProps = activeSection
+    ? getSectionEditorProps(activeSection, {
+      content: document.content,
+      onContentChange: updateContent,
+      t,
+      stepNumber: String(currentSectionIndex + 1).padStart(2, '0'),
+      sectionConfig: template.sectionConfig,
+      fieldVisibility,
+      onMoveUp: () => moveCustomSection(currentSectionId, 'up'),
+      onMoveDown: () => moveCustomSection(currentSectionId, 'down'),
+      onDelete: () => setDeleteCustomId(currentSectionId),
+      canMoveUp: canMoveCustomUp(currentSectionId),
+      canMoveDown: canMoveCustomDown(currentSectionId),
+    })
+    : null
 
   return (
     <main className={`main create-cv-main${showTemplateOverlay ? ' create-cv-main--picker-open' : ''}`}>
@@ -127,12 +275,104 @@ export default function CreateCV() {
         />
       )}
 
+      {resetTarget && (
+        <ConfirmResetCvModal
+          title={
+            resetTarget === 'all'
+              ? t('createCv.resetAllTitle')
+              : t('createCv.resetCurrentTitle')
+          }
+          message={
+            resetTarget === 'all'
+              ? t('createCv.resetAllMessage')
+              : t('createCv.resetCurrentMessage', { section: activeSectionLabel })
+          }
+          confirmLabel={
+            resetTarget === 'all'
+              ? t('createCv.resetAllConfirm')
+              : t('createCv.resetCurrentConfirm')
+          }
+          onConfirm={handleConfirmReset}
+          onCancel={() => setResetTarget(null)}
+        />
+      )}
+
+      {deleteCustomId && (
+        <ConfirmResetCvModal
+          title={t('createCv.custom.deleteTitle')}
+          message={t('createCv.custom.deleteMessage')}
+          confirmLabel={t('createCv.custom.deleteConfirm')}
+          onConfirm={handleConfirmDeleteCustom}
+          onCancel={() => setDeleteCustomId(null)}
+        />
+      )}
+
+      {showMaxCvModal && (
+        <CreateCvMaxCvModal
+          max={MAX_CV_COUNT}
+          onClose={() => setShowMaxCvModal(false)}
+          onGoToMyCv={() => {
+            setShowMaxCvModal(false)
+            navigate('/my-cv')
+          }}
+        />
+      )}
+
+      {myCvNotice && createPortal(
+        <div
+          className={`create-cv-toast create-cv-toast--${myCvNotice.type}`}
+          role="status"
+          aria-live="polite"
+        >
+          <span className="create-cv-toast-icon" aria-hidden="true">
+            {myCvNotice.type === 'success' ? '✓' : '!'}
+          </span>
+          <div className="create-cv-toast-copy">
+            <strong className="create-cv-toast-title">
+              {myCvNotice.type === 'success'
+                ? t('createCv.saveToMyCvSuccessTitle')
+                : t('createCv.saveToMyCvErrorTitle')}
+            </strong>
+            <p className="create-cv-toast-text">{myCvNotice.message}</p>
+          </div>
+          <button
+            type="button"
+            className="create-cv-toast-close"
+            aria-label={t('createCv.dismissNotice')}
+            onClick={() => setMyCvNotice(null)}
+          >
+            ×
+          </button>
+        </div>,
+        // CV builder also names its state `document` — use the DOM root explicitly.
+        window.document.body,
+      )}
+
       <div
         className={`create-cv-page-content${showTemplateOverlay ? ' create-cv-page-content--hidden' : ' create-cv-page-content--visible'}`}
         aria-hidden={showTemplateOverlay}
         inert={showTemplateOverlay}
       >
         <div className="create-cv-topbar">
+          <div className="create-cv-topbar-export">
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm create-cv-export-btn"
+              onClick={handleDownloadCv}
+              disabled={isExportBusy}
+            >
+              {isDownloading ? t('createCv.downloading') : t('createCv.downloadCv')}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm create-cv-export-btn"
+              onClick={handleSaveToMyCv}
+              disabled={isExportBusy}
+            >
+              {isSavingToMyCv ? t('createCv.savingToMyCv') : t('createCv.saveToMyCv')}
+            </button>
+          </div>
+
           <h1 className="create-cv-page-title">{t('createCv.title')}</h1>
 
           <div className="create-cv-topbar-actions">
@@ -152,25 +392,18 @@ export default function CreateCV() {
           currentSectionId={currentSectionId}
           currentSectionIndex={currentSectionIndex}
           onSelect={setActiveSectionId}
+          onAddCategory={addCustomSection}
           t={t}
           prevLabel={t('createCv.prev')}
           nextLabel={t('createCv.next')}
+          addCategoryLabel={t('createCv.custom.add')}
         />
 
         <div className="create-cv-workspace">
           <div className="create-cv-editor">
             <form className="create-cv-panel" onSubmit={handleSectionSubmit}>
-              {SectionEditor && activeSection && (
-                <SectionEditor
-                  {...getSectionEditorProps(activeSection, {
-                    content: document.content,
-                    onContentChange: updateContent,
-                    t,
-                    stepNumber: String(currentSectionIndex + 1).padStart(2, '0'),
-                    sectionConfig: template.sectionConfig,
-                    fieldVisibility,
-                  })}
-                />
+              {SectionEditor && editorProps && (
+                <SectionEditor {...editorProps} />
               )}
 
               <div className="create-cv-actions">
@@ -184,24 +417,27 @@ export default function CreateCV() {
                   ‹
                 </button>
 
-                <div className="create-cv-actions-spacer" />
+                <div className="create-cv-actions-spacer create-cv-reset-actions">
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm create-cv-reset-btn"
+                    onClick={() => setResetTarget('current')}
+                  >
+                    {t('createCv.resetCurrent')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm create-cv-reset-btn create-cv-reset-btn--all"
+                    onClick={() => setResetTarget('all')}
+                  >
+                    {t('createCv.resetAll')}
+                  </button>
+                </div>
 
                 {isLastSection ? (
-                  <div className="create-cv-final-actions">
-                    <button type="button" className="btn-gradient-wrap" onClick={handleSaveDraft}>
-                      <span className="btn-gradient-inner">{t('createCv.saveDraft')}</span>
-                    </button>
-                    {draftSaved && (
-                      <button
-                        type="button"
-                        className="btn btn-ghost create-cv-download-btn"
-                        onClick={handleDownloadCv}
-                        disabled={isDownloading}
-                      >
-                        {isDownloading ? t('createCv.downloading') : t('createCv.downloadCv')}
-                      </button>
-                    )}
-                  </div>
+                  <button type="button" className="btn-gradient-wrap" onClick={handleSaveDraft}>
+                    <span className="btn-gradient-inner">{t('createCv.saveDraft')}</span>
+                  </button>
                 ) : (
                   <button
                     type="submit"

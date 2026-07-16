@@ -36,8 +36,8 @@ export default function ProjectsSection({ value: items, onChange, t, stepNumber 
                 <input id={`proj-name-${item.id}`} className="form-input" value={item.name} onChange={(e) => updateItem(index, { name: e.target.value })} required />
               </div>
               <div className="form-field create-cv-field--full">
-                <FieldLabel htmlFor={`proj-desc-${item.id}`} label={t('createCv.description')} visibility={VISIBILITY.REQUIRED} t={t} />
-                <textarea id={`proj-desc-${item.id}`} className="form-input form-textarea" rows={3} value={item.description} onChange={(e) => updateItem(index, { description: e.target.value })} required />
+                <FieldLabel htmlFor={`proj-desc-${item.id}`} label={t('createCv.description')} visibility={VISIBILITY.OPTIONAL} t={t} />
+                <textarea id={`proj-desc-${item.id}`} className="form-input form-textarea" rows={3} value={item.description} onChange={(e) => updateItem(index, { description: e.target.value })} />
               </div>
               <div className="form-field create-cv-field--full">
                 <FieldLabel htmlFor={`proj-tech-${item.id}`} label={t('createCv.technologies')} visibility={VISIBILITY.REQUIRED} t={t} />

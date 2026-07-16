@@ -14,7 +14,7 @@ export function buildCvPdfFileName(fullName) {
   return `${sanitized || 'CV'}.pdf`
 }
 
-export async function exportCvPdfFromRoot(exportRoot, fileName) {
+async function buildCvPdfFromRoot(exportRoot) {
   if (!exportRoot) {
     throw new Error('EXPORT_ROOT_MISSING')
   }
@@ -56,5 +56,15 @@ export async function exportCvPdfFromRoot(exportRoot, fileName) {
     pdf.addImage(imageData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM)
   }
 
+  return pdf
+}
+
+export async function exportCvPdfBlobFromRoot(exportRoot) {
+  const pdf = await buildCvPdfFromRoot(exportRoot)
+  return pdf.output('blob')
+}
+
+export async function exportCvPdfFromRoot(exportRoot, fileName) {
+  const pdf = await buildCvPdfFromRoot(exportRoot)
   pdf.save(fileName)
 }

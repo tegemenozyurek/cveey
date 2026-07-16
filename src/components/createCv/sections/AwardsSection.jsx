@@ -1,6 +1,7 @@
 import { createEmptyAwardItem, normalizeCvListSection } from '../../../createCv/cvDocument'
 import CreateCvSectionHead from '../shared/CreateCvSectionHead'
 import FieldLabel from '../shared/FieldLabel'
+import MonthYearSelect from '../shared/MonthYearSelect'
 import { VISIBILITY } from '../../../createCv/fieldVisibility'
 
 export default function AwardsSection({ value: items, onChange, t, stepNumber = '09' }) {
@@ -30,7 +31,13 @@ export default function AwardsSection({ value: items, onChange, t, stepNumber = 
               </div>
               <div className="form-field">
                 <FieldLabel htmlFor={`award-date-${item.id}`} label={t('createCv.date')} visibility={VISIBILITY.REQUIRED} t={t} />
-                <input id={`award-date-${item.id}`} className="form-input" type="month" value={item.date} onChange={(e) => updateItem(index, { date: e.target.value })} required />
+                <MonthYearSelect
+                  id={`award-date-${item.id}`}
+                  value={item.date}
+                  onChange={(date) => updateItem(index, { date })}
+                  required
+                  t={t}
+                />
               </div>
               <div className="form-field create-cv-field--full">
                 <FieldLabel htmlFor={`award-desc-${item.id}`} label={t('createCv.description')} visibility={VISIBILITY.OPTIONAL} t={t} />

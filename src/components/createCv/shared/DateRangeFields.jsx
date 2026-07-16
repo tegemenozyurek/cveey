@@ -1,4 +1,5 @@
 import FieldLabel from './FieldLabel'
+import MonthYearSelect from './MonthYearSelect'
 import { VISIBILITY } from '../../../createCv/fieldVisibility'
 
 export default function DateRangeFields({
@@ -24,25 +25,23 @@ export default function DateRangeFields({
     <div className="create-cv-date-range">
       <div className="form-field">
         <FieldLabel htmlFor={startId} label={startLabel} visibility={startVisibility} t={t} />
-        <input
+        <MonthYearSelect
           id={startId}
-          className="form-input"
-          type="month"
           value={startValue}
-          onChange={(e) => onStartChange(e.target.value)}
+          onChange={onStartChange}
           required={startVisibility === VISIBILITY.REQUIRED}
+          t={t}
         />
       </div>
       <div className="form-field">
         <FieldLabel htmlFor={endId} label={endLabel} visibility={endVisibility} t={t} />
-        <input
+        <MonthYearSelect
           id={endId}
-          className="form-input"
-          type="month"
           value={endValue}
-          onChange={(e) => onEndChange(e.target.value)}
+          onChange={onEndChange}
           disabled={isEndDisabled}
           required={endVisibility === VISIBILITY.REQUIRED && !isEndDisabled}
+          t={t}
         />
       </div>
       {onCurrentlyWorkingChange && (

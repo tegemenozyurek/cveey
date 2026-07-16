@@ -1,6 +1,7 @@
 import { createEmptyCertificationItem, normalizeCvListSection } from '../../../createCv/cvDocument'
 import CreateCvSectionHead from '../shared/CreateCvSectionHead'
 import FieldLabel from '../shared/FieldLabel'
+import MonthYearSelect from '../shared/MonthYearSelect'
 import { VISIBILITY } from '../../../createCv/fieldVisibility'
 
 export default function CertificationsSection({ value: items, onChange, t, stepNumber = '07' }) {
@@ -30,7 +31,13 @@ export default function CertificationsSection({ value: items, onChange, t, stepN
               </div>
               <div className="form-field">
                 <FieldLabel htmlFor={`cert-date-${item.id}`} label={t('createCv.issueDate')} visibility={VISIBILITY.REQUIRED} t={t} />
-                <input id={`cert-date-${item.id}`} className="form-input" type="month" value={item.issueDate} onChange={(e) => updateItem(index, { issueDate: e.target.value })} required />
+                <MonthYearSelect
+                  id={`cert-date-${item.id}`}
+                  value={item.issueDate}
+                  onChange={(issueDate) => updateItem(index, { issueDate })}
+                  required
+                  t={t}
+                />
               </div>
               <div className="form-field create-cv-field--full">
                 <FieldLabel htmlFor={`cert-url-${item.id}`} label={t('createCv.credentialUrl')} visibility={VISIBILITY.OPTIONAL} t={t} />
