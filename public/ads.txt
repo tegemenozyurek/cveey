@@ -1,0 +1,6 @@
+# ads.txt — required by Google AdSense once your account is approved.
+# Replace PUBLISHER_ID with your numeric pub ID only (no "ca-pub-" prefix).
+# Example: google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+#
+# After editing, deploy so https://YOUR_DOMAIN/ads.txt is publicly reachable.
+google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

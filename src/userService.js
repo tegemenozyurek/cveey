@@ -1,9 +1,23 @@
 import { deleteUser } from 'firebase/auth'
-import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore'
 import { resolveAuthMethod } from './authUtils'
 import { db } from './firebase'
-import { removePasswordAccountIndex, syncPasswordAccountIndex } from './passwordAccountService'
+import { normalizeEmailKey, removePasswordAccountIndex, syncPasswordAccountIndex } from './passwordAccountService'
 import { deleteUserStorageFiles } from './storageService'
+
+const USERS_SEARCH_LIMIT = 8
 
 export { getActiveFileId, setActiveFileId, clearActiveFileId } from './cvFileService'
 export { AUTH_METHOD_EMAIL_PASSWORD, AUTH_METHOD_GITHUB, AUTH_METHOD_GOOGLE, resolveAuthMethod } from './authUtils'
@@ -39,6 +53,24 @@ export async function saveUserLocation(userId, { homeCity, preferredWorkCities }
   })
 }
 
+export async function getUserProfile(userId) {
+  const snap = await getDoc(doc(db, 'users', userId))
+  if (!snap.exists()) {
+    return {
+      homeCity: '',
+      preferredWorkCities: [],
+    }
+  }
+
+  const data = snap.data()
+  return {
+    homeCity: typeof data.homeCity === 'string' ? data.homeCity : '',
+    preferredWorkCities: Array.isArray(data.preferredWorkCities)
+      ? data.preferredWorkCities.filter((city) => typeof city === 'string' && city.trim())
+      : [],
+  }
+}
+
 export async function syncUserToFirestore(user) {
   return withFirestoreAuthRetry(user, async () => {
     const userRef = doc(db, 'users', user.uid)
@@ -52,7 +84,7 @@ export async function syncUserToFirestore(user) {
     if (!snap.exists()) {
       await setDoc(userRef, {
         uid: user.uid,
-        email,
+        email: normalizeEmailKey(email),
         authMethod: resolveAuthMethod(user),
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
@@ -74,4 +106,35 @@ export async function deleteUserAccount(user) {
   await deleteDoc(doc(db, 'users', user.uid))
   if (email) await removePasswordAccountIndex(email)
   await deleteUser(user)
+}
+
+export async function searchUsersByEmail(emailQuery, { excludeUid } = {}) {
+  const q = normalizeEmailKey(emailQuery)
+  if (q.length < 2) return []
+
+  const end = `${q}\uf8ff`
+  const snap = await getDocs(
+    query(
+      collection(db, 'users'),
+      where('email', '>=', q),
+      where('email', '<=', end),
+      limit(USERS_SEARCH_LIMIT),
+    ),
+  )
+
+  return snap.docs
+    .map((docSnap) => {
+      const data = docSnap.data()
+      return {
+        id: docSnap.id,
+        uid: data.uid || docSnap.id,
+        email: data.email || '',
+        homeCity: data.homeCity || '',
+        displayName: data.email || docSnap.id,
+        headline: data.email || '',
+        location: data.homeCity || '',
+        photoURL: null,
+      }
+    })
+    .filter((person) => person.uid !== excludeUid && person.email)
 }
