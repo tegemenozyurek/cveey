@@ -98,6 +98,21 @@ function CloseIcon() {
   )
 }
 
+function PinIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 22s7-7.2 7-12.2A7 7 0 1 0 5 9.8C5 14.8 12 22 12 22Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="9.5" r="2.25" stroke="currentColor" strokeWidth="1.75" />
+    </svg>
+  )
+}
+
 function MessageIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -142,9 +157,8 @@ function PersonRow({ person, actionLabel, iconOnly = false }) {
   )
 }
 
-function ProfileAboutSection({ t, homeCity, preferredWorkCities, loading }) {
+function ProfileAboutSection({ t, preferredWorkCities, loading }) {
   const workCities = preferredWorkCities.length > 0 ? preferredWorkCities : []
-  const homeLabel = loading ? '…' : homeCity || t('profile.locationEmpty')
 
   return (
     <section className="profile-about" aria-label={t('profile.sectionAbout')}>
@@ -154,28 +168,19 @@ function ProfileAboutSection({ t, homeCity, preferredWorkCities, loading }) {
           <p className="profile-about-lead">{t('profile.bachelorMock')}</p>
         </div>
 
-        <div className="profile-about-block">
-          <div className="profile-about-loc">
-            <p className="profile-about-kicker">{t('profile.homeCity')}</p>
-            <p
-              className={`profile-about-loc-home${!homeCity && !loading ? ' profile-about-loc-home--muted' : ''}`}
-            >
-              {homeLabel}
-            </p>
-          </div>
-
+        <div className="profile-about-locs">
           <div className="profile-about-loc">
             <p className="profile-about-kicker">{t('profile.workCities')}</p>
             {loading ? (
-              <p className="profile-about-loc-home">…</p>
+              <p className="profile-about-loc-empty">…</p>
             ) : workCities.length > 0 ? (
-              <p className="profile-about-loc-list">
-                {workCities.join(' · ')}
-              </p>
+              <ul className="profile-about-city-tags">
+                {workCities.map((city) => (
+                  <li key={city}>{city}</li>
+                ))}
+              </ul>
             ) : (
-              <p className="profile-about-loc-home profile-about-loc-home--muted">
-                {t('profile.locationEmpty')}
-              </p>
+              <p className="profile-about-loc-empty">{t('profile.locationEmpty')}</p>
             )}
           </div>
         </div>
@@ -367,6 +372,17 @@ export default function Profile() {
               </p>
               <p className="profile-hero-email">{user.email}</p>
             </div>
+            <p
+              className={`profile-hero-city${!homeCity && !profileDataLoading ? ' profile-hero-city--muted' : ''}`}
+              aria-label={t('profile.homeCity')}
+            >
+              <span className="profile-hero-city-icon">
+                <PinIcon />
+              </span>
+              <span className="profile-hero-city-label">
+                {profileDataLoading ? '…' : homeCity || t('profile.locationEmpty')}
+              </span>
+            </p>
             <div className="profile-page-actions">
               <button
                 type="button"
@@ -475,7 +491,6 @@ export default function Profile() {
         <div className="profile-page-main">
           <ProfileAboutSection
             t={t}
-            homeCity={homeCity}
             preferredWorkCities={preferredWorkCities}
             loading={profileDataLoading}
           />
