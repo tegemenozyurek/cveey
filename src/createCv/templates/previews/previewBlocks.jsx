@@ -23,7 +23,13 @@ export function renderBullets(items, className = 'cv-preview-bullets') {
 export function PreviewSection({ title, children, className = '' }) {
   if (!children) return null
   return (
-    <section className={`cv-preview-section ${className}`.trim()}>
+    <section
+      className={[
+        'cv-preview-section',
+        title ? '' : 'cv-preview-section--continuation',
+        className,
+      ].filter(Boolean).join(' ')}
+    >
       {title && <h2 className="cv-preview-section-title">{title}</h2>}
       {children}
     </section>

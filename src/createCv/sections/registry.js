@@ -199,3 +199,26 @@ export function getSectionEditorProps(section, {
 
   return { ...base, sectionConfig }
 }
+
+/**
+ * Empty default for a single section, preserving skills mode and personal email.
+ * @param {string} sectionId
+ * @param {{ email?: string, skillsMode?: 'categories' | 'rated' }} [options]
+ */
+export function createSectionDefault(sectionId, { email = '', skillsMode } = {}) {
+  const section = getCvSection(sectionId)
+
+  if (sectionId === 'personal') {
+    return section.createDefault(email)
+  }
+
+  if (sectionId === 'skills') {
+    const empty = section.createDefault()
+    const mode = skillsMode === 'rated' || skillsMode === 'categories'
+      ? skillsMode
+      : empty.mode
+    return { ...empty, mode }
+  }
+
+  return section.createDefault()
+}

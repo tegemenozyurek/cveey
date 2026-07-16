@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
+import ConfirmResetCvModal from '../components/createCv/ConfirmResetCvModal'
 import CvPreviewPanel from '../components/createCv/CvPreviewPanel'
 import CvPreviewErrorBoundary from '../components/createCv/CvPreviewErrorBoundary'
 import CvSectionStepper from '../components/createCv/CvSectionStepper'
 import TemplateSelectOverlay from '../components/createCv/TemplateSelectOverlay'
 import { useCvBuilder } from '../createCv/hooks/useCvBuilder'
-import { getSectionEditorProps } from '../createCv/sections/registry'
+import {
+  createSectionDefault,
+  getSectionEditorProps,
+} from '../createCv/sections/registry'
+import { createEmptyCvDocument, prefillEmail } from '../createCv/cvDocument'
 import { loadCvDraft, saveCvDraft } from '../createCv/draftStorage'
 import { buildCvPdfFileName } from '../createCv/exportCvPdf'
 import { useAuth } from '../context/AuthContext'
@@ -18,7 +23,9 @@ export default function CreateCV() {
   const [draftSaved, setDraftSaved] = useState(false)
   const [downloadStatus, setDownloadStatus] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
+  const [resetTarget, setResetTarget] = useState(null)
   const loadedDraftUserRef = useRef(null)
+  const pendingStatusRef = useRef('')
   const previewRef = useRef(null)
   const {
     document,
@@ -50,6 +57,13 @@ export default function CreateCV() {
   }, [replaceDocument, user?.email, user?.uid])
 
   useEffect(() => {
+    if (pendingStatusRef.current) {
+      setSaveStatus(pendingStatusRef.current)
+      pendingStatusRef.current = ''
+      setDraftSaved(false)
+      setDownloadStatus('')
+      return
+    }
     setSaveStatus('')
     setDraftSaved(false)
     setDownloadStatus('')
@@ -79,6 +93,7 @@ export default function CreateCV() {
 
   const activeSection = sections.find((section) => section.id === currentSectionId)
   const SectionEditor = activeSection?.Editor
+  const activeSectionLabel = activeSection ? t(activeSection.navKey) : ''
 
   const handleTemplateConfirm = (templateId) => {
     selectTemplate(templateId)
@@ -117,6 +132,29 @@ export default function CreateCV() {
     goNext()
   }
 
+  const handleConfirmReset = () => {
+    if (resetTarget === 'current' && currentSectionId) {
+      const empty = createSectionDefault(currentSectionId, {
+        email: user.email || '',
+        skillsMode: document.content.skills?.mode ?? template.sectionConfig?.skills?.mode,
+      })
+      pendingStatusRef.current = t('createCv.resetCurrentDone')
+      updateContent({ [currentSectionId]: empty })
+    }
+
+    if (resetTarget === 'all') {
+      const emptyDoc = prefillEmail(
+        createEmptyCvDocument(user.email || '', document.templateId),
+        user.email || '',
+      )
+      pendingStatusRef.current = t('createCv.resetAllDone')
+      replaceDocument(emptyDoc)
+      saveCvDraft(user.uid, emptyDoc)
+    }
+
+    setResetTarget(null)
+  }
+
   return (
     <main className={`main create-cv-main${showTemplateOverlay ? ' create-cv-main--picker-open' : ''}`}>
       {showTemplateOverlay && (
@@ -124,6 +162,28 @@ export default function CreateCV() {
           initialTemplateId={document.templateId}
           onConfirm={handleTemplateConfirm}
           t={t}
+        />
+      )}
+
+      {resetTarget && (
+        <ConfirmResetCvModal
+          title={
+            resetTarget === 'all'
+              ? t('createCv.resetAllTitle')
+              : t('createCv.resetCurrentTitle')
+          }
+          message={
+            resetTarget === 'all'
+              ? t('createCv.resetAllMessage')
+              : t('createCv.resetCurrentMessage', { section: activeSectionLabel })
+          }
+          confirmLabel={
+            resetTarget === 'all'
+              ? t('createCv.resetAllConfirm')
+              : t('createCv.resetCurrentConfirm')
+          }
+          onConfirm={handleConfirmReset}
+          onCancel={() => setResetTarget(null)}
         />
       )}
 
@@ -184,7 +244,22 @@ export default function CreateCV() {
                   ‹
                 </button>
 
-                <div className="create-cv-actions-spacer" />
+                <div className="create-cv-actions-spacer create-cv-reset-actions">
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm create-cv-reset-btn"
+                    onClick={() => setResetTarget('current')}
+                  >
+                    {t('createCv.resetCurrent')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm create-cv-reset-btn create-cv-reset-btn--all"
+                    onClick={() => setResetTarget('all')}
+                  >
+                    {t('createCv.resetAll')}
+                  </button>
+                </div>
 
                 {isLastSection ? (
                   <div className="create-cv-final-actions">

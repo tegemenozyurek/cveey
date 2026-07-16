@@ -5816,11 +5816,12 @@
 }
 
 /* ── Nordic ATS — minimalist Scandinavian single-column template ── */
+/* Spacing is intentionally tight so a full 11-section CV can stay on one A4. */
 .cv-preview-doc--scandi {
-  padding: 22mm 20mm 20mm;
+  padding: 16mm 16mm 14mm;
   font-family: 'Inter', 'Segoe UI', Roboto, 'Source Sans Pro', Helvetica, Arial, sans-serif;
-  font-size: 10.5pt;
-  line-height: 1.45;
+  font-size: 10pt;
+  line-height: 1.38;
   color: #374151;
 }
 
@@ -5837,34 +5838,34 @@
 
 /* Header — large name, muted job title, single-line contact, hairline divider. */
 .cv-preview-doc--scandi .cv-preview-header {
-  padding-bottom: 5mm;
-  margin-bottom: 6.5mm;
+  padding-bottom: 3mm;
+  margin-bottom: 3.5mm;
   border-bottom: 0.75pt solid #e5e7eb;
 }
 
 .cv-preview-doc--scandi .cv-preview-name {
-  font-size: 25pt;
+  font-size: 22pt;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #111827;
-  margin-bottom: 1.5mm;
+  margin-bottom: 1mm;
 }
 
 .cv-preview-doc--scandi .cv-preview-title {
-  font-size: 12.5pt;
+  font-size: 11.5pt;
   font-weight: 500;
   letter-spacing: 0.01em;
   color: #6b7280;
-  margin-bottom: 3.5mm;
+  margin-bottom: 2mm;
 }
 
 .cv-preview-doc--scandi .cv-preview-contact {
-  font-size: 9.5pt;
+  font-size: 9pt;
   color: #4b5563;
 }
 
 .cv-preview-doc--scandi .cv-preview-links {
-  font-size: 9pt;
+  font-size: 8.5pt;
   color: #6b7280;
 }
 
@@ -5875,37 +5876,42 @@
 /* Minimalist meta — plain muted text instead of a filled box. */
 .cv-preview-doc--scandi .cv-preview-meta {
   padding: 0;
-  margin-top: 2.5mm;
+  margin-top: 1.5mm;
   background: transparent;
   color: #6b7280;
-  font-size: 9pt;
+  font-size: 8.5pt;
 }
 
-/* Sections — generous white space, subtle uppercase headings with hairlines. */
+/* Sections — compact hierarchy so filled CVs fit one page more often. */
 .cv-preview-doc--scandi .cv-preview-section {
-  margin-top: 7mm;
+  margin-top: 3.5mm;
+}
+
+/* Same-section follow-up entries (no heading) stay closer together. */
+.cv-preview-doc--scandi .cv-preview-section--continuation {
+  margin-top: 2mm;
 }
 
 .cv-preview-doc--scandi .cv-preview-section-title {
-  font-size: 9.5pt;
+  font-size: 9pt;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #111827;
-  padding-bottom: 2mm;
-  margin-bottom: 3.5mm;
+  padding-bottom: 1.2mm;
+  margin-bottom: 2mm;
   border-bottom: 0.75pt solid #e5e7eb;
 }
 
 .cv-preview-doc--scandi .cv-preview-summary {
-  font-size: 10.5pt;
-  line-height: 1.55;
+  font-size: 10pt;
+  line-height: 1.42;
   color: #374151;
 }
 
-/* Entries — clear hierarchy, comfortable spacing. */
+/* Entries — clear hierarchy, tighter spacing. */
 .cv-preview-doc--scandi .cv-preview-entry {
-  margin-bottom: 4.5mm;
+  margin-bottom: 2.5mm;
 }
 
 .cv-preview-doc--scandi .cv-preview-entry:last-child {
@@ -5913,7 +5919,7 @@
 }
 
 .cv-preview-doc--scandi .cv-preview-entry-head {
-  font-size: 11pt;
+  font-size: 10.5pt;
   font-weight: 600;
   color: #1f2937;
 }
@@ -5924,43 +5930,48 @@
 }
 
 .cv-preview-doc--scandi .cv-preview-entry-meta {
-  margin: 0.8mm 0 1.5mm;
-  font-size: 9pt;
-  color: #6b7280;
-}
-
-.cv-preview-doc--scandi .cv-preview-entry-text {
-  font-size: 10pt;
-  line-height: 1.5;
-  color: #374151;
-}
-
-.cv-preview-doc--scandi .cv-preview-entry-links {
+  margin: 0.4mm 0 0.8mm;
   font-size: 8.5pt;
   color: #6b7280;
 }
 
+.cv-preview-doc--scandi .cv-preview-entry-text {
+  font-size: 9.5pt;
+  line-height: 1.38;
+  color: #374151;
+}
+
+.cv-preview-doc--scandi .cv-preview-entry-links {
+  font-size: 8pt;
+  color: #6b7280;
+}
+
 .cv-preview-doc--scandi .cv-preview-bullets {
-  padding-left: 4.5mm;
-  font-size: 10pt;
-  line-height: 1.5;
+  padding-left: 4mm;
+  font-size: 9.5pt;
+  line-height: 1.38;
   color: #374151;
 }
 
 .cv-preview-doc--scandi .cv-preview-bullets li + li {
-  margin-top: 1mm;
+  margin-top: 0.4mm;
 }
 
 .cv-preview-doc--scandi .cv-preview-subheading {
-  font-size: 9.5pt;
+  font-size: 9pt;
   font-weight: 600;
   color: #374151;
+  margin: 1mm 0 0.3mm;
+}
+
+.cv-preview-doc--scandi .cv-preview-skill-category + .cv-preview-skill-category {
+  margin-top: 1.2mm;
 }
 
 .cv-preview-doc--scandi .cv-preview-skill-list,
 .cv-preview-doc--scandi .cv-preview-inline-list,
 .cv-preview-doc--scandi .cv-preview-rated-skills li {
-  font-size: 10pt;
+  font-size: 9.5pt;
   color: #374151;
 }
 
@@ -7118,6 +7129,19 @@
   flex: 1;
 }
 
+.create-cv-reset-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.create-cv-reset-btn {
+  white-space: nowrap;
+}
+
 .create-cv-actions .btn-gradient-wrap:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -7293,6 +7317,16 @@
 
   .create-cv-section-title {
     font-size: 18px;
+  }
+
+  .create-cv-reset-actions {
+    gap: 6px;
+  }
+
+  .create-cv-reset-btn {
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 12px;
   }
 
   .template-select-modal {

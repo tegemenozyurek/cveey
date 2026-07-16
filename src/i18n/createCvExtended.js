@@ -185,6 +185,16 @@ export const createCvExtendedEn = {
   'createCv.preview.collapse': 'Close expanded preview',
   'createCv.preview.positionPlaceholder': 'Position',
   'createCv.preview.degreePlaceholder': 'Degree',
+  'createCv.resetCurrent': 'Reset section',
+  'createCv.resetAll': 'Reset all',
+  'createCv.resetCurrentTitle': 'Reset this section?',
+  'createCv.resetCurrentMessage': 'All fields in “{section}” will be cleared. This cannot be undone.',
+  'createCv.resetAllTitle': 'Reset the entire CV?',
+  'createCv.resetAllMessage': 'Every section will be cleared. Your template choice is kept. This cannot be undone.',
+  'createCv.resetCurrentConfirm': 'Reset section',
+  'createCv.resetAllConfirm': 'Reset all',
+  'createCv.resetCurrentDone': 'Section cleared.',
+  'createCv.resetAllDone': 'CV cleared.',
 }
 
 export const createCvExtendedTr = {
@@ -374,4 +384,14 @@ export const createCvExtendedTr = {
   'createCv.preview.collapse': 'Büyütülmüş önizlemeyi kapat',
   'createCv.preview.positionPlaceholder': 'Pozisyon',
   'createCv.preview.degreePlaceholder': 'Derece',
+  'createCv.resetCurrent': 'Bölümü sıfırla',
+  'createCv.resetAll': 'Tümünü sıfırla',
+  'createCv.resetCurrentTitle': 'Bu bölüm sıfırlansın mı?',
+  'createCv.resetCurrentMessage': '“{section}” içindeki tüm alanlar temizlenecek. Bu işlem geri alınamaz.',
+  'createCv.resetAllTitle': 'Tüm CV sıfırlansın mı?',
+  'createCv.resetAllMessage': 'Tüm bölümler temizlenecek. Şablon seçimin korunur. Bu işlem geri alınamaz.',
+  'createCv.resetCurrentConfirm': 'Bölümü sıfırla',
+  'createCv.resetAllConfirm': 'Tümünü sıfırla',
+  'createCv.resetCurrentDone': 'Bölüm temizlendi.',
+  'createCv.resetAllDone': 'CV temizlendi.',
 }
