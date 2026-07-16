@@ -14,7 +14,6 @@ import Jobs from './pages/Jobs'
 import CreateCV from './pages/CreateCV'
 import MyCV from './pages/MyCV'
 import Profile from './pages/Profile'
-import Preferences from './pages/Preferences'
 import Messages from './pages/Messages'
 import Notifications from './pages/Notifications'
 import Network from './pages/Network'
@@ -47,7 +46,6 @@ export default function App() {
                         <Route path="/messages" element={<Messages />} />
                         <Route path="/notifications" element={<Notifications />} />
                         <Route path="/profile" element={<Profile />} />
-                        <Route path="/preferences" element={<Preferences />} />
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/terms" element={<TermsOfService />} />
                       </Routes>
