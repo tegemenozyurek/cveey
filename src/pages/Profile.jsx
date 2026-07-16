@@ -10,6 +10,25 @@ function authMethodLabel(method, t) {
   return t('profile.authEmail')
 }
 
+function SettingsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+      <path
+        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export default function Profile() {
   const { user, authLoading } = useAuth()
   const { t } = useLanguage()
@@ -28,11 +47,6 @@ export default function Profile() {
 
   return (
     <main className="main">
-      <div className="page-header">
-        <h1 className="page-title">{t('profile.title')}</h1>
-        <p className="page-subtitle">{t('profile.subtitle')}</p>
-      </div>
-
       <div className="profile-page-card">
         <div className="profile-page-identity">
           <UserAvatar user={user} className="profile-page-avatar" />
@@ -42,6 +56,14 @@ export default function Profile() {
             </p>
             <p className="profile-page-email">{user.email}</p>
           </div>
+          <Link
+            to="/preferences"
+            className="profile-page-settings"
+            aria-label={t('nav.preferences')}
+            title={t('nav.preferences')}
+          >
+            <SettingsIcon />
+          </Link>
         </div>
 
         <div className="prefs-divider" />
@@ -54,13 +76,6 @@ export default function Profile() {
             </span>
           </div>
         </div>
-
-        <div className="prefs-divider" />
-
-        <Link to="/preferences" className="profile-page-link">
-          <span>{t('nav.preferences')}</span>
-          <span className="profile-page-link-arrow" aria-hidden="true">→</span>
-        </Link>
       </div>
     </main>
   )

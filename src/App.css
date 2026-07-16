@@ -859,7 +859,7 @@
 /* ── Profile page ───────────────────────────────── */
 .profile-page-card {
   width: 100%;
-  max-width: 520px;
+  max-width: 960px;
   background: var(--glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -873,6 +873,31 @@
   align-items: center;
   gap: 16px;
   padding: 18px;
+}
+
+.profile-page-settings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-left: auto;
+  flex-shrink: 0;
+  border: 1.5px solid transparent;
+  border-radius: 50%;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.profile-page-settings:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--glass-hover);
+}
+
+[data-theme='light'] .profile-page-settings:hover {
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .profile-page-avatar {
@@ -906,6 +931,7 @@
 
 .profile-page-identity-text {
   min-width: 0;
+  flex: 1;
 }
 
 .profile-page-name {
@@ -947,29 +973,6 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--text);
-}
-
-.profile-page-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 0 8px 8px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  color: var(--text);
-  text-decoration: none;
-  font-size: 15px;
-  font-weight: 550;
-  transition: background 0.15s;
-}
-
-.profile-page-link:hover {
-  background: var(--glass-hover);
-}
-
-.profile-page-link-arrow {
-  color: var(--text-muted);
 }
 
 .mobile-nav-profile {
