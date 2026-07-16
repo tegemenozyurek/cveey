@@ -3,6 +3,13 @@ import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
+import { resolveAuthMethod } from '../authUtils'
+
+function authMethodLabel(method, t) {
+  if (method === 'google') return t('profile.authGoogle')
+  if (method === 'github') return t('profile.authGithub')
+  return t('profile.authEmail')
+}
 
 export default function Preferences() {
   const { user, authLoading, setShowLogoutConfirm } = useAuth()
@@ -28,6 +35,15 @@ export default function Preferences() {
       </div>
 
       <div className="prefs-card">
+        <div className="prefs-row">
+          <div className="prefs-row-info">
+            <p className="prefs-row-label">{t('profile.signInMethod')}</p>
+            <p className="prefs-row-hint">{authMethodLabel(resolveAuthMethod(user), t)}</p>
+          </div>
+        </div>
+
+        <div className="prefs-divider" />
+
         <div className="prefs-row">
           <div className="prefs-row-info">
             <p className="prefs-row-label">{t('prefs.language')}</p>

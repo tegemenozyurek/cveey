@@ -953,28 +953,6 @@
   white-space: nowrap;
 }
 
-.profile-page-meta {
-  padding: 8px 18px 16px;
-}
-
-.profile-page-meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.profile-page-meta-label {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.profile-page-meta-value {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text);
-}
-
 .mobile-nav-profile {
   display: flex;
   align-items: center;

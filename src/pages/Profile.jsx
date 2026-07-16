@@ -2,13 +2,6 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import UserAvatar from '../components/UserAvatar'
-import { resolveAuthMethod } from '../authUtils'
-
-function authMethodLabel(method, t) {
-  if (method === 'google') return t('profile.authGoogle')
-  if (method === 'github') return t('profile.authGithub')
-  return t('profile.authEmail')
-}
 
 function SettingsIcon() {
   return (
@@ -64,17 +57,6 @@ export default function Profile() {
           >
             <SettingsIcon />
           </Link>
-        </div>
-
-        <div className="prefs-divider" />
-
-        <div className="profile-page-meta">
-          <div className="profile-page-meta-row">
-            <span className="profile-page-meta-label">{t('profile.signInMethod')}</span>
-            <span className="profile-page-meta-value">
-              {authMethodLabel(resolveAuthMethod(user), t)}
-            </span>
-          </div>
         </div>
       </div>
     </main>
