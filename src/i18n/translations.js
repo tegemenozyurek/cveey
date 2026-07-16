@@ -314,6 +314,10 @@ export const translations = {
     'profile.cvEmpty': 'No active CV yet.',
     'profile.cvEmptyHint': 'Upload or create a CV to show it here.',
     'profile.goToMyCv': 'Go to My CV',
+    'profile.sectionAbout': 'About',
+    'profile.sectionEducation': 'Education',
+    'profile.sectionExperience': 'Experience',
+    'profile.sectionSkills': 'Skills & languages',
 
     'ads.label': 'Advertisement',
     'ads.placeholderLabel': 'Ad placeholder',
@@ -688,6 +692,10 @@ export const translations = {
     'profile.cvEmpty': 'Henüz aktif CV yok.',
     'profile.cvEmptyHint': 'Burada göstermek için bir CV yükle veya oluştur.',
     'profile.goToMyCv': 'CV’lerime git',
+    'profile.sectionAbout': 'Hakkında',
+    'profile.sectionEducation': 'Eğitim',
+    'profile.sectionExperience': 'Tecrübe',
+    'profile.sectionSkills': 'Skills & dil',
 
     'ads.label': 'Reklam',
     'ads.placeholderLabel': 'Reklam yer tutucu',
