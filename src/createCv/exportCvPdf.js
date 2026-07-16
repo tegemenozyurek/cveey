@@ -1,4 +1,4 @@
-import { A4_HEIGHT_MM, A4_WIDTH_MM } from './constants'
+import { renderCvPdfBlob, downloadCvPdfBlob } from './pdf/renderCvPdf'
 
 export function buildCvPdfFileName(fullName) {
   const sanitized = String(fullName || '')
@@ -14,57 +14,35 @@ export function buildCvPdfFileName(fullName) {
   return `${sanitized || 'CV'}.pdf`
 }
 
-async function buildCvPdfFromRoot(exportRoot) {
-  if (!exportRoot) {
-    throw new Error('EXPORT_ROOT_MISSING')
-  }
-
-  const pages = Array.from(exportRoot.querySelectorAll('.cv-preview-doc--page'))
-  if (!pages.length) {
-    throw new Error('EXPORT_PAGES_MISSING')
-  }
-
-  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-    import('html2canvas'),
-    import('jspdf'),
-  ])
-
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-    compress: true,
+/**
+ * Build a selectable text PDF from CV data via @react-pdf/renderer.
+ * Preview stays HTML/CSS; export uses the same document state.
+ */
+export async function exportCvPdfBlobFromDocument({
+  document,
+  t,
+  visibleSectionIds,
+  fieldVisibility,
+}) {
+  return renderCvPdfBlob({
+    document,
+    t,
+    visibleSectionIds,
+    fieldVisibility,
   })
-
-  for (let index = 0; index < pages.length; index += 1) {
-    const page = pages[index]
-    const canvas = await html2canvas(page, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      width: page.offsetWidth,
-      height: page.offsetHeight,
-      windowWidth: page.scrollWidth,
-      windowHeight: page.scrollHeight,
-    })
-
-    const imageData = canvas.toDataURL('image/jpeg', 0.92)
-    if (index > 0) {
-      pdf.addPage()
-    }
-    pdf.addImage(imageData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM)
-  }
-
-  return pdf
 }
 
-export async function exportCvPdfBlobFromRoot(exportRoot) {
-  const pdf = await buildCvPdfFromRoot(exportRoot)
-  return pdf.output('blob')
+export async function exportCvPdfFromDocument(options, fileName) {
+  const blob = await exportCvPdfBlobFromDocument(options)
+  await downloadCvPdfBlob(blob, fileName)
 }
 
-export async function exportCvPdfFromRoot(exportRoot, fileName) {
-  const pdf = await buildCvPdfFromRoot(exportRoot)
-  pdf.save(fileName)
+/** @deprecated DOM screenshot path — kept only if something still imports it. */
+export async function exportCvPdfBlobFromRoot() {
+  throw new Error('DOM_PDF_EXPORT_REMOVED')
+}
+
+/** @deprecated DOM screenshot path — kept only if something still imports it. */
+export async function exportCvPdfFromRoot() {
+  throw new Error('DOM_PDF_EXPORT_REMOVED')
 }
