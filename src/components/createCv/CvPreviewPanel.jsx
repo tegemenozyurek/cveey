@@ -12,7 +12,10 @@ import {
   A4_HEIGHT_PX,
   A4_WIDTH_PX,
 } from '../../createCv/constants'
-import { exportCvPdfBlobFromRoot, exportCvPdfFromRoot } from '../../createCv/exportCvPdf'
+import {
+  exportCvPdfBlobFromDocument,
+  exportCvPdfFromDocument,
+} from '../../createCv/exportCvPdf'
 
 const LIGHTBOX_PADDING_PX = 16
 /** Initial mobile lightbox width as a share of the viewport. */
@@ -323,11 +326,12 @@ const CvPreviewPanel = forwardRef(function CvPreviewPanel({
       setIsExpanded(false)
       setIsMagnifying(false)
       try {
-        await new Promise((resolve) => {
-          requestAnimationFrame(() => requestAnimationFrame(resolve))
+        const blob = await exportCvPdfBlobFromDocument({
+          document,
+          t,
+          visibleSectionIds,
+          fieldVisibility,
         })
-        const exportRoot = previewHostRef.current?.querySelector('[data-cv-export-root]')
-        const blob = await exportCvPdfBlobFromRoot(exportRoot)
         return { blob, fileName }
       } finally {
         setIsExporting(false)
@@ -338,16 +342,17 @@ const CvPreviewPanel = forwardRef(function CvPreviewPanel({
       setIsExpanded(false)
       setIsMagnifying(false)
       try {
-        await new Promise((resolve) => {
-          requestAnimationFrame(() => requestAnimationFrame(resolve))
-        })
-        const exportRoot = previewHostRef.current?.querySelector('[data-cv-export-root]')
-        await exportCvPdfFromRoot(exportRoot, fileName)
+        await exportCvPdfFromDocument({
+          document,
+          t,
+          visibleSectionIds,
+          fieldVisibility,
+        }, fileName)
       } finally {
         setIsExporting(false)
       }
     },
-  }), [])
+  }), [document, fieldVisibility, t, visibleSectionIds])
 
   const updateMagnifierPosition = useCallback((clientX, clientY) => {
     const stage = stageRef.current
