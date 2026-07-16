@@ -42,14 +42,78 @@ const MOCK_SUGGESTED = [
   },
 ]
 
+const MOCK_MY_NETWORK = [
+  {
+    id: 'n1',
+    displayName: 'Ayşe Kara',
+    headline: 'Backend Engineer · Go',
+    location: 'Istanbul, TR',
+    photoURL: null,
+  },
+  {
+    id: 'n2',
+    displayName: 'James Okonkwo',
+    headline: 'Engineering Manager',
+    location: 'Amsterdam, NL',
+    photoURL: null,
+  },
+  {
+    id: 'n3',
+    displayName: 'Lina Andersson',
+    headline: 'UX Researcher',
+    location: 'Stockholm, SE',
+    photoURL: null,
+  },
+]
+
 const SEARCH_DEBOUNCE_MS = 300
 
-function SearchIcon() {
+function SearchIcon({ size = 22 }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.75" />
       <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
     </svg>
+  )
+}
+
+function PeopleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function PersonRow({ person, actionLabel }) {
+  return (
+    <li className="network-person">
+      <UserAvatar user={person} className="network-person-avatar" />
+      <div className="network-person-info">
+        <p className="network-person-name">{person.displayName || person.email}</p>
+        {person.headline ? <p className="network-person-headline">{person.headline}</p> : null}
+        {person.location || person.homeCity ? (
+          <p className="network-person-location">{person.location || person.homeCity}</p>
+        ) : null}
+      </div>
+      <button type="button" className="network-connect-btn">
+        {actionLabel}
+      </button>
+    </li>
   )
 }
 
@@ -61,6 +125,7 @@ export default function Network() {
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState('')
+  const [showMyNetwork, setShowMyNetwork] = useState(false)
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -69,7 +134,7 @@ export default function Network() {
     return () => window.clearTimeout(id)
   }, [query])
 
-  const isSearching = debouncedQuery.length >= 2
+  const isSearching = !showMyNetwork && debouncedQuery.length >= 2
 
   useEffect(() => {
     if (!isSearching) {
@@ -111,96 +176,107 @@ export default function Network() {
   }, [debouncedQuery, isSearching, user, t])
 
   const suggested = useMemo(() => MOCK_SUGGESTED, [])
+  const myNetwork = useMemo(() => MOCK_MY_NETWORK, [])
 
   return (
     <main className="main">
       <div className="network-main">
         <header className="network-header">
-          <h1 className="network-title">{t('network.title')}</h1>
-          <p className="network-subtitle">{t('network.subtitle')}</p>
+          <div className="network-header-left">
+            <h1 className="network-title">{t('network.title')}</h1>
+          </div>
+          <div className="network-header-actions">
+            <button
+              type="button"
+              className={`network-my-btn${showMyNetwork ? ' network-my-btn--active' : ''}`}
+              onClick={() => setShowMyNetwork((open) => !open)}
+              aria-pressed={showMyNetwork}
+            >
+              {showMyNetwork ? <SearchIcon size={16} /> : <PeopleIcon />}
+              {showMyNetwork ? t('network.backToSearch') : t('network.myNetworks')}
+            </button>
+          </div>
         </header>
 
-        <div className="network-search">
-          <span className="network-search-icon">
-            <SearchIcon />
-          </span>
-          <input
-            type="search"
-            className="network-search-input"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('network.searchPlaceholder')}
-            aria-label={t('network.searchAria')}
-            autoComplete="off"
-          />
-        </div>
-
-        {isSearching ? (
-          <section className="network-suggested" aria-labelledby="network-results-heading">
+        {showMyNetwork ? (
+          <section className="network-suggested" aria-labelledby="network-mine-heading">
             <div className="network-section-head">
-              <h2 id="network-results-heading" className="network-section-title">
-                {t('network.results')}
+              <h2 id="network-mine-heading" className="network-section-title">
+                {t('network.myNetworks')}
               </h2>
-              <p className="network-section-hint">{t('network.resultsHint')}</p>
-            </div>
-
-            {!user ? (
-              <div className="network-empty network-empty--action">
-                <p>{t('network.signInToSearch')}</p>
-                <button type="button" className="btn-gradient-wrap" onClick={openLogin}>
-                  <span className="btn-gradient-inner">{t('nav.signIn')}</span>
-                </button>
-              </div>
-            ) : searching ? (
-              <p className="network-empty">{t('network.searching')}</p>
-            ) : searchError ? (
-              <p className="network-empty">{searchError}</p>
-            ) : results.length === 0 ? (
-              <p className="network-empty">{t('network.noResults')}</p>
-            ) : (
-              <ul className="network-people-list">
-                {results.map((person) => (
-                  <li key={person.id} className="network-person">
-                    <UserAvatar user={person} className="network-person-avatar" />
-                    <div className="network-person-info">
-                      <p className="network-person-name">{person.email}</p>
-                      {person.homeCity ? (
-                        <p className="network-person-location">{person.homeCity}</p>
-                      ) : null}
-                    </div>
-                    <button type="button" className="network-connect-btn">
-                      {t('network.connect')}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        ) : (
-          <section className="network-suggested" aria-labelledby="network-suggested-heading">
-            <div className="network-section-head">
-              <h2 id="network-suggested-heading" className="network-section-title">
-                {t('network.suggested')}
-              </h2>
-              <p className="network-section-hint">{t('network.suggestedHint')}</p>
+              <p className="network-section-hint">{t('network.myNetworksHint')}</p>
             </div>
 
             <ul className="network-people-list">
-              {suggested.map((person) => (
-                <li key={person.id} className="network-person">
-                  <UserAvatar user={person} className="network-person-avatar" />
-                  <div className="network-person-info">
-                    <p className="network-person-name">{person.displayName}</p>
-                    <p className="network-person-headline">{person.headline}</p>
-                    <p className="network-person-location">{person.location}</p>
-                  </div>
-                  <button type="button" className="network-connect-btn">
-                    {t('network.connect')}
-                  </button>
-                </li>
+              {myNetwork.map((person) => (
+                <PersonRow key={person.id} person={person} actionLabel={t('network.message')} />
               ))}
             </ul>
           </section>
+        ) : (
+          <>
+            <div className="network-search">
+              <span className="network-search-icon">
+                <SearchIcon />
+              </span>
+              <input
+                type="search"
+                className="network-search-input"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t('network.searchPlaceholder')}
+                aria-label={t('network.searchAria')}
+                autoComplete="off"
+              />
+            </div>
+
+            {isSearching ? (
+              <section className="network-suggested" aria-labelledby="network-results-heading">
+                <div className="network-section-head">
+                  <h2 id="network-results-heading" className="network-section-title">
+                    {t('network.results')}
+                  </h2>
+                  <p className="network-section-hint">{t('network.resultsHint')}</p>
+                </div>
+
+                {!user ? (
+                  <div className="network-empty network-empty--action">
+                    <p>{t('network.signInToSearch')}</p>
+                    <button type="button" className="btn-gradient-wrap" onClick={openLogin}>
+                      <span className="btn-gradient-inner">{t('nav.signIn')}</span>
+                    </button>
+                  </div>
+                ) : searching ? (
+                  <p className="network-empty">{t('network.searching')}</p>
+                ) : searchError ? (
+                  <p className="network-empty">{searchError}</p>
+                ) : results.length === 0 ? (
+                  <p className="network-empty">{t('network.noResults')}</p>
+                ) : (
+                  <ul className="network-people-list">
+                    {results.map((person) => (
+                      <PersonRow key={person.id} person={person} actionLabel={t('network.connect')} />
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ) : (
+              <section className="network-suggested" aria-labelledby="network-suggested-heading">
+                <div className="network-section-head">
+                  <h2 id="network-suggested-heading" className="network-section-title">
+                    {t('network.suggested')}
+                  </h2>
+                  <p className="network-section-hint">{t('network.suggestedHint')}</p>
+                </div>
+
+                <ul className="network-people-list">
+                  {suggested.map((person) => (
+                    <PersonRow key={person.id} person={person} actionLabel={t('network.connect')} />
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
         )}
       </div>
     </main>
