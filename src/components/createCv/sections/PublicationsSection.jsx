@@ -1,6 +1,7 @@
 import { createEmptyPublicationItem, normalizeCvListSection } from '../../../createCv/cvDocument'
 import CreateCvSectionHead from '../shared/CreateCvSectionHead'
 import FieldLabel from '../shared/FieldLabel'
+import MonthYearSelect from '../shared/MonthYearSelect'
 import { VISIBILITY } from '../../../createCv/fieldVisibility'
 
 export default function PublicationsSection({ value: items, onChange, t, stepNumber = '11' }) {
@@ -30,7 +31,13 @@ export default function PublicationsSection({ value: items, onChange, t, stepNum
               </div>
               <div className="form-field">
                 <FieldLabel htmlFor={`pub-date-${item.id}`} label={t('createCv.date')} visibility={VISIBILITY.REQUIRED} t={t} />
-                <input id={`pub-date-${item.id}`} className="form-input" type="month" value={item.date} onChange={(e) => updateItem(index, { date: e.target.value })} required />
+                <MonthYearSelect
+                  id={`pub-date-${item.id}`}
+                  value={item.date}
+                  onChange={(date) => updateItem(index, { date })}
+                  required
+                  t={t}
+                />
               </div>
               <div className="form-field create-cv-field--full">
                 <FieldLabel htmlFor={`pub-url-${item.id}`} label={t('createCv.url')} visibility={VISIBILITY.OPTIONAL} t={t} />

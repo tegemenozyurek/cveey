@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
 import ConfirmResetCvModal from '../components/createCv/ConfirmResetCvModal'
+import CreateCvMaxCvModal from '../components/createCv/CreateCvMaxCvModal'
 import CvPreviewPanel from '../components/createCv/CvPreviewPanel'
 import CvPreviewErrorBoundary from '../components/createCv/CvPreviewErrorBoundary'
 import CvSectionStepper from '../components/createCv/CvSectionStepper'
@@ -18,15 +21,23 @@ import { loadCvDraft, saveCvDraft } from '../createCv/draftStorage'
 import { buildCvPdfFileName } from '../createCv/exportCvPdf'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useResume } from '../context/ResumeContext'
+import { MAX_CV_COUNT } from '../storageService'
+
+const MAX_CV_BYTES = 5 * 1024 * 1024
 
 export default function CreateCV() {
+  const navigate = useNavigate()
   const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
+  const { cvs, uploadUserCv, refreshCvs } = useResume()
   const [showTemplateOverlay, setShowTemplateOverlay] = useState(true)
   const [saveStatus, setSaveStatus] = useState('')
-  const [draftSaved, setDraftSaved] = useState(false)
   const [downloadStatus, setDownloadStatus] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
+  const [myCvNotice, setMyCvNotice] = useState(null)
+  const [isSavingToMyCv, setIsSavingToMyCv] = useState(false)
+  const [showMaxCvModal, setShowMaxCvModal] = useState(false)
   const [resetTarget, setResetTarget] = useState(null)
   const [deleteCustomId, setDeleteCustomId] = useState(null)
   const loadedDraftUserRef = useRef(null)
@@ -70,14 +81,19 @@ export default function CreateCV() {
     if (pendingStatusRef.current) {
       setSaveStatus(pendingStatusRef.current)
       pendingStatusRef.current = ''
-      setDraftSaved(false)
       setDownloadStatus('')
+      setMyCvNotice(null)
       return
     }
     setSaveStatus('')
-    setDraftSaved(false)
     setDownloadStatus('')
   }, [document])
+
+  useEffect(() => {
+    if (!myCvNotice) return undefined
+    const timer = window.setTimeout(() => setMyCvNotice(null), 6000)
+    return () => window.clearTimeout(timer)
+  }, [myCvNotice])
 
   if (authLoading) {
     return (
@@ -117,10 +133,8 @@ export default function CreateCV() {
     const saved = saveCvDraft(user.uid, document)
     if (saved) {
       setSaveStatus(t('createCv.draftSaved'))
-      setDraftSaved(true)
     } else {
       setSaveStatus(t('createCv.draftSaveFailed'))
-      setDraftSaved(false)
     }
   }
 
@@ -129,6 +143,7 @@ export default function CreateCV() {
 
     setIsDownloading(true)
     setDownloadStatus('')
+    setMyCvNotice(null)
     try {
       const fileName = buildCvPdfFileName(document.content.personal.fullName)
       await previewRef.current.downloadPdf(fileName)
@@ -139,6 +154,55 @@ export default function CreateCV() {
       setIsDownloading(false)
     }
   }
+
+  const showMyCvNotice = (type, message) => {
+    setMyCvNotice({ type, message })
+  }
+
+  const handleSaveToMyCv = async () => {
+    if (!previewRef.current || !user) return
+
+    setMyCvNotice(null)
+    setDownloadStatus('')
+
+    let currentCount = cvs.length
+    try {
+      const data = await refreshCvs()
+      currentCount = data?.cvs?.length ?? cvs.length
+    } catch {
+      currentCount = cvs.length
+    }
+
+    if (currentCount >= MAX_CV_COUNT) {
+      setShowMaxCvModal(true)
+      return
+    }
+
+    setIsSavingToMyCv(true)
+    try {
+      const fileName = buildCvPdfFileName(document.content.personal.fullName)
+      const { blob } = await previewRef.current.getPdfBlob(fileName)
+
+      if (blob.size > MAX_CV_BYTES) {
+        showMyCvNotice('error', t('createCv.saveToMyCvTooLarge'))
+        return
+      }
+
+      const file = new File([blob], fileName, { type: 'application/pdf' })
+      await uploadUserCv(file)
+      showMyCvNotice('success', t('createCv.saveToMyCvSuccess'))
+    } catch (err) {
+      if (err?.code === 'MAX_CV_COUNT') {
+        setShowMaxCvModal(true)
+      } else {
+        showMyCvNotice('error', t('createCv.saveToMyCvFailed'))
+      }
+    } finally {
+      setIsSavingToMyCv(false)
+    }
+  }
+
+  const isExportBusy = isDownloading || isSavingToMyCv
 
   const handleSectionSubmit = (event) => {
     event.preventDefault()
@@ -243,12 +307,72 @@ export default function CreateCV() {
         />
       )}
 
+      {showMaxCvModal && (
+        <CreateCvMaxCvModal
+          max={MAX_CV_COUNT}
+          onClose={() => setShowMaxCvModal(false)}
+          onGoToMyCv={() => {
+            setShowMaxCvModal(false)
+            navigate('/my-cv')
+          }}
+        />
+      )}
+
+      {myCvNotice && createPortal(
+        <div
+          className={`create-cv-toast create-cv-toast--${myCvNotice.type}`}
+          role="status"
+          aria-live="polite"
+        >
+          <span className="create-cv-toast-icon" aria-hidden="true">
+            {myCvNotice.type === 'success' ? '✓' : '!'}
+          </span>
+          <div className="create-cv-toast-copy">
+            <strong className="create-cv-toast-title">
+              {myCvNotice.type === 'success'
+                ? t('createCv.saveToMyCvSuccessTitle')
+                : t('createCv.saveToMyCvErrorTitle')}
+            </strong>
+            <p className="create-cv-toast-text">{myCvNotice.message}</p>
+          </div>
+          <button
+            type="button"
+            className="create-cv-toast-close"
+            aria-label={t('createCv.dismissNotice')}
+            onClick={() => setMyCvNotice(null)}
+          >
+            ×
+          </button>
+        </div>,
+        // CV builder also names its state `document` — use the DOM root explicitly.
+        window.document.body,
+      )}
+
       <div
         className={`create-cv-page-content${showTemplateOverlay ? ' create-cv-page-content--hidden' : ' create-cv-page-content--visible'}`}
         aria-hidden={showTemplateOverlay}
         inert={showTemplateOverlay}
       >
         <div className="create-cv-topbar">
+          <div className="create-cv-topbar-export">
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm create-cv-export-btn"
+              onClick={handleDownloadCv}
+              disabled={isExportBusy}
+            >
+              {isDownloading ? t('createCv.downloading') : t('createCv.downloadCv')}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm create-cv-export-btn"
+              onClick={handleSaveToMyCv}
+              disabled={isExportBusy}
+            >
+              {isSavingToMyCv ? t('createCv.savingToMyCv') : t('createCv.saveToMyCv')}
+            </button>
+          </div>
+
           <h1 className="create-cv-page-title">{t('createCv.title')}</h1>
 
           <div className="create-cv-topbar-actions">
@@ -311,21 +435,9 @@ export default function CreateCV() {
                 </div>
 
                 {isLastSection ? (
-                  <div className="create-cv-final-actions">
-                    <button type="button" className="btn-gradient-wrap" onClick={handleSaveDraft}>
-                      <span className="btn-gradient-inner">{t('createCv.saveDraft')}</span>
-                    </button>
-                    {draftSaved && (
-                      <button
-                        type="button"
-                        className="btn btn-ghost create-cv-download-btn"
-                        onClick={handleDownloadCv}
-                        disabled={isDownloading}
-                      >
-                        {isDownloading ? t('createCv.downloading') : t('createCv.downloadCv')}
-                      </button>
-                    )}
-                  </div>
+                  <button type="button" className="btn-gradient-wrap" onClick={handleSaveDraft}>
+                    <span className="btn-gradient-inner">{t('createCv.saveDraft')}</span>
+                  </button>
                 ) : (
                   <button
                     type="submit"

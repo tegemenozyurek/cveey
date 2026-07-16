@@ -5,6 +5,7 @@ import {
 import CreateCvSectionHead from '../shared/CreateCvSectionHead'
 import DateRangeFields from '../shared/DateRangeFields'
 import FieldLabel from '../shared/FieldLabel'
+import LocationFields from '../shared/LocationFields'
 import { VISIBILITY } from '../../../createCv/fieldVisibility'
 
 export default function EducationSection({
@@ -80,16 +81,14 @@ export default function EducationSection({
                   required
                 />
               </div>
-              <div className="form-field create-cv-field--full">
-                <FieldLabel htmlFor={`edu-loc-${item.id}`} label={t('createCv.location')} visibility={VISIBILITY.REQUIRED} t={t} />
-                <input
-                  id={`edu-loc-${item.id}`}
-                  className="form-input"
-                  value={item.location}
-                  onChange={(e) => updateItem(index, { location: e.target.value })}
-                  required
-                />
-              </div>
+              <LocationFields
+                idPrefix={`edu-loc-${item.id}`}
+                value={item.location}
+                onChange={(location) => updateItem(index, { location })}
+                visibility={VISIBILITY.REQUIRED}
+                t={t}
+                required
+              />
               <div className="form-field">
                 <FieldLabel
                   htmlFor={`edu-gpa-${item.id}`}

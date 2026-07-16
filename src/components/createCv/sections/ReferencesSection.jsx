@@ -1,6 +1,7 @@
 import { createEmptyReferenceItem, normalizeCvListSection } from '../../../createCv/cvDocument'
 import CreateCvSectionHead from '../shared/CreateCvSectionHead'
 import FieldLabel from '../shared/FieldLabel'
+import PhoneInput from '../shared/PhoneInput'
 import { VISIBILITY } from '../../../createCv/fieldVisibility'
 
 export default function ReferencesSection({ value: items, onChange, t, stepNumber = '12' }) {
@@ -34,7 +35,11 @@ export default function ReferencesSection({ value: items, onChange, t, stepNumbe
               </div>
               <div className="form-field">
                 <FieldLabel htmlFor={`ref-phone-${item.id}`} label={t('createCv.phone')} visibility={VISIBILITY.OPTIONAL} t={t} />
-                <input id={`ref-phone-${item.id}`} className="form-input" type="tel" value={item.phone} onChange={(e) => updateItem(index, { phone: e.target.value })} />
+                <PhoneInput
+                  id={`ref-phone-${item.id}`}
+                  value={item.phone}
+                  onChange={(phone) => updateItem(index, { phone })}
+                />
               </div>
               <div className="form-field">
                 <FieldLabel htmlFor={`ref-email-${item.id}`} label={t('createCv.email')} visibility={VISIBILITY.OPTIONAL} t={t} />

@@ -1,20 +1,20 @@
 import { MILITARY_STATUS_OPTIONS } from '../../../createCv/constants'
 import CreateCvSectionHead from '../shared/CreateCvSectionHead'
 import FieldLabel, { fieldIsRequired, isVisible } from '../shared/FieldLabel'
+import LocationFields from '../shared/LocationFields'
+import MaterialDatePicker from '../shared/MaterialDatePicker'
+import PhoneInput from '../shared/PhoneInput'
 
 const PERSONAL_FIELD_META = {
   fullName: { type: 'text', placeholderKey: 'createCv.fullNamePlaceholder', autoComplete: 'name', full: true },
   jobTitle: { type: 'text', placeholderKey: 'createCv.jobTitlePlaceholder', full: true },
-  phone: { type: 'tel', placeholder: '+90 5xx xxx xx xx', autoComplete: 'tel' },
-  email: { type: 'email', placeholder: 'you@example.com', autoComplete: 'email' },
-  location: { type: 'text', placeholderKey: 'createCv.locationPlaceholder', full: true },
+  email: { type: 'email', placeholder: 'you@example.com', autoComplete: 'email', full: true },
   linkedin: { type: 'url', placeholder: 'linkedin.com/in/username' },
   github: { type: 'url', placeholder: 'github.com/username' },
   portfolio: { type: 'url', placeholder: 'yourportfolio.com', full: true },
   behance: { type: 'url', placeholder: 'behance.net/username' },
   dribbble: { type: 'url', placeholder: 'dribbble.com/username' },
   stackoverflow: { type: 'url', placeholder: 'stackoverflow.com/users/...' },
-  dateOfBirth: { type: 'date' },
   drivingLicense: { type: 'text', placeholderKey: 'createCv.drivingLicensePlaceholder' },
   medicalLicense: { type: 'text', placeholderKey: 'createCv.medicalLicensePlaceholder' },
   specialty: { type: 'text', placeholderKey: 'createCv.specialtyPlaceholder' },
@@ -42,7 +42,7 @@ const PERSONAL_FIELD_META = {
 }
 
 const FIELD_ORDER = [
-  'fullName', 'jobTitle', 'phone', 'email', 'location',
+  'fullName', 'jobTitle', 'location', 'phone', 'email',
   'linkedin', 'github', 'stackoverflow', 'portfolio', 'behance', 'dribbble',
   'dateOfBirth', 'drivingLicense', 'licenseClass', 'adrCertificate', 'drivingExperience',
   'medicalLicense', 'specialty', 'residency',
@@ -69,17 +69,71 @@ export default function PersonalInfoSection({
   const showMilitary = isVisible(fieldVisibility.militaryStatus)
 
   return (
-    <div className="create-cv-section">
+    <div className="create-cv-section create-cv-section--personal">
       <CreateCvSectionHead
         stepNumber={stepNumber}
         title={t('createCv.sectionPersonal')}
         description={t('createCv.sectionPersonalDesc')}
       />
 
-      <div className="create-cv-grid">
+      <div className="create-cv-grid create-cv-grid--personal">
         {FIELD_ORDER.map((field) => {
           const visibility = fieldVisibility[field]
           if (!isVisible(visibility)) return null
+
+          if (field === 'phone') {
+            return (
+              <div key={field} className="form-field create-cv-field--full">
+                <FieldLabel
+                  htmlFor="cv-phone"
+                  label={t('createCv.phone')}
+                  visibility={visibility}
+                  t={t}
+                />
+                <PhoneInput
+                  id="cv-phone"
+                  value={personal.phone || ''}
+                  onChange={(next) => set('phone', next)}
+                  required={fieldIsRequired(visibility)}
+                />
+              </div>
+            )
+          }
+
+          if (field === 'location') {
+            return (
+              <LocationFields
+                key={field}
+                idPrefix="cv-location"
+                value={personal.location || ''}
+                onChange={(next) => set('location', next)}
+                visibility={visibility}
+                t={t}
+                required={fieldIsRequired(visibility)}
+              />
+            )
+          }
+
+          if (field === 'dateOfBirth') {
+            return (
+              <div key={field} className="form-field">
+                <FieldLabel
+                  htmlFor="cv-dateOfBirth"
+                  label={t('createCv.dateOfBirth')}
+                  visibility={visibility}
+                  t={t}
+                />
+                <MaterialDatePicker
+                  id="cv-dateOfBirth"
+                  value={personal.dateOfBirth || ''}
+                  onChange={(next) => set('dateOfBirth', next)}
+                  precision="day"
+                  required={fieldIsRequired(visibility)}
+                  t={t}
+                />
+              </div>
+            )
+          }
 
           const meta = PERSONAL_FIELD_META[field]
           const labelKey = `createCv.${field}`

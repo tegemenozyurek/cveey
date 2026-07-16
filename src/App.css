@@ -6014,6 +6014,25 @@
   justify-self: end;
 }
 
+.create-cv-topbar-export {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  grid-column: 1;
+  justify-self: start;
+}
+
+.create-cv-export-btn {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.create-cv-export-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
 .create-cv-change-template {
   font-size: 13px;
 }
@@ -6819,6 +6838,45 @@
   grid-column: 1 / -1;
 }
 
+/* Personal info: phone then email on their own rows; tighter spacing to avoid inner scroll */
+.create-cv-section--personal .create-cv-section-head {
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+.create-cv-section--personal .create-cv-section-title {
+  margin-bottom: 2px;
+  font-size: 18px;
+}
+
+.create-cv-section--personal .create-cv-section-desc {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.create-cv-grid--personal {
+  gap: 10px 12px;
+}
+
+.create-cv-section--personal .form-field {
+  gap: 4px;
+}
+
+.create-cv-section--personal .form-label {
+  font-size: 12px;
+}
+
+.create-cv-section--personal .form-input,
+.create-cv-section--personal .create-cv-phone-dial,
+.create-cv-section--personal .create-cv-phone-number {
+  min-height: 40px;
+  padding-block: 8px;
+}
+
+.create-cv-section--personal .create-cv-location-grid {
+  gap: 10px 12px;
+}
+
 .create-cv-optional-tag {
   margin-left: 6px;
   font-size: 11px;
@@ -7012,12 +7070,628 @@
 
 .form-select {
   appearance: none;
+  color-scheme: dark;
+  background-color: var(--input-bg);
+  color: var(--text);
   background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
     linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
   background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px);
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
   padding-right: 34px;
+}
+
+[data-theme='light'] .form-select {
+  color-scheme: light;
+}
+
+.form-select option {
+  background-color: var(--glass-strong);
+  color: var(--text);
+}
+
+.create-cv-month-year {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
+  gap: 8px;
+}
+
+.create-cv-month-year--disabled {
+  opacity: 0.55;
+}
+
+/* ── Material-inspired date picker ── */
+.cv-datepicker {
+  position: relative;
+  width: 100%;
+}
+
+.cv-datepicker--disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.cv-datepicker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+}
+
+.cv-datepicker--open .cv-datepicker-trigger {
+  border-color: rgba(34, 211, 238, 0.65);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+}
+
+[data-theme='light'] .cv-datepicker--open .cv-datepicker-trigger {
+  border-color: rgba(232, 121, 249, 0.65);
+  box-shadow: 0 0 0 3px rgba(232, 121, 249, 0.14);
+}
+
+.cv-datepicker-value--placeholder {
+  color: var(--text-dim);
+}
+
+.cv-datepicker-icon {
+  display: inline-flex;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.cv-datepicker-hidden {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.cv-datepicker-panel {
+  position: fixed;
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  padding-bottom: 8px;
+  /* Avoid focus/layout from expanding the page horizontally */
+  contain: layout style;
+}
+
+.cv-datepicker-panel-head {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.cv-datepicker-kicker {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.cv-datepicker-selected {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.cv-datepicker-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px 4px;
+}
+
+.cv-datepicker-month-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 9999px;
+}
+
+.cv-datepicker-month-btn:hover {
+  background: var(--glass-hover);
+}
+
+.cv-datepicker-caret {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.cv-datepicker-nav {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.cv-datepicker-nav-btn {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cv-datepicker-nav-btn:hover {
+  background: var(--glass-hover);
+}
+
+.cv-datepicker-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 4px 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cv-datepicker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 0 10px 8px;
+}
+
+.cv-datepicker-day {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cv-datepicker-day--empty {
+  pointer-events: none;
+}
+
+.cv-datepicker-day:hover:not(.cv-datepicker-day--empty):not(.cv-datepicker-day--selected) {
+  background: var(--glass-hover);
+}
+
+.cv-datepicker-day--today:not(.cv-datepicker-day--selected) {
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.55);
+}
+
+[data-theme='light'] .cv-datepicker-day--today:not(.cv-datepicker-day--selected) {
+  box-shadow: inset 0 0 0 1px rgba(232, 121, 249, 0.55);
+}
+
+.cv-datepicker-day--selected {
+  background: var(--accent-cyan);
+  color: #041018;
+  font-weight: 700;
+}
+
+[data-theme='light'] .cv-datepicker-day--selected {
+  background: var(--accent-pink);
+  color: #fff;
+}
+
+.cv-datepicker-months {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 12px 12px;
+}
+
+.cv-datepicker-month-cell {
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 12px 6px;
+  cursor: pointer;
+}
+
+.cv-datepicker-month-cell:hover:not(.cv-datepicker-month-cell--selected) {
+  background: var(--glass-hover);
+}
+
+.cv-datepicker-month-cell--today:not(.cv-datepicker-month-cell--selected) {
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.55);
+}
+
+[data-theme='light'] .cv-datepicker-month-cell--today:not(.cv-datepicker-month-cell--selected) {
+  box-shadow: inset 0 0 0 1px rgba(232, 121, 249, 0.55);
+}
+
+.cv-datepicker-month-cell--selected {
+  background: var(--accent-cyan);
+  color: #041018;
+  font-weight: 700;
+}
+
+[data-theme='light'] .cv-datepicker-month-cell--selected {
+  background: var(--accent-pink);
+  color: #fff;
+}
+
+.cv-datepicker-years {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 8px 12px 12px;
+}
+
+.cv-datepicker-year {
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 4px;
+  cursor: pointer;
+}
+
+.cv-datepicker-year:hover {
+  background: var(--glass-hover);
+}
+
+.cv-datepicker-year--active {
+  background: rgba(34, 211, 238, 0.18);
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+
+[data-theme='light'] .cv-datepicker-year--active {
+  background: rgba(232, 121, 249, 0.16);
+  color: var(--accent-pink);
+}
+
+.cv-datepicker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 4px 10px 8px;
+}
+
+.cv-datepicker-action {
+  border: 0;
+  background: transparent;
+  color: var(--accent-cyan);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+[data-theme='light'] .cv-datepicker-action {
+  color: var(--accent-pink);
+}
+
+.cv-datepicker-action:hover:not(:disabled) {
+  background: var(--glass-hover);
+}
+
+.cv-datepicker-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.create-cv-phone {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.create-cv-phone--disabled {
+  opacity: 0.55;
+}
+
+.create-cv-phone-dial-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.create-cv-phone-dial {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  min-width: 0;
+  padding-inline: 10px 8px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.create-cv-phone-dial-wrap--open .create-cv-phone-dial {
+  border-color: rgba(34, 211, 238, 0.65);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+}
+
+[data-theme='light'] .create-cv-phone-dial-wrap--open .create-cv-phone-dial {
+  border-color: rgba(232, 121, 249, 0.65);
+  box-shadow: 0 0 0 3px rgba(232, 121, 249, 0.14);
+}
+
+.create-cv-phone-flag {
+  width: 20px;
+  height: 15px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.create-cv-phone-dial-code {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.create-cv-phone-dial-caret {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+
+.create-cv-phone-menu {
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  max-height: min(320px, 50vh);
+  display: flex;
+  flex-direction: column;
+  contain: layout style;
+}
+
+.create-cv-phone-menu-search {
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.create-cv-phone-menu-search-input {
+  width: 100%;
+  padding-block: 8px;
+  font-size: 13px;
+}
+
+.create-cv-phone-menu-list {
+  overflow: auto;
+  padding: 6px;
+}
+
+.create-cv-phone-option {
+  display: grid;
+  grid-template-columns: 20px auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.create-cv-phone-option:hover {
+  background: var(--glass-hover);
+}
+
+.create-cv-phone-option--active {
+  background: rgba(34, 211, 238, 0.14);
+}
+
+[data-theme='light'] .create-cv-phone-option--active {
+  background: rgba(232, 121, 249, 0.12);
+}
+
+.create-cv-phone-option-dial {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  min-width: 3.2em;
+}
+
+.create-cv-phone-option-name {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-cv-phone-menu-empty {
+  margin: 0;
+  padding: 16px 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Shared searchable picker menus (country, phone dial, etc.) */
+.create-cv-picker-menu {
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  max-height: min(320px, 50vh);
+  display: flex;
+  flex-direction: column;
+  contain: layout style;
+}
+
+.create-cv-picker-menu-search {
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.create-cv-picker-menu-search-input {
+  width: 100%;
+  padding-block: 8px;
+  font-size: 13px;
+}
+
+.create-cv-picker-menu-list {
+  overflow: auto;
+  padding: 6px;
+}
+
+.create-cv-picker-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.create-cv-picker-option:hover {
+  background: var(--glass-hover);
+}
+
+.create-cv-picker-option--active {
+  background: rgba(34, 211, 238, 0.14);
+}
+
+[data-theme='light'] .create-cv-picker-option--active {
+  background: rgba(232, 121, 249, 0.12);
+}
+
+.create-cv-picker-option-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-cv-picker-menu-empty {
+  margin: 0;
+  padding: 16px 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.create-cv-country-select {
+  position: relative;
+  width: 100%;
+}
+
+.create-cv-country-select--disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.create-cv-country-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+}
+
+.create-cv-country-select--open .create-cv-country-select-trigger {
+  border-color: rgba(34, 211, 238, 0.65);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+}
+
+[data-theme='light'] .create-cv-country-select--open .create-cv-country-select-trigger {
+  border-color: rgba(232, 121, 249, 0.65);
+  box-shadow: 0 0 0 3px rgba(232, 121, 249, 0.14);
+}
+
+.create-cv-country-select-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-cv-country-select-value--placeholder {
+  color: var(--text-dim);
+}
+
+.create-cv-location {
+  grid-column: 1 / -1;
+}
+
+.create-cv-location-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.create-cv-city-combobox {
+  width: 100%;
 }
 
 .form-textarea {
@@ -7303,6 +7977,113 @@
   flex-shrink: 0;
 }
 
+.create-cv-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1500;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: min(440px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-strong);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: create-cv-toast-in 0.22s ease-out;
+}
+
+.create-cv-toast--success {
+  border-color: rgba(34, 211, 238, 0.45);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(34, 211, 238, 0.12);
+}
+
+[data-theme='light'] .create-cv-toast--success {
+  border-color: rgba(232, 121, 249, 0.45);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(232, 121, 249, 0.12);
+}
+
+.create-cv-toast--error {
+  border-color: rgba(251, 113, 133, 0.45);
+}
+
+.create-cv-toast-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #041018;
+  background: var(--accent-cyan);
+}
+
+.create-cv-toast--error .create-cv-toast-icon {
+  background: var(--accent-rose);
+  color: #fff;
+}
+
+[data-theme='light'] .create-cv-toast-icon {
+  background: var(--accent-pink);
+  color: #fff;
+}
+
+.create-cv-toast-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.create-cv-toast-title {
+  display: block;
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.create-cv-toast-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.create-cv-toast-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.create-cv-toast-close:hover {
+  background: var(--glass-hover);
+  color: var(--text);
+}
+
+@keyframes create-cv-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
 @media (max-width: 1100px) {
   /* Stacked layout: the page (.main) owns the scroll — no nested scrollers,
      no viewport-locked heights. This is what makes mobile scrolling work. */
@@ -7396,6 +8177,13 @@
     justify-content: center;
   }
 
+  .create-cv-topbar-export {
+    grid-column: 1;
+    justify-self: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   .create-cv-nav {
     margin-bottom: 12px;
   }
@@ -7407,7 +8195,10 @@
   .create-cv-grid,
   .create-cv-date-range,
   .create-cv-rated-skill-row,
-  .create-cv-language-row {
+  .create-cv-language-row,
+  .create-cv-location-grid,
+  .create-cv-month-year,
+  .create-cv-phone {
     grid-template-columns: 1fr;
   }
 
