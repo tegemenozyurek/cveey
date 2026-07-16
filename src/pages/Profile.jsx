@@ -163,26 +163,29 @@ function ProfileAboutSection({ t, preferredWorkCities, loading }) {
   return (
     <section className="profile-about" aria-label={t('profile.sectionAbout')}>
       <div className="profile-about-side">
-        <div className="profile-about-block">
+        <div className="profile-about-degree">
           <p className="profile-about-kicker">{t('profile.bachelor')}</p>
           <p className="profile-about-lead">{t('profile.bachelorMock')}</p>
+          <p className="profile-about-kicker profile-about-kicker--follow">{t('profile.position')}</p>
+          <p className="profile-about-position">{t('profile.positionMock')}</p>
         </div>
 
-        <div className="profile-about-locs">
-          <div className="profile-about-loc">
-            <p className="profile-about-kicker">{t('profile.workCities')}</p>
-            {loading ? (
-              <p className="profile-about-loc-empty">…</p>
-            ) : workCities.length > 0 ? (
-              <ul className="profile-about-city-tags">
-                {workCities.map((city) => (
-                  <li key={city}>{city}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="profile-about-loc-empty">{t('profile.locationEmpty')}</p>
-            )}
-          </div>
+        <div className="profile-about-work">
+          <p className="profile-about-kicker">{t('profile.workCities')}</p>
+          {loading ? (
+            <p className="profile-about-loc-empty">…</p>
+          ) : workCities.length > 0 ? (
+            <ul className="profile-about-city-list">
+              {workCities.map((city) => (
+                <li key={city}>
+                  <span className="profile-about-city-dot" aria-hidden="true" />
+                  <span>{city}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="profile-about-loc-empty">{t('profile.locationEmpty')}</p>
+          )}
         </div>
       </div>
 
