@@ -141,16 +141,7 @@ function PersonRow({ person, actionLabel, iconOnly = false }) {
   )
 }
 
-function Fact({ label, value }) {
-  return (
-    <div className="profile-fact">
-      <span className="profile-fact-label">{label}</span>
-      <span className="profile-fact-value">{value || '—'}</span>
-    </div>
-  )
-}
-
-function ActiveCvPanel({ t, previewPerson }) {
+function ActiveCvPanel({ t }) {
   const navigate = useNavigate()
   const { activeCv, activePreviewUrl, loading } = useResume()
   const [cvHidden, setCvHidden] = useState(false)
@@ -160,86 +151,102 @@ function ActiveCvPanel({ t, previewPerson }) {
     window.open(activePreviewUrl, '_blank', 'noopener,noreferrer')
   }
 
+  const paperName = stripPdfExtension(activeCv?.displayName) || t('profile.activeCv')
+
   return (
-    <aside className="profile-cv-panel" aria-labelledby="profile-active-cv-heading">
-      <div className="profile-cv-panel-top">
-        <p className="profile-cv-kicker">{t('profile.activeCv')}</p>
-        {activeCv ? (
-          <h2 id="profile-active-cv-heading" className="profile-cv-filename">
-            {stripPdfExtension(activeCv.displayName)}
-          </h2>
-        ) : (
-          <h2 id="profile-active-cv-heading" className="profile-cv-filename">
-            {t('profile.cvEmpty')}
-          </h2>
-        )}
+    <section className="profile-cv-post" aria-labelledby="profile-active-cv-heading">
+      <div className="profile-cv-post-media">
+        <div className={`profile-cv-sheet${cvHidden ? ' profile-cv-sheet--hidden' : ''}`}>
+          {loading ? (
+            <div className="profile-cv-sheet-status">
+              <span className="cv-preview-spinner" aria-hidden="true" />
+            </div>
+          ) : cvHidden ? (
+            <div className="profile-cv-sheet-status">
+              <p>{t('profile.cvHidden')}</p>
+            </div>
+          ) : !activeCv ? (
+            <div className="profile-cv-sheet-status">
+              <p>{t('profile.cvEmptyHint')}</p>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="profile-cv-paper"
+              onClick={handlePreview}
+              disabled={!activePreviewUrl}
+              aria-label={t('profile.cvPreview')}
+              title={t('profile.cvPreview')}
+            >
+              <div className="profile-cv-paper-accent" />
+              <div className="profile-cv-paper-body">
+                <div className="profile-cv-paper-name">{paperName}</div>
+                <div className="profile-cv-paper-rule" />
+                <div className="profile-cv-paper-line profile-cv-paper-line--long" />
+                <div className="profile-cv-paper-line" />
+                <div className="profile-cv-paper-line profile-cv-paper-line--mid" />
+                <div className="profile-cv-paper-block">
+                  <div className="profile-cv-paper-line profile-cv-paper-line--short" />
+                  <div className="profile-cv-paper-line profile-cv-paper-line--long" />
+                  <div className="profile-cv-paper-line" />
+                </div>
+                <div className="profile-cv-paper-block">
+                  <div className="profile-cv-paper-line profile-cv-paper-line--short" />
+                  <div className="profile-cv-paper-line profile-cv-paper-line--mid" />
+                  <div className="profile-cv-paper-line" />
+                </div>
+                <div className="profile-cv-paper-chips">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </div>
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className={`profile-cv-sheet${cvHidden ? ' profile-cv-sheet--hidden' : ''}`}>
-        {loading ? (
-          <div className="profile-cv-sheet-status">
-            <span className="cv-preview-spinner" aria-hidden="true" />
+      <div className="profile-cv-post-body">
+        <div className="profile-cv-post-content">
+          <div className="profile-cv-title-row">
+            <h2 id="profile-active-cv-heading" className="profile-cv-heading">
+              {activeCv ? stripPdfExtension(activeCv.displayName) : t('profile.cvEmpty')}
+            </h2>
+            {activeCv ? <span className="profile-cv-badge">{t('profile.activeCv')}</span> : null}
           </div>
-        ) : cvHidden ? (
-          <div className="profile-cv-sheet-status">
-            <p>{t('profile.cvHidden')}</p>
+          <p className="profile-cv-caption">{t('profile.activeCvIntro')}</p>
+        </div>
+
+        {activeCv ? (
+          <div className="profile-cv-actions" role="group" aria-label={t('profile.activeCv')}>
+            <button
+              type="button"
+              className="profile-cv-action"
+              onClick={handlePreview}
+              disabled={cvHidden || !activePreviewUrl}
+            >
+              {t('profile.cvPreview')}
+            </button>
+            <button type="button" className="profile-cv-action" onClick={() => navigate('/my-cv')}>
+              {t('profile.cvChange')}
+            </button>
+            <button
+              type="button"
+              className={`profile-cv-action${cvHidden ? ' profile-cv-action--on' : ''}`}
+              onClick={() => setCvHidden((v) => !v)}
+            >
+              {cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
+            </button>
           </div>
-        ) : !activeCv ? (
-          <div className="profile-cv-sheet-status profile-cv-sheet-status--empty">
-            <p>{t('profile.cvEmptyHint')}</p>
-            <Link to="/my-cv" className="profile-cv-action profile-cv-action--primary">
+        ) : !loading ? (
+          <div className="profile-cv-actions">
+            <Link to="/my-cv" className="profile-cv-action profile-cv-action--solo">
               {t('profile.goToMyCv')}
             </Link>
           </div>
-        ) : (
-          <div className="profile-cv-paper" aria-hidden="true">
-            <div className="profile-cv-paper-accent" />
-            <div className="profile-cv-paper-body">
-              <div className="profile-cv-paper-name">{previewPerson.fullName}</div>
-              <div className="profile-cv-paper-role">{previewPerson.profession}</div>
-              <div className="profile-cv-paper-rule" />
-              <div className="profile-cv-paper-line profile-cv-paper-line--long" />
-              <div className="profile-cv-paper-line" />
-              <div className="profile-cv-paper-line profile-cv-paper-line--mid" />
-              <div className="profile-cv-paper-block">
-                <div className="profile-cv-paper-line profile-cv-paper-line--short" />
-                <div className="profile-cv-paper-line profile-cv-paper-line--long" />
-                <div className="profile-cv-paper-line" />
-              </div>
-              <div className="profile-cv-paper-block">
-                <div className="profile-cv-paper-line profile-cv-paper-line--short" />
-                <div className="profile-cv-paper-line profile-cv-paper-line--mid" />
-                <div className="profile-cv-paper-line" />
-              </div>
-              <div className="profile-cv-paper-chips">
-                <span />
-                <span />
-                <span />
-              </div>
-            </div>
-          </div>
-        )}
+        ) : null}
       </div>
-
-      {activeCv ? (
-        <div className="profile-cv-actions">
-          <button
-            type="button"
-            className="profile-cv-action profile-cv-action--primary"
-            onClick={handlePreview}
-            disabled={cvHidden || !activePreviewUrl}
-          >
-            {t('profile.cvPreview')}
-          </button>
-          <button type="button" className="profile-cv-action" onClick={() => navigate('/my-cv')}>
-            {t('profile.cvChange')}
-          </button>
-          <button type="button" className="profile-cv-action" onClick={() => setCvHidden((v) => !v)}>
-            {cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
-          </button>
-        </div>
-      ) : null}
-    </aside>
+    </section>
   )
 }
 
@@ -247,27 +254,6 @@ export default function Profile() {
   const { user, authLoading, setShowLogoutConfirm } = useAuth()
   const { t } = useLanguage()
   const [panel, setPanel] = useState(null)
-
-  const profileInfo = {
-    fullName: user?.displayName || 'Ayşe Yılmaz',
-    gender: 'Kadın',
-    birthday: '14 Mart 1998',
-    bio: 'Ölçeklenebilir web uygulamaları geliştiren ürün odaklı yazılım mühendisi. Kullanıcı deneyimi ve temiz mimariye önem verir.',
-    profession: 'Yazılım Mühendisi',
-    education: 'Boğaziçi Üniversitesi',
-    department: 'Bilgisayar Mühendisliği',
-    graduationDate: 'Haziran 2021',
-    experiences: [
-      { role: 'Frontend Engineer', company: 'Acme Labs', period: '2023 – Günümüz' },
-      { role: 'Software Intern', company: 'Nova Soft', period: '2021 – 2022' },
-    ],
-    skills: ['React', 'TypeScript', 'Node.js', 'Firebase', 'Figma'],
-    languages: [
-      { name: 'Türkçe', level: 'Ana dil' },
-      { name: 'İngilizce', level: 'C1' },
-      { name: 'Almanca', level: 'A2' },
-    ],
-  }
 
   function togglePanel(next) {
     setPanel((current) => (current === next ? null : next))
@@ -296,9 +282,8 @@ export default function Profile() {
             </div>
             <div className="profile-hero-text">
               <p className="profile-hero-name">
-                {profileInfo.fullName || user.email?.split('@')[0] || t('profile.untitled')}
+                {user.displayName || user.email?.split('@')[0] || t('profile.untitled')}
               </p>
-              <p className="profile-hero-role">{profileInfo.profession}</p>
               <p className="profile-hero-email">{user.email}</p>
             </div>
             <div className="profile-page-actions">
@@ -407,74 +392,7 @@ export default function Profile() {
         </header>
 
         <div className="profile-page-main">
-          <div className="profile-info-stack">
-            <section className="profile-section profile-section--about">
-              <h2 className="profile-section-title">{t('profile.sectionAbout')}</h2>
-              <p className="profile-bio">{profileInfo.bio}</p>
-              <div className="profile-fact-grid">
-                <Fact label={t('profile.fullName')} value={profileInfo.fullName} />
-                <Fact label={t('profile.gender')} value={profileInfo.gender} />
-                <Fact label={t('profile.birthday')} value={profileInfo.birthday} />
-                <Fact label={t('profile.profession')} value={profileInfo.profession} />
-              </div>
-            </section>
-
-            <section className="profile-section">
-              <h2 className="profile-section-title">{t('profile.sectionEducation')}</h2>
-              <div className="profile-edu">
-                <p className="profile-edu-school">{profileInfo.education}</p>
-                <p className="profile-edu-meta">
-                  {profileInfo.department}
-                  <span className="profile-edu-dot" aria-hidden="true">
-                    ·
-                  </span>
-                  {profileInfo.graduationDate}
-                </p>
-              </div>
-            </section>
-
-            <section className="profile-section">
-              <h2 className="profile-section-title">{t('profile.sectionExperience')}</h2>
-              <ul className="profile-timeline">
-                {profileInfo.experiences.map((item) => (
-                  <li key={`${item.company}-${item.period}`} className="profile-timeline-item">
-                    <span className="profile-timeline-dot" aria-hidden="true" />
-                    <div className="profile-timeline-body">
-                      <p className="profile-timeline-role">{item.role}</p>
-                      <p className="profile-timeline-meta">
-                        {item.company}
-                        <span className="profile-edu-dot" aria-hidden="true">
-                          ·
-                        </span>
-                        {item.period}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <section className="profile-section">
-              <h2 className="profile-section-title">{t('profile.sectionSkills')}</h2>
-              <div className="profile-chip-row" aria-label={t('profile.skills')}>
-                {profileInfo.skills.map((skill) => (
-                  <span key={skill} className="profile-chip">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-              <div className="profile-lang-row" aria-label={t('profile.languages')}>
-                {profileInfo.languages.map((lang) => (
-                  <div key={lang.name} className="profile-lang">
-                    <span className="profile-lang-name">{lang.name}</span>
-                    <span className="profile-lang-level">{lang.level}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-
-          <ActiveCvPanel t={t} previewPerson={profileInfo} />
+          <ActiveCvPanel t={t} />
         </div>
       </div>
     </main>
