@@ -1,5 +1,6 @@
 import AwardsSection from '../../components/createCv/sections/AwardsSection'
 import CertificationsSection from '../../components/createCv/sections/CertificationsSection'
+import CustomCategorySection from '../../components/createCv/sections/CustomCategorySection'
 import EducationSection from '../../components/createCv/sections/EducationSection'
 import ExperienceSection from '../../components/createCv/sections/ExperienceSection'
 import LanguagesSection from '../../components/createCv/sections/LanguagesSection'
@@ -14,6 +15,7 @@ import VolunteerSection from '../../components/createCv/sections/VolunteerSectio
 import {
   createEmptyAwardItem,
   createEmptyCertificationItem,
+  createEmptyCustomSection,
   createEmptyEducationItem,
   createEmptyExperienceItem,
   createEmptyLanguageItem,
@@ -24,6 +26,7 @@ import {
   createEmptySidebar,
   createEmptySkills,
   createEmptyVolunteerItem,
+  isCustomSectionId,
 } from '../cvDocument'
 
 /** @type {Record<string, import('../cvDocument').CvSectionDefinition>} */
@@ -160,14 +163,42 @@ export const CV_SECTION_REGISTRY = {
   },
 }
 
-export function getCvSection(sectionId) {
+function createCustomSectionDefinition(sectionId, data) {
+  const title = typeof data?.title === 'string' ? data.title.trim() : ''
+  return {
+    id: sectionId,
+    isCustom: true,
+    navKey: null,
+    navLabel: title || null,
+    titleKey: null,
+    descKey: null,
+    Editor: CustomCategorySection,
+    getValue: (content) => (
+      content.customSections?.[sectionId] || createEmptyCustomSection(sectionId)
+    ),
+    setValue: (content, value) => ({
+      ...content,
+      customSections: {
+        ...(content.customSections || {}),
+        [sectionId]: { ...value, id: sectionId },
+      },
+    }),
+    createDefault: () => createEmptyCustomSection(sectionId),
+  }
+}
+
+export function getCvSection(sectionId, customSections = {}) {
+  if (isCustomSectionId(sectionId)) {
+    return createCustomSectionDefinition(sectionId, customSections?.[sectionId])
+  }
+
   const section = CV_SECTION_REGISTRY[sectionId]
   if (!section) throw new Error(`Unknown CV section: ${sectionId}`)
   return section
 }
 
-export function resolveCvSections(sectionIds) {
-  return sectionIds.map((id) => getCvSection(id))
+export function resolveCvSections(sectionIds, customSections = {}) {
+  return sectionIds.map((id) => getCvSection(id, customSections))
 }
 
 export function getSectionEditorProps(section, {
@@ -177,13 +208,38 @@ export function getSectionEditorProps(section, {
   stepNumber,
   sectionConfig,
   fieldVisibility,
+  onMoveUp,
+  onMoveDown,
+  onDelete,
+  canMoveUp,
+  canMoveDown,
 }) {
   const rawValue = section.getValue(content)
   const value = rawValue == null && section.createDefault
     ? section.createDefault()
     : rawValue
-  const onChange = (next) => onContentChange({ [section.id]: next })
+
+  const onChange = (next) => {
+    if (section.isCustom) {
+      const patched = section.setValue(content, next)
+      onContentChange({ customSections: patched.customSections })
+      return
+    }
+    onContentChange({ [section.id]: next })
+  }
+
   const base = { value, onChange, t, stepNumber }
+
+  if (section.isCustom) {
+    return {
+      ...base,
+      onMoveUp,
+      onMoveDown,
+      onDelete,
+      canMoveUp,
+      canMoveDown,
+    }
+  }
 
   if (section.id === 'personal') {
     return { ...base, fieldVisibility }
@@ -203,10 +259,14 @@ export function getSectionEditorProps(section, {
 /**
  * Empty default for a single section, preserving skills mode and personal email.
  * @param {string} sectionId
- * @param {{ email?: string, skillsMode?: 'categories' | 'rated' }} [options]
+ * @param {{ email?: string, skillsMode?: 'categories' | 'rated', customSections?: object }} [options]
  */
-export function createSectionDefault(sectionId, { email = '', skillsMode } = {}) {
-  const section = getCvSection(sectionId)
+export function createSectionDefault(sectionId, { email = '', skillsMode, customSections } = {}) {
+  if (isCustomSectionId(sectionId)) {
+    return createEmptyCustomSection(sectionId)
+  }
+
+  const section = getCvSection(sectionId, customSections)
 
   if (sectionId === 'personal') {
     return section.createDefault(email)

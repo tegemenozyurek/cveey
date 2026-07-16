@@ -5,9 +5,11 @@ export default function CvSectionStepper({
   currentSectionId,
   currentSectionIndex = 0,
   onSelect,
+  onAddCategory,
   t,
   prevLabel,
   nextLabel,
+  addCategoryLabel,
 }) {
   const trackRef = useRef(null)
   const itemRefs = useRef(new Map())
@@ -121,13 +123,29 @@ export default function CvSectionStepper({
                     <span className="create-cv-stepper-num">
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <span className="create-cv-stepper-label">{t(section.navKey)}</span>
+                    <span className="create-cv-stepper-label">
+                      {section.navLabel || (section.navKey ? t(section.navKey) : t('createCv.custom.fallbackTitle'))}
+                    </span>
                   </button>
                 </div>
               )
             })}
           </div>
         </div>
+
+        {onAddCategory && (
+          <button
+            type="button"
+            className="create-cv-stepper-add"
+            onClick={onAddCategory}
+            aria-label={addCategoryLabel || t('createCv.custom.add')}
+          >
+            <span className="create-cv-stepper-add-icon" aria-hidden="true">+</span>
+            <span className="create-cv-stepper-add-label">
+              {addCategoryLabel || t('createCv.custom.add')}
+            </span>
+          </button>
+        )}
 
         <button
           type="button"

@@ -9,7 +9,11 @@ import {
   createSectionDefault,
   getSectionEditorProps,
 } from '../createCv/sections/registry'
-import { createEmptyCvDocument, prefillEmail } from '../createCv/cvDocument'
+import {
+  createEmptyCvDocument,
+  isCustomSectionId,
+  prefillEmail,
+} from '../createCv/cvDocument'
 import { loadCvDraft, saveCvDraft } from '../createCv/draftStorage'
 import { buildCvPdfFileName } from '../createCv/exportCvPdf'
 import { useAuth } from '../context/AuthContext'
@@ -24,6 +28,7 @@ export default function CreateCV() {
   const [downloadStatus, setDownloadStatus] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
   const [resetTarget, setResetTarget] = useState(null)
+  const [deleteCustomId, setDeleteCustomId] = useState(null)
   const loadedDraftUserRef = useRef(null)
   const pendingStatusRef = useRef('')
   const previewRef = useRef(null)
@@ -43,6 +48,11 @@ export default function CreateCV() {
     goNext,
     goPrev,
     prefillUserEmail,
+    addCustomSection,
+    moveCustomSection,
+    removeCustomSection,
+    canMoveCustomUp,
+    canMoveCustomDown,
   } = useCvBuilder()
 
   useEffect(() => {
@@ -93,7 +103,10 @@ export default function CreateCV() {
 
   const activeSection = sections.find((section) => section.id === currentSectionId)
   const SectionEditor = activeSection?.Editor
-  const activeSectionLabel = activeSection ? t(activeSection.navKey) : ''
+  const activeSectionLabel = activeSection
+    ? (activeSection.navLabel
+      || (activeSection.navKey ? t(activeSection.navKey) : t('createCv.custom.fallbackTitle')))
+    : ''
 
   const handleTemplateConfirm = (templateId) => {
     selectTemplate(templateId)
@@ -137,9 +150,19 @@ export default function CreateCV() {
       const empty = createSectionDefault(currentSectionId, {
         email: user.email || '',
         skillsMode: document.content.skills?.mode ?? template.sectionConfig?.skills?.mode,
+        customSections: document.content.customSections,
       })
       pendingStatusRef.current = t('createCv.resetCurrentDone')
-      updateContent({ [currentSectionId]: empty })
+      if (isCustomSectionId(currentSectionId)) {
+        updateContent({
+          customSections: {
+            ...(document.content.customSections || {}),
+            [currentSectionId]: empty,
+          },
+        })
+      } else {
+        updateContent({ [currentSectionId]: empty })
+      }
     }
 
     if (resetTarget === 'all') {
@@ -154,6 +177,29 @@ export default function CreateCV() {
 
     setResetTarget(null)
   }
+
+  const handleConfirmDeleteCustom = () => {
+    if (!deleteCustomId) return
+    pendingStatusRef.current = t('createCv.custom.deleted')
+    removeCustomSection(deleteCustomId)
+    setDeleteCustomId(null)
+  }
+
+  const editorProps = activeSection
+    ? getSectionEditorProps(activeSection, {
+      content: document.content,
+      onContentChange: updateContent,
+      t,
+      stepNumber: String(currentSectionIndex + 1).padStart(2, '0'),
+      sectionConfig: template.sectionConfig,
+      fieldVisibility,
+      onMoveUp: () => moveCustomSection(currentSectionId, 'up'),
+      onMoveDown: () => moveCustomSection(currentSectionId, 'down'),
+      onDelete: () => setDeleteCustomId(currentSectionId),
+      canMoveUp: canMoveCustomUp(currentSectionId),
+      canMoveDown: canMoveCustomDown(currentSectionId),
+    })
+    : null
 
   return (
     <main className={`main create-cv-main${showTemplateOverlay ? ' create-cv-main--picker-open' : ''}`}>
@@ -187,6 +233,16 @@ export default function CreateCV() {
         />
       )}
 
+      {deleteCustomId && (
+        <ConfirmResetCvModal
+          title={t('createCv.custom.deleteTitle')}
+          message={t('createCv.custom.deleteMessage')}
+          confirmLabel={t('createCv.custom.deleteConfirm')}
+          onConfirm={handleConfirmDeleteCustom}
+          onCancel={() => setDeleteCustomId(null)}
+        />
+      )}
+
       <div
         className={`create-cv-page-content${showTemplateOverlay ? ' create-cv-page-content--hidden' : ' create-cv-page-content--visible'}`}
         aria-hidden={showTemplateOverlay}
@@ -212,25 +268,18 @@ export default function CreateCV() {
           currentSectionId={currentSectionId}
           currentSectionIndex={currentSectionIndex}
           onSelect={setActiveSectionId}
+          onAddCategory={addCustomSection}
           t={t}
           prevLabel={t('createCv.prev')}
           nextLabel={t('createCv.next')}
+          addCategoryLabel={t('createCv.custom.add')}
         />
 
         <div className="create-cv-workspace">
           <div className="create-cv-editor">
             <form className="create-cv-panel" onSubmit={handleSectionSubmit}>
-              {SectionEditor && activeSection && (
-                <SectionEditor
-                  {...getSectionEditorProps(activeSection, {
-                    content: document.content,
-                    onContentChange: updateContent,
-                    t,
-                    stepNumber: String(currentSectionIndex + 1).padStart(2, '0'),
-                    sectionConfig: template.sectionConfig,
-                    fieldVisibility,
-                  })}
-                />
+              {SectionEditor && editorProps && (
+                <SectionEditor {...editorProps} />
               )}
 
               <div className="create-cv-actions">

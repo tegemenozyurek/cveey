@@ -6,12 +6,16 @@ export {
   createEmptyCvContent,
   createEmptyCvDocument,
   createEmptyPersonalInfo,
+  createEmptyCustomSection,
+  createCustomSectionId,
+  isCustomSectionId,
   normalizeCvContent,
   normalizeCvDocument,
   updateCvContent,
   setCvTemplate,
 } from './cvDocument'
 export { VISIBILITY, CV_ALL_SECTION_IDS, resolveActiveSectionIds, resolvePersonalFieldVisibility } from './fieldVisibility'
+export { normalizeSectionOrder, withNormalizedSectionOrder } from './sectionOrder'
 export { useCvBuilder } from './hooks/useCvBuilder'
 export { CV_SECTION_REGISTRY, resolveCvSections } from './sections/registry'
 export { CV_TEMPLATE_LIST, CV_TEMPLATE_REGISTRY, getCvTemplate } from './templates/registry'
