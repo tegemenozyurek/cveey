@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useResume } from '../context/ResumeContext'
 import UserAvatar from '../components/UserAvatar'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
@@ -29,6 +30,20 @@ const MOCK_MY_NETWORK = [
     location: 'Stockholm, SE',
     photoURL: null,
   },
+]
+
+const PROFILE_INFO_FIELDS = [
+  { key: 'fullName', labelKey: 'profile.fullName' },
+  { key: 'gender', labelKey: 'profile.gender' },
+  { key: 'birthday', labelKey: 'profile.birthday' },
+  { key: 'bio', labelKey: 'profile.bio', multiline: true },
+  { key: 'profession', labelKey: 'profile.profession' },
+  { key: 'education', labelKey: 'profile.education' },
+  { key: 'department', labelKey: 'profile.department' },
+  { key: 'graduationDate', labelKey: 'profile.graduationDate' },
+  { key: 'experiences', labelKey: 'profile.experiences', list: true },
+  { key: 'skills', labelKey: 'profile.skills', list: true },
+  { key: 'languages', labelKey: 'profile.languages', list: true },
 ]
 
 function authMethodLabel(method, t) {
@@ -135,10 +150,169 @@ function PersonRow({ person, actionLabel, iconOnly = false }) {
   )
 }
 
+function ProfileField({ label, value, multiline = false, list = false, emptyLabel }) {
+  const isEmptyList = list && (!Array.isArray(value) || value.length === 0)
+  const isEmptyText = !list && (value == null || String(value).trim() === '')
+
+  return (
+    <div className="profile-info-field">
+      <p className="profile-info-label">{label}</p>
+      {list ? (
+        isEmptyList ? (
+          <p className="profile-info-value profile-info-value--empty">{emptyLabel}</p>
+        ) : (
+          <ul className="profile-info-list">
+            {value.map((item) => (
+              <li key={item} className="profile-info-list-item">
+                {item}
+              </li>
+            ))}
+          </ul>
+        )
+      ) : (
+        <p
+          className={`profile-info-value${isEmptyText ? ' profile-info-value--empty' : ''}${
+            multiline ? ' profile-info-value--multiline' : ''
+          }`}
+        >
+          {isEmptyText ? emptyLabel : value}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function ActiveCvPanel({ t }) {
+  const navigate = useNavigate()
+  const { activeCv, activePreviewUrl, activePreviewLoading, loading } = useResume()
+  const [iframeLoaded, setIframeLoaded] = useState(false)
+  const [cvHidden, setCvHidden] = useState(false)
+
+  useEffect(() => {
+    setIframeLoaded(false)
+  }, [activePreviewUrl, activeCv?.id])
+
+  function handlePreview() {
+    if (!activePreviewUrl) return
+    window.open(activePreviewUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  if (loading) {
+    return (
+      <section className="profile-cv-panel" aria-labelledby="profile-active-cv-heading">
+        <h2 id="profile-active-cv-heading" className="profile-cv-title">
+          {t('profile.activeCv')}
+        </h2>
+        <div className="profile-cv-preview">
+          <div className="profile-cv-preview-status">
+            <span className="cv-preview-spinner" aria-hidden="true" />
+            <p>{t('myCv.previewLoading')}</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (!activeCv) {
+    return (
+      <section className="profile-cv-panel" aria-labelledby="profile-active-cv-heading">
+        <h2 id="profile-active-cv-heading" className="profile-cv-title">
+          {t('profile.activeCv')}
+        </h2>
+        <div className="profile-cv-empty">
+          <p className="profile-cv-empty-title">{t('profile.cvEmpty')}</p>
+          <p className="profile-cv-empty-hint">{t('profile.cvEmptyHint')}</p>
+          <Link to="/my-cv" className="profile-cv-action profile-cv-action--primary">
+            {t('profile.goToMyCv')}
+          </Link>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="profile-cv-panel" aria-labelledby="profile-active-cv-heading">
+      <h2 id="profile-active-cv-heading" className="profile-cv-title">
+        {t('profile.activeCv')}
+      </h2>
+
+      <div className="profile-cv-preview">
+        {cvHidden ? (
+          <div className="profile-cv-preview-status">
+            <p>{t('profile.cvHidden')}</p>
+          </div>
+        ) : (
+          <>
+            {(activePreviewLoading || (activePreviewUrl && !iframeLoaded)) && (
+              <div className="profile-cv-preview-status" aria-live="polite">
+                <span className="cv-preview-spinner" aria-hidden="true" />
+                <p>{t('myCv.previewLoading')}</p>
+              </div>
+            )}
+
+            {activePreviewUrl ? (
+              <iframe
+                key={activeCv.id || activeCv.fullPath}
+                src={`${activePreviewUrl}#toolbar=0&navpanes=0`}
+                title={activeCv.displayName || t('profile.activeCv')}
+                className={`profile-cv-preview-frame${iframeLoaded ? ' profile-cv-preview-frame--ready' : ''}`}
+                onLoad={() => setIframeLoaded(true)}
+              />
+            ) : !activePreviewLoading ? (
+              <div className="profile-cv-preview-status">
+                <p>{t('myCv.previewError')}</p>
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
+
+      <div className="profile-cv-actions">
+        <button
+          type="button"
+          className="profile-cv-action"
+          onClick={handlePreview}
+          disabled={cvHidden || !activePreviewUrl}
+        >
+          {t('profile.cvPreview')}
+        </button>
+        <button
+          type="button"
+          className="profile-cv-action"
+          onClick={() => navigate('/my-cv')}
+        >
+          {t('profile.cvChange')}
+        </button>
+        <button
+          type="button"
+          className="profile-cv-action"
+          onClick={() => setCvHidden((v) => !v)}
+        >
+          {cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
+        </button>
+      </div>
+    </section>
+  )
+}
+
 export default function Profile() {
   const { user, authLoading, setShowLogoutConfirm } = useAuth()
   const { t } = useLanguage()
   const [panel, setPanel] = useState(null)
+
+  const profileInfo = {
+    fullName: user?.displayName || '',
+    gender: '',
+    birthday: '',
+    bio: '',
+    profession: '',
+    education: '',
+    department: '',
+    graduationDate: '',
+    experiences: [],
+    skills: [],
+    languages: [],
+  }
 
   function togglePanel(next) {
     setPanel((current) => (current === next ? null : next))
@@ -282,6 +456,23 @@ export default function Profile() {
             </div>
           </>
         ) : null}
+      </div>
+
+      <div className="profile-page-main">
+        <section className="profile-info-panel" aria-label={t('profile.title')}>
+          {PROFILE_INFO_FIELDS.map((field) => (
+            <ProfileField
+              key={field.key}
+              label={t(field.labelKey)}
+              value={profileInfo[field.key]}
+              multiline={field.multiline}
+              list={field.list}
+              emptyLabel={t('profile.empty')}
+            />
+          ))}
+        </section>
+
+        <ActiveCvPanel t={t} />
       </div>
     </main>
   )
