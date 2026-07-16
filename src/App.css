@@ -7008,6 +7008,23 @@
   border-color: color-mix(in srgb, var(--accent-cyan) 70%, var(--glass-border));
 }
 
+.network-connect-btn--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-color: transparent;
+  color: var(--text-muted);
+}
+
+.network-connect-btn--icon:hover {
+  color: var(--text);
+  border-color: transparent;
+  background: var(--glass-hover);
+}
+
 .network-empty {
   margin: 0;
   padding: 28px 18px;
@@ -7058,5 +7075,9 @@
 
   .network-connect-btn {
     width: 100%;
+  }
+
+  .network-connect-btn--icon {
+    width: 40px;
   }
 }
