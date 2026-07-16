@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -7,6 +7,7 @@ import UserAvatar from '../components/UserAvatar'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import { resolveAuthMethod } from '../authUtils'
+import { getUserProfile } from '../userService'
 
 const MOCK_MY_NETWORK = [
   {
@@ -141,6 +142,53 @@ function PersonRow({ person, actionLabel, iconOnly = false }) {
   )
 }
 
+function ProfileAboutSection({ t, homeCity, preferredWorkCities, loading }) {
+  const workCities = preferredWorkCities.length > 0 ? preferredWorkCities : []
+  const homeLabel = loading ? '…' : homeCity || t('profile.locationEmpty')
+
+  return (
+    <section className="profile-about" aria-label={t('profile.sectionAbout')}>
+      <div className="profile-about-side">
+        <div className="profile-about-block">
+          <p className="profile-about-kicker">{t('profile.bachelor')}</p>
+          <p className="profile-about-lead">{t('profile.bachelorMock')}</p>
+        </div>
+
+        <div className="profile-about-block">
+          <div className="profile-about-loc">
+            <p className="profile-about-kicker">{t('profile.homeCity')}</p>
+            <p
+              className={`profile-about-loc-home${!homeCity && !loading ? ' profile-about-loc-home--muted' : ''}`}
+            >
+              {homeLabel}
+            </p>
+          </div>
+
+          <div className="profile-about-loc">
+            <p className="profile-about-kicker">{t('profile.workCities')}</p>
+            {loading ? (
+              <p className="profile-about-loc-home">…</p>
+            ) : workCities.length > 0 ? (
+              <p className="profile-about-loc-list">
+                {workCities.join(' · ')}
+              </p>
+            ) : (
+              <p className="profile-about-loc-home profile-about-loc-home--muted">
+                {t('profile.locationEmpty')}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="profile-about-main">
+        <span className="profile-about-kicker">{t('profile.summary')}</span>
+        <p className="profile-about-bio">{t('profile.summaryMock')}</p>
+      </div>
+    </section>
+  )
+}
+
 function ActiveCvPanel({ t }) {
   const navigate = useNavigate()
   const { activeCv, activePreviewUrl, loading } = useResume()
@@ -208,13 +256,16 @@ function ActiveCvPanel({ t }) {
 
       <div className="profile-cv-post-body">
         <div className="profile-cv-post-content">
-          <div className="profile-cv-title-row">
-            <h2 id="profile-active-cv-heading" className="profile-cv-heading">
-              {activeCv ? stripPdfExtension(activeCv.displayName) : t('profile.cvEmpty')}
-            </h2>
-            {activeCv ? <span className="profile-cv-badge">{t('profile.activeCv')}</span> : null}
-          </div>
+          <span className="profile-cv-label">{t('profile.activeCv')}</span>
+          <h2 id="profile-active-cv-heading" className="profile-cv-heading">
+            {activeCv ? stripPdfExtension(activeCv.displayName) : t('profile.cvEmpty')}
+          </h2>
           <p className="profile-cv-caption">{t('profile.activeCvIntro')}</p>
+          {!activeCv && !loading ? (
+            <Link to="/my-cv" className="profile-cv-inline-link">
+              {t('profile.goToMyCv')}
+            </Link>
+          ) : null}
         </div>
 
         {activeCv ? (
@@ -238,12 +289,6 @@ function ActiveCvPanel({ t }) {
               {cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
             </button>
           </div>
-        ) : !loading ? (
-          <div className="profile-cv-actions">
-            <Link to="/my-cv" className="profile-cv-action profile-cv-action--solo">
-              {t('profile.goToMyCv')}
-            </Link>
-          </div>
         ) : null}
       </div>
     </section>
@@ -254,6 +299,42 @@ export default function Profile() {
   const { user, authLoading, setShowLogoutConfirm } = useAuth()
   const { t } = useLanguage()
   const [panel, setPanel] = useState(null)
+  const [homeCity, setHomeCity] = useState('')
+  const [preferredWorkCities, setPreferredWorkCities] = useState([])
+  const [profileDataLoading, setProfileDataLoading] = useState(true)
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setHomeCity('')
+      setPreferredWorkCities([])
+      setProfileDataLoading(false)
+      return undefined
+    }
+
+    let cancelled = false
+    setProfileDataLoading(true)
+
+    getUserProfile(user.uid)
+      .then((data) => {
+        if (cancelled) return
+        setHomeCity(data.homeCity)
+        setPreferredWorkCities(data.preferredWorkCities)
+      })
+      .catch((err) => {
+        console.error('Profile load failed:', err)
+        if (!cancelled) {
+          setHomeCity('')
+          setPreferredWorkCities([])
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setProfileDataLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [user?.uid])
 
   function togglePanel(next) {
     setPanel((current) => (current === next ? null : next))
@@ -392,6 +473,12 @@ export default function Profile() {
         </header>
 
         <div className="profile-page-main">
+          <ProfileAboutSection
+            t={t}
+            homeCity={homeCity}
+            preferredWorkCities={preferredWorkCities}
+            loading={profileDataLoading}
+          />
           <ActiveCvPanel t={t} />
         </div>
       </div>

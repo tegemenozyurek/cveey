@@ -53,6 +53,24 @@ export async function saveUserLocation(userId, { homeCity, preferredWorkCities }
   })
 }
 
+export async function getUserProfile(userId) {
+  const snap = await getDoc(doc(db, 'users', userId))
+  if (!snap.exists()) {
+    return {
+      homeCity: '',
+      preferredWorkCities: [],
+    }
+  }
+
+  const data = snap.data()
+  return {
+    homeCity: typeof data.homeCity === 'string' ? data.homeCity : '',
+    preferredWorkCities: Array.isArray(data.preferredWorkCities)
+      ? data.preferredWorkCities.filter((city) => typeof city === 'string' && city.trim())
+      : [],
+  }
+}
+
 export async function syncUserToFirestore(user) {
   return withFirestoreAuthRetry(user, async () => {
     const userRef = doc(db, 'users', user.uid)
