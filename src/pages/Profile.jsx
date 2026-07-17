@@ -510,6 +510,7 @@ function EducationList({ t, educations, onSaveEducations }) {
   const [managing, setManaging] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [editItems, setEditItems] = useState([])
+  const [activeEditId, setActiveEditId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const editorRefs = useRef(new Map())
@@ -542,6 +543,7 @@ function EducationList({ t, educations, onSaveEducations }) {
   function startManaging() {
     setError('')
     setEditItems(items)
+    setActiveEditId(items[0]?.id || null)
     editorRefs.current.clear()
     setManaging(true)
   }
@@ -549,17 +551,43 @@ function EducationList({ t, educations, onSaveEducations }) {
   function cancelManaging() {
     setError('')
     setEditItems([])
+    setActiveEditId(null)
     editorRefs.current.clear()
     setManaging(false)
   }
 
+  function selectEditItem(nextId) {
+    if (nextId === activeEditId) return
+    const currentValue = editorRefs.current.get(activeEditId)?.getValue()
+    if (!currentValue) return
+
+    setEditItems((current) =>
+      current.map((item) => (item.id === activeEditId ? currentValue : item)),
+    )
+    editorRefs.current.clear()
+    setActiveEditId(nextId)
+  }
+
+  function removeEditedItem(id) {
+    const remaining = editItems.filter((item) => item.id !== id)
+    setEditItems(remaining)
+    editorRefs.current.clear()
+    setActiveEditId(remaining[0]?.id || null)
+  }
+
   async function saveManagedItems() {
-    const nextItems = editItems.map((item) => editorRefs.current.get(item.id)?.getValue())
-    if (nextItems.some((item) => !item)) return
+    const activeValue = activeEditId
+      ? editorRefs.current.get(activeEditId)?.getValue()
+      : null
+    if (activeEditId && !activeValue) return
+    const nextItems = editItems.map((item) =>
+      item.id === activeEditId ? activeValue : item,
+    )
 
     try {
       await persist(nextItems)
       setEditItems([])
+      setActiveEditId(null)
       editorRefs.current.clear()
       setManaging(false)
     } catch {
@@ -620,27 +648,46 @@ function EducationList({ t, educations, onSaveEducations }) {
         <>
           <ul className="profile-edu-items profile-edu-items--editing">
             {editItems.map((item, index) => (
-              <li key={item.id} className="profile-edu-item profile-edu-item--editing">
-                <EducationEditorForm
-                  ref={(editor) => {
-                    if (editor) editorRefs.current.set(item.id, editor)
-                    else editorRefs.current.delete(item.id)
-                  }}
-                  t={t}
-                  initial={item}
-                  idPrefix={`profile-edu-${index}`}
-                  saving={saving}
-                  error=""
-                  showActions={false}
-                />
-                <button
-                  type="button"
-                  className="profile-edu-delete-link"
-                  onClick={() => setEditItems((current) => current.filter((entry) => entry.id !== item.id))}
-                  disabled={saving}
-                >
-                  {t('profile.removeEducation')}
-                </button>
+              <li
+                key={item.id}
+                className={`profile-edu-item profile-edu-item--editing${
+                  activeEditId === item.id ? ' profile-edu-item--active-edit' : ''
+                }`}
+              >
+                {activeEditId === item.id ? (
+                  <>
+                    <EducationEditorForm
+                      ref={(editor) => {
+                        if (editor) editorRefs.current.set(item.id, editor)
+                        else editorRefs.current.delete(item.id)
+                      }}
+                      t={t}
+                      initial={item}
+                      idPrefix={`profile-edu-${index}`}
+                      saving={saving}
+                      error=""
+                      showActions={false}
+                    />
+                    <button
+                      type="button"
+                      className="profile-edu-delete-link"
+                      onClick={() => removeEditedItem(item.id)}
+                      disabled={saving}
+                    >
+                      {t('profile.removeEducation')}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="profile-edu-edit-choice"
+                    onClick={() => selectEditItem(item.id)}
+                    disabled={saving}
+                  >
+                    <span>{degreeTypeLabel(t, item)} · {item.program}</span>
+                    <span>{item.university}</span>
+                  </button>
+                )}
               </li>
             ))}
           </ul>

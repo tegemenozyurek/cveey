@@ -1431,17 +1431,57 @@
 }
 
 .profile-edu-items--editing {
-  gap: 20px;
+  gap: 12px;
 }
 
 .profile-edu-item--editing {
-  padding-bottom: 20px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--glass-border);
+}
+
+.profile-edu-item--active-edit {
+  padding-bottom: 16px;
 }
 
 .profile-edu-item--editing:last-child {
   padding-bottom: 0;
   border-bottom: 0;
+}
+
+.profile-edu-edit-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  gap: 3px;
+  padding: 9px 10px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--glass) 55%, transparent);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-edu-edit-choice span:first-child {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.profile-edu-edit-choice span:last-child {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.profile-edu-edit-choice:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent-cyan) 38%, transparent);
+  background: color-mix(in srgb, var(--accent-cyan) 7%, transparent);
+}
+
+.profile-edu-edit-choice:disabled {
+  cursor: wait;
+  opacity: 0.58;
 }
 
 .profile-edu-delete-link {
