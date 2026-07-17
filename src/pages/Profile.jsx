@@ -158,34 +158,35 @@ function EditableProfileField({
   t,
   label,
   value,
-  fallback,
+  addLabel,
   multiline = false,
   maxLength,
   valueClassName,
   onSave,
 }) {
+  const hasValue = Boolean(value?.trim())
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(value || fallback)
+  const [draft, setDraft] = useState(value || '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const fieldRef = useRef(null)
 
   useEffect(() => {
-    if (!editing) setDraft(value || fallback)
-  }, [editing, fallback, value])
+    if (!editing) setDraft(value || '')
+  }, [editing, value])
 
   useEffect(() => {
     if (editing) fieldRef.current?.focus()
   }, [editing])
 
   function startEditing() {
-    setDraft(value || fallback)
+    setDraft(value || '')
     setError('')
     setEditing(true)
   }
 
   function cancelEditing() {
-    setDraft(value || fallback)
+    setDraft(value || '')
     setError('')
     setEditing(false)
   }
@@ -229,6 +230,14 @@ function EditableProfileField({
     'aria-label': label,
   }
 
+  if (!hasValue && !editing) {
+    return (
+      <button type="button" className="profile-about-add-btn" onClick={startEditing}>
+        {addLabel}
+      </button>
+    )
+  }
+
   return (
     <>
       <div className="profile-about-field-head">
@@ -260,7 +269,7 @@ function EditableProfileField({
           {error ? <p className="profile-about-edit-error" role="alert">{error}</p> : null}
         </div>
       ) : (
-        <p className={valueClassName}>{value || fallback}</p>
+        <p className={valueClassName}>{value}</p>
       )}
     </>
   )
@@ -304,17 +313,19 @@ function ProfileAboutSection({
     <section className="profile-about" aria-label={t('profile.sectionAbout')}>
       <div className="profile-about-side">
         <div className="profile-about-degree">
-          <EditableProfileField
-            t={t}
-            label={t('profile.bachelor')}
-            value={bachelor}
-            fallback={t('profile.bachelorMock')}
-            maxLength={120}
-            valueClassName="profile-about-lead"
-            onSave={onSaveBachelor}
-          />
-          <p className="profile-about-kicker profile-about-kicker--follow">{t('profile.position')}</p>
-          <p className="profile-about-position">{t('profile.positionMock')}</p>
+          {loading ? (
+            <p className="profile-about-loc-empty">…</p>
+          ) : (
+            <EditableProfileField
+              t={t}
+              label={t('profile.bachelor')}
+              value={bachelor}
+              addLabel={t('profile.addEducation')}
+              maxLength={120}
+              valueClassName="profile-about-lead"
+              onSave={onSaveBachelor}
+            />
+          )}
         </div>
 
         {workCities.length > 0 || loading ? (
@@ -337,16 +348,20 @@ function ProfileAboutSection({
       </div>
 
       <div className="profile-about-main">
-        <EditableProfileField
-          t={t}
-          label={t('profile.summary')}
-          value={summary}
-          fallback={t('profile.summaryMock')}
-          multiline
-          maxLength={1200}
-          valueClassName="profile-about-bio"
-          onSave={onSaveSummary}
-        />
+        {loading ? (
+          <p className="profile-about-loc-empty">…</p>
+        ) : (
+          <EditableProfileField
+            t={t}
+            label={t('profile.summary')}
+            value={summary}
+            addLabel={t('profile.addSummary')}
+            multiline
+            maxLength={1200}
+            valueClassName="profile-about-bio"
+            onSave={onSaveSummary}
+          />
+        )}
       </div>
     </section>
   )
@@ -533,8 +548,7 @@ export default function Profile() {
     return <Navigate to="/" replace />
   }
 
-  const displayName =
-    user.displayName || username || user.email?.split('@')[0] || t('profile.untitled')
+  const profileUsername = username || user.email?.split('@')[0] || t('profile.untitled')
 
   return (
     <main className="main profile-page">
@@ -546,11 +560,7 @@ export default function Profile() {
               <UserAvatar user={user} className="profile-page-avatar" />
             </div>
             <div className="profile-hero-text">
-              <p className="profile-hero-name">{displayName}</p>
-              {username ? (
-                <p className="profile-hero-username">@{username}</p>
-              ) : null}
-              <p className="profile-hero-email">{user.email}</p>
+              <p className="profile-hero-name">@{profileUsername}</p>
             </div>
             <p
               className={`profile-hero-city${!homeCity && !profileDataLoading ? ' profile-hero-city--muted' : ''}`}
