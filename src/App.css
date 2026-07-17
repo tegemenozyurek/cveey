@@ -1339,7 +1339,7 @@
 .profile-about-edit-actions button:last-child {
   border-color: transparent;
   background: linear-gradient(135deg, #22d3ee 0%, #a78bfa 100%);
-  color: #07111f;
+  color: #fff;
   box-shadow: 0 8px 22px rgba(34, 211, 238, 0.16);
 }
 
