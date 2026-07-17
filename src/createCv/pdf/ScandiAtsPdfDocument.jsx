@@ -7,6 +7,7 @@ import {
   linkLabel,
   nonEmptyLines,
 } from './helpers'
+import { formatPhoneForDisplay } from '../../utils/phoneFormat'
 import { PDF_TOKENS as T, mm } from './tokens'
 
 const styles = StyleSheet.create({
@@ -168,7 +169,7 @@ function PersonalHeader({ personal, t, fieldVisibility }) {
 
   const contact = [
     vis('email') && personal.email?.trim(),
-    vis('phone') && personal.phone?.trim(),
+    vis('phone') && formatPhoneForDisplay(personal.phone),
     vis('location') && personal.location?.trim(),
   ].filter(Boolean)
 
@@ -557,7 +558,7 @@ function renderSection(sectionId, { content, t, fieldVisibility }) {
                     item.relationship?.trim(),
                     item.company?.trim(),
                     item.email?.trim(),
-                    item.phone?.trim(),
+                    formatPhoneForDisplay(item.phone),
                   ].filter(Boolean).join(' · ')}
                 </Text>
               </View>

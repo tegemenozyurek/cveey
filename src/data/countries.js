@@ -250,6 +250,23 @@ export const COUNTRIES = [
   { code: 'ZW', dial: '+263', nameEn: 'Zimbabwe', nameTr: 'Zimbabve' },
 ]
 
+function dialSortKey(dial) {
+  return Number(String(dial || '').replace(/\D/g, '')) || 0
+}
+
+/** Phone dial menu: Türkiye first, then +1, +20, +33… by numeric dial code. */
+export const COUNTRIES_BY_DIAL = (() => {
+  const turkey = COUNTRIES.find((item) => item.code === 'TR')
+  const rest = COUNTRIES
+    .filter((item) => item.code !== 'TR')
+    .sort((a, b) => {
+      const byDial = dialSortKey(a.dial) - dialSortKey(b.dial)
+      if (byDial !== 0) return byDial
+      return a.nameEn.localeCompare(b.nameEn)
+    })
+  return turkey ? [turkey, ...rest] : rest
+})()
+
 export function getCountryName(country, lang = 'en') {
   if (!country) return ''
   return lang === 'tr' ? country.nameTr : country.nameEn

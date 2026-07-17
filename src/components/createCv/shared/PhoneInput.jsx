@@ -2,13 +2,18 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 're
 import { createPortal } from 'react-dom'
 import { useLanguage } from '../../../context/LanguageContext'
 import {
-  COUNTRIES,
+  COUNTRIES_BY_DIAL,
   findCountryByCode,
-  formatPhoneValue,
   getCountryName,
   getFlagUrl,
-  parsePhoneValue,
 } from '../../../data/countries'
+import {
+  buildInternationalPhone,
+  formatPhoneForDisplay,
+  getPhoneNationalPlaceholder,
+  parsePhoneForInput,
+  reformatPhoneForCountry,
+} from '../../../utils/phoneFormat'
 
 function FlagImg({ code, className }) {
   if (!code) return null
@@ -63,25 +68,33 @@ export default function PhoneInput({
   const menuRef = useRef(null)
   const searchRef = useRef(null)
 
-  const parsed = parsePhoneValue(value)
-  const [countryCode, setCountryCode] = useState(parsed.countryCode || 'TR')
+  const initial = parsePhoneForInput(value, 'TR')
+  const [countryCode, setCountryCode] = useState(initial.countryCode || 'TR')
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [menuStyle, setMenuStyle] = useState(null)
 
   const selected = findCountryByCode(countryCode) || findCountryByCode('TR')
-  const dial = selected?.dial || parsed.dial
+  const dial = selected?.dial || '+90'
+  const parsed = parsePhoneForInput(value, countryCode)
   const national = parsed.national
 
   useEffect(() => {
-    const next = parsePhoneValue(value)
-    if (next.countryCode) setCountryCode(next.countryCode)
-  }, [value])
+    const raw = String(value || '').trim()
+    if (!raw) return
+    // Keep the user's ISO pick when dial codes collide (e.g. +1 US/CA).
+    const selectedDial = findCountryByCode(countryCode)?.dial
+    if (selectedDial && raw.startsWith(selectedDial)) return
+    const next = parsePhoneForInput(raw, countryCode)
+    if (next.countryCode && next.countryCode !== countryCode) {
+      setCountryCode(next.countryCode)
+    }
+  }, [value, countryCode])
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
-    if (!needle) return COUNTRIES
-    return COUNTRIES.filter((country) => {
+    if (!needle) return COUNTRIES_BY_DIAL
+    return COUNTRIES_BY_DIAL.filter((country) => {
       const name = getCountryName(country, lang).toLowerCase()
       return (
         name.includes(needle)
@@ -142,13 +155,20 @@ export default function PhoneInput({
 
   const setCountry = (country) => {
     setCountryCode(country.code)
-    onChange(formatPhoneValue(country.dial, national))
+    const next = value?.trim()
+      ? reformatPhoneForCountry(value, country.code)
+      : ''
+    onChange(next)
     closeMenu()
   }
 
   const setNational = (nextNational) => {
-    onChange(formatPhoneValue(dial, nextNational))
+    onChange(buildInternationalPhone(countryCode, nextNational))
   }
+
+  const nationalPlaceholder = placeholder
+    || getPhoneNationalPlaceholder(countryCode)
+    || t('createCv.phoneNationalPlaceholder')
 
   const menu = open && menuStyle && createPortal(
     <div
@@ -227,7 +247,8 @@ export default function PhoneInput({
         value={national}
         disabled={disabled}
         required={required}
-        placeholder={placeholder || t('createCv.phoneNationalPlaceholder')}
+        placeholder={nationalPlaceholder}
+        title={value ? formatPhoneForDisplay(value, countryCode) : undefined}
         onChange={(e) => setNational(e.target.value)}
       />
     </div>

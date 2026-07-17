@@ -109,7 +109,10 @@ function buildCalendarDays(viewMonth) {
   for (let day = 1; day <= daysInMonth; day += 1) {
     cells.push(new Date(first.getFullYear(), first.getMonth(), day))
   }
-  while (cells.length % 7 !== 0) cells.push(null)
+  // Always render six calendar rows. Months normally need four, five, or six
+  // rows; padding to 42 cells prevents the popover height from jumping while
+  // navigating between months.
+  while (cells.length < 42) cells.push(null)
   return cells
 }
 
