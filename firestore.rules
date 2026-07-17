@@ -6,7 +6,7 @@ rules_version = '2';
 //
 // users/{userId}
 //   uid, email, createdAt, lastLoginAt, authMethod, activeFileId?,
-//   homeCity?, preferredWorkCities?, locationSetupComplete?
+//   homeCity?, preferredWorkCities?, locationSetupComplete?, bachelor?, summary?
 //
 // users/{userId}/files/{fileId}
 //   displayName: string
@@ -62,10 +62,16 @@ service cloud.firestore {
         cities.size() <= 10;
     }
 
+    function isValidProfileText(value, maxLength) {
+      return value is string &&
+        value.size() > 0 &&
+        value.size() <= maxLength;
+    }
+
     function isValidUser(data) {
       return data.keys().hasOnly([
           'uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod', 'activeFileId',
-          'homeCity', 'preferredWorkCities', 'locationSetupComplete'
+          'homeCity', 'preferredWorkCities', 'locationSetupComplete', 'bachelor', 'summary'
         ]) &&
         data.uid is string &&
         data.uid.size() > 0 &&
@@ -82,7 +88,9 @@ service cloud.firestore {
         )) &&
         (!('homeCity' in data) || isValidCityName(data.homeCity)) &&
         (!('preferredWorkCities' in data) || isValidPreferredWorkCities(data.preferredWorkCities)) &&
-        (!('locationSetupComplete' in data) || data.locationSetupComplete is bool);
+        (!('locationSetupComplete' in data) || data.locationSetupComplete is bool) &&
+        (!('bachelor' in data) || isValidProfileText(data.bachelor, 120)) &&
+        (!('summary' in data) || isValidProfileText(data.summary, 1200));
     }
 
     function isValidUserCreate(data) {

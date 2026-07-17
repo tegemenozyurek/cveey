@@ -59,6 +59,8 @@ export async function getUserProfile(userId) {
     return {
       homeCity: '',
       preferredWorkCities: [],
+      bachelor: '',
+      summary: '',
     }
   }
 
@@ -68,7 +70,27 @@ export async function getUserProfile(userId) {
     preferredWorkCities: Array.isArray(data.preferredWorkCities)
       ? data.preferredWorkCities.filter((city) => typeof city === 'string' && city.trim())
       : [],
+    bachelor: typeof data.bachelor === 'string' ? data.bachelor : '',
+    summary: typeof data.summary === 'string' ? data.summary : '',
   }
+}
+
+const PROFILE_FIELD_LIMITS = {
+  bachelor: 120,
+  summary: 1200,
+}
+
+export async function saveUserProfileField(userId, field, value) {
+  const maxLength = PROFILE_FIELD_LIMITS[field]
+  const normalizedValue = typeof value === 'string' ? value.trim() : ''
+
+  if (!maxLength || !normalizedValue || normalizedValue.length > maxLength) {
+    throw new Error('INVALID_PROFILE_FIELD')
+  }
+
+  await updateDoc(doc(db, 'users', userId), {
+    [field]: normalizedValue,
+  })
 }
 
 export async function syncUserToFirestore(user) {

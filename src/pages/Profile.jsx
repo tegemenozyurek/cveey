@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -7,7 +7,7 @@ import UserAvatar from '../components/UserAvatar'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import { resolveAuthMethod } from '../authUtils'
-import { getUserProfile } from '../userService'
+import { getUserProfile, saveUserProfileField } from '../userService'
 
 const MOCK_MY_NETWORK = [
   {
@@ -134,6 +134,138 @@ function MessageIcon() {
   )
 }
 
+function EditIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 20h9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16.5 3.5a2.12 2.12 0 013 3L8 18l-4 1 1-4L16.5 3.5z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function EditableProfileField({
+  t,
+  label,
+  value,
+  fallback,
+  multiline = false,
+  maxLength,
+  valueClassName,
+  onSave,
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value || fallback)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const fieldRef = useRef(null)
+
+  useEffect(() => {
+    if (!editing) setDraft(value || fallback)
+  }, [editing, fallback, value])
+
+  useEffect(() => {
+    if (editing) fieldRef.current?.focus()
+  }, [editing])
+
+  function startEditing() {
+    setDraft(value || fallback)
+    setError('')
+    setEditing(true)
+  }
+
+  function cancelEditing() {
+    setDraft(value || fallback)
+    setError('')
+    setEditing(false)
+  }
+
+  async function save() {
+    const nextValue = draft.trim()
+    if (!nextValue) {
+      setError(t('profile.fieldRequired'))
+      return
+    }
+    if (nextValue === value) {
+      setEditing(false)
+      return
+    }
+
+    setSaving(true)
+    setError('')
+    try {
+      await onSave(nextValue)
+      setEditing(false)
+    } catch (err) {
+      console.error(`Profile ${label} update failed:`, err)
+      setError(t('profile.updateError'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const fieldProps = {
+    ref: fieldRef,
+    className: `profile-about-edit-field${multiline ? ' profile-about-edit-field--textarea' : ''}`,
+    value: draft,
+    onChange: (event) => setDraft(event.target.value),
+    onKeyDown: (event) => {
+      if (event.key === 'Escape') cancelEditing()
+      if (!multiline && event.key === 'Enter') void save()
+      if (multiline && event.key === 'Enter' && (event.metaKey || event.ctrlKey)) void save()
+    },
+    disabled: saving,
+    maxLength,
+    'aria-label': label,
+  }
+
+  return (
+    <>
+      <div className="profile-about-field-head">
+        <p className="profile-about-kicker">{label}</p>
+        {!editing ? (
+          <button
+            type="button"
+            className="profile-about-edit-btn"
+            onClick={startEditing}
+            aria-label={`${t('profile.edit')} ${label}`}
+            title={t('profile.edit')}
+          >
+            <EditIcon />
+          </button>
+        ) : null}
+      </div>
+
+      {editing ? (
+        <div className="profile-about-edit">
+          {multiline ? <textarea {...fieldProps} rows={7} /> : <input {...fieldProps} type="text" />}
+          <div className="profile-about-edit-actions">
+            <button type="button" onClick={() => void save()} disabled={saving}>
+              {saving ? t('profile.saving') : t('profile.save')}
+            </button>
+            <button type="button" onClick={cancelEditing} disabled={saving}>
+              {t('profile.cancel')}
+            </button>
+          </div>
+          {error ? <p className="profile-about-edit-error" role="alert">{error}</p> : null}
+        </div>
+      ) : (
+        <p className={valueClassName}>{value || fallback}</p>
+      )}
+    </>
+  )
+}
+
 function PersonRow({ person, actionLabel, iconOnly = false }) {
   return (
     <li className="network-person">
@@ -157,15 +289,30 @@ function PersonRow({ person, actionLabel, iconOnly = false }) {
   )
 }
 
-function ProfileAboutSection({ t, preferredWorkCities, loading }) {
+function ProfileAboutSection({
+  t,
+  bachelor,
+  summary,
+  preferredWorkCities,
+  loading,
+  onSaveBachelor,
+  onSaveSummary,
+}) {
   const workCities = preferredWorkCities.length > 0 ? preferredWorkCities : []
 
   return (
     <section className="profile-about" aria-label={t('profile.sectionAbout')}>
       <div className="profile-about-side">
         <div className="profile-about-degree">
-          <p className="profile-about-kicker">{t('profile.bachelor')}</p>
-          <p className="profile-about-lead">{t('profile.bachelorMock')}</p>
+          <EditableProfileField
+            t={t}
+            label={t('profile.bachelor')}
+            value={bachelor}
+            fallback={t('profile.bachelorMock')}
+            maxLength={120}
+            valueClassName="profile-about-lead"
+            onSave={onSaveBachelor}
+          />
           <p className="profile-about-kicker profile-about-kicker--follow">{t('profile.position')}</p>
           <p className="profile-about-position">{t('profile.positionMock')}</p>
         </div>
@@ -190,8 +337,16 @@ function ProfileAboutSection({ t, preferredWorkCities, loading }) {
       </div>
 
       <div className="profile-about-main">
-        <span className="profile-about-kicker">{t('profile.summary')}</span>
-        <p className="profile-about-bio">{t('profile.summaryMock')}</p>
+        <EditableProfileField
+          t={t}
+          label={t('profile.summary')}
+          value={summary}
+          fallback={t('profile.summaryMock')}
+          multiline
+          maxLength={1200}
+          valueClassName="profile-about-bio"
+          onSave={onSaveSummary}
+        />
       </div>
     </section>
   )
@@ -309,12 +464,16 @@ export default function Profile() {
   const [panel, setPanel] = useState(null)
   const [homeCity, setHomeCity] = useState('')
   const [preferredWorkCities, setPreferredWorkCities] = useState([])
+  const [bachelor, setBachelor] = useState('')
+  const [summary, setSummary] = useState('')
   const [profileDataLoading, setProfileDataLoading] = useState(true)
 
   useEffect(() => {
     if (!user?.uid) {
       setHomeCity('')
       setPreferredWorkCities([])
+      setBachelor('')
+      setSummary('')
       setProfileDataLoading(false)
       return undefined
     }
@@ -327,12 +486,16 @@ export default function Profile() {
         if (cancelled) return
         setHomeCity(data.homeCity)
         setPreferredWorkCities(data.preferredWorkCities)
+        setBachelor(data.bachelor)
+        setSummary(data.summary)
       })
       .catch((err) => {
         console.error('Profile load failed:', err)
         if (!cancelled) {
           setHomeCity('')
           setPreferredWorkCities([])
+          setBachelor('')
+          setSummary('')
         }
       })
       .finally(() => {
@@ -346,6 +509,12 @@ export default function Profile() {
 
   function togglePanel(next) {
     setPanel((current) => (current === next ? null : next))
+  }
+
+  async function updateProfileField(field, value) {
+    await saveUserProfileField(user.uid, field, value)
+    if (field === 'bachelor') setBachelor(value)
+    if (field === 'summary') setSummary(value)
   }
 
   if (authLoading) {
@@ -494,8 +663,12 @@ export default function Profile() {
         <div className="profile-page-main">
           <ProfileAboutSection
             t={t}
+            bachelor={bachelor}
+            summary={summary}
             preferredWorkCities={preferredWorkCities}
             loading={profileDataLoading}
+            onSaveBachelor={(value) => updateProfileField('bachelor', value)}
+            onSaveSummary={(value) => updateProfileField('summary', value)}
           />
           <ActiveCvPanel t={t} />
         </div>
