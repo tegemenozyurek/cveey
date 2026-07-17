@@ -1162,7 +1162,8 @@ function ActiveCvPanel({ t }) {
               <p>{t('profile.cvHidden')}</p>
             </div>
           ) : !activeCv ? (
-            <div className="profile-cv-sheet-status">
+            <div className="profile-cv-sheet-status profile-cv-sheet-status--empty">
+              <p className="profile-cv-empty-title">{t('profile.cvEmpty')}</p>
               <p>{t('profile.cvEmptyHint')}</p>
             </div>
           ) : (
@@ -1205,10 +1206,15 @@ function ActiveCvPanel({ t }) {
       <div className="profile-cv-post-body">
         <div className="profile-cv-post-content">
           <span className="profile-cv-label">{t('profile.activeCv')}</span>
-          <h2 id="profile-active-cv-heading" className="profile-cv-heading">
+          <h2
+            id="profile-active-cv-heading"
+            className={`profile-cv-heading${!activeCv && !loading ? ' profile-cv-heading--wrap' : ''}`}
+          >
             {activeCv ? stripPdfExtension(activeCv.displayName) : t('profile.cvEmpty')}
           </h2>
-          <p className="profile-cv-caption">{t('profile.activeCvIntro')}</p>
+          <p className="profile-cv-caption">
+            {activeCv || loading ? t('profile.activeCvIntro') : t('profile.cvEmptyIntro')}
+          </p>
           {!activeCv && !loading ? (
             <Link to="/my-cv" className="profile-cv-inline-link">
               {t('profile.goToMyCv')}
