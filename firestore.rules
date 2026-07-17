@@ -148,7 +148,11 @@ service cloud.firestore {
         (item.status == 'studying' || item.status == 'graduated') &&
         item.graduationYear is int &&
         (
-          (item.status == 'studying' && item.graduationYear == 0) ||
+          (
+            item.status == 'studying' &&
+            item.graduationYear >= request.time.year() &&
+            item.graduationYear <= request.time.year() + 10
+          ) ||
           (
             item.status == 'graduated' &&
             item.graduationYear >= 1900 &&
@@ -197,7 +201,11 @@ service cloud.firestore {
           data.educationDegreeOther.size() > 0
         ) &&
         (
-          (data.educationStatus == 'studying' && data.educationGraduationYear == 0) ||
+          (
+            data.educationStatus == 'studying' &&
+            data.educationGraduationYear >= request.time.year() &&
+            data.educationGraduationYear <= request.time.year() + 10
+          ) ||
           (
             data.educationStatus == 'graduated' &&
             data.educationGraduationYear >= 1900 &&

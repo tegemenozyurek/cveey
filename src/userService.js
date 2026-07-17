@@ -119,7 +119,7 @@ function educationItemHasContent(item) {
       item?.status &&
       item?.university?.trim() &&
       item?.program?.trim() &&
-      (item.status !== 'graduated' || item.graduationYear),
+      item?.graduationYear,
   )
 }
 
@@ -130,11 +130,7 @@ function normalizeEducationItem(raw) {
   const degreeOther = typeof raw.degreeOther === 'string' ? raw.degreeOther.trim() : ''
   const status = EDUCATION_STATUSES.has(raw.status) ? raw.status : ''
   const graduationYear =
-    status === 'graduated' &&
-    Number.isInteger(raw.graduationYear) &&
-    raw.graduationYear > 0
-      ? raw.graduationYear
-      : null
+    Number.isInteger(raw.graduationYear) && raw.graduationYear > 0 ? raw.graduationYear : null
   const university = typeof raw.university === 'string' ? raw.university.trim() : ''
   const universityIsOther = raw.universityIsOther === true
   const program = typeof raw.program === 'string' ? raw.program.trim() : ''
@@ -152,6 +148,17 @@ function normalizeEducationItem(raw) {
     university,
     universityIsOther,
     program,
+  }
+
+  // Legacy studying rows may lack a year; still show them until the user re-saves.
+  if (
+    status === 'studying' &&
+    !graduationYear &&
+    degreeType &&
+    university &&
+    program
+  ) {
+    return item
   }
 
   return educationItemHasContent(item) ? item : null
@@ -193,8 +200,7 @@ function serializeEducationItem(item) {
     degreeType === 'other' ? asTrimmedString(item.degreeOther, 80) : ''
   const status = EDUCATION_STATUSES.has(item.status) ? item.status : ''
   const currentYear = new Date().getFullYear()
-  const graduationYear =
-    status === 'graduated' ? Number(item.graduationYear) : 0
+  const graduationYear = Number(item.graduationYear)
   const universityIsOther = item.universityIsOther === true
   const university = asTrimmedString(item.university, 120)
   const program = asTrimmedString(item.program, 120)
@@ -209,9 +215,18 @@ function serializeEducationItem(item) {
   if (degreeType === 'other' && !degreeOther) {
     throw new Error('INVALID_EDUCATION')
   }
+  if (!Number.isInteger(graduationYear)) {
+    throw new Error('INVALID_EDUCATION')
+  }
   if (
     status === 'graduated' &&
-    (!Number.isInteger(graduationYear) || graduationYear < 1900 || graduationYear > currentYear)
+    (graduationYear < 1900 || graduationYear > currentYear)
+  ) {
+    throw new Error('INVALID_EDUCATION')
+  }
+  if (
+    status === 'studying' &&
+    (graduationYear < currentYear || graduationYear > currentYear + 10)
   ) {
     throw new Error('INVALID_EDUCATION')
   }
@@ -234,17 +249,13 @@ export async function saveUserEducations(userId, educations) {
   }
 
   const stored = educations.map((item) => serializeEducationItem(item))
-  const display = stored.map((item) => ({
-    ...item,
-    graduationYear: item.status === 'graduated' ? item.graduationYear : null,
-  }))
 
   await updateDoc(doc(db, 'users', userId), {
     educations: stored,
     bachelor: stored[0]?.program || '',
   })
 
-  return display
+  return stored
 }
 
 /** @deprecated Prefer saveUserEducations */

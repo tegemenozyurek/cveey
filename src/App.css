@@ -1371,31 +1371,6 @@
   gap: 10px;
 }
 
-.profile-edu-item-view--editable {
-  padding: 10px;
-  margin: -10px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 0.18s ease,
-    background 0.18s ease;
-}
-
-.profile-edu-item-view--editable:hover {
-  border-color: color-mix(in srgb, var(--accent-cyan) 30%, transparent);
-  background: color-mix(in srgb, var(--accent-cyan) 7%, transparent);
-}
-
-.profile-edu-item-view--editable:focus-visible {
-  outline: 2px solid var(--accent-cyan);
-  outline-offset: 2px;
-}
-
 .profile-edu-item-copy {
   min-width: 0;
   flex: 1;
@@ -1406,22 +1381,39 @@
   line-height: 1.35;
 }
 
-.profile-edu-manage-btn--active {
-  color: var(--accent-cyan);
-  border-color: color-mix(in srgb, var(--accent-cyan) 35%, transparent);
-  background: color-mix(in srgb, var(--accent-cyan) 10%, transparent);
+.profile-edu-items--editing {
+  gap: 20px;
 }
 
-.profile-about-edit-actions .profile-edu-delete-action {
-  margin-right: auto;
-  border-color: color-mix(in srgb, #f87171 32%, transparent);
-  color: #f87171;
+.profile-edu-item--editing {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--glass-border);
 }
 
-.profile-about-edit-actions .profile-edu-delete-action:hover:not(:disabled) {
-  border-color: color-mix(in srgb, #f87171 55%, transparent);
-  background: color-mix(in srgb, #f87171 10%, transparent);
+.profile-edu-item--editing:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.profile-edu-delete-link {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #f87171;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-edu-delete-link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.profile-edu-delete-link:disabled {
+  cursor: wait;
+  opacity: 0.58;
 }
 
 .profile-edu-edit {

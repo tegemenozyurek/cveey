@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -156,17 +156,6 @@ function EditIcon() {
   )
 }
 
-function educationHasContent(education) {
-  if (!education) return false
-  return Boolean(
-    education.degreeType &&
-      education.status &&
-      education.university?.trim() &&
-      education.program?.trim() &&
-      (education.status !== 'graduated' || education.graduationYear),
-  )
-}
-
 function degreeTypeLabel(t, education) {
   if (!education?.degreeType) return ''
   if (education.degreeType === 'other' && education.degreeOther) {
@@ -177,8 +166,13 @@ function degreeTypeLabel(t, education) {
 
 function educationStatusLabel(t, education) {
   if (!education?.status) return ''
-  if (education.status === 'graduated' && education.graduationYear) {
-    return t('profile.educationStatus.graduatedYear', { year: education.graduationYear })
+  if (education.graduationYear) {
+    if (education.status === 'studying') {
+      return t('profile.educationStatus.studyingYear', { year: education.graduationYear })
+    }
+    if (education.status === 'graduated') {
+      return t('profile.educationStatus.graduatedYear', { year: education.graduationYear })
+    }
   }
   return t(`profile.educationStatus.${education.status}`)
 }
@@ -186,7 +180,15 @@ function educationStatusLabel(t, education) {
 const EDUCATION_DEGREE_TYPES = ['associate', 'bachelor', 'master', 'doctorate', 'other']
 const EDUCATION_STATUSES = ['studying', 'graduated']
 const CURRENT_YEAR = new Date().getFullYear()
-const GRADUATION_YEARS = Array.from({ length: CURRENT_YEAR - 1949 }, (_, index) => CURRENT_YEAR - index)
+const EXPECTED_GRADUATION_HORIZON = 10
+const PAST_GRADUATION_YEARS = Array.from(
+  { length: CURRENT_YEAR - 1949 },
+  (_, index) => CURRENT_YEAR - index,
+)
+const EXPECTED_GRADUATION_YEARS = Array.from(
+  { length: EXPECTED_GRADUATION_HORIZON + 1 },
+  (_, index) => CURRENT_YEAR + index,
+)
 
 function createLocalEducationId() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -195,7 +197,20 @@ function createLocalEducationId() {
   return `edu_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
 }
 
-function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, onSave }) {
+const EducationEditorForm = forwardRef(function EducationEditorForm(
+  {
+    t,
+    initial,
+    saving,
+    error,
+    idPrefix = 'profile-edu',
+    showActions = true,
+    onCancel,
+    onDelete,
+    onSave,
+  },
+  ref,
+) {
   const [degreeType, setDegreeType] = useState(initial?.degreeType || '')
   const [degreeOther, setDegreeOther] = useState(initial?.degreeOther || '')
   const [status, setStatus] = useState(initial?.status || '')
@@ -212,61 +227,73 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, on
   const [program, setProgram] = useState(initial?.program || '')
   const [localError, setLocalError] = useState('')
 
-  function submit() {
+  function getValue() {
     setLocalError('')
     if (!degreeType) {
       setLocalError(t('profile.educationDegreeRequired'))
-      return
+      return null
     }
     if (degreeType === 'other' && !degreeOther.trim()) {
       setLocalError(t('profile.educationDegreeOtherRequired'))
-      return
+      return null
     }
     if (!status) {
       setLocalError(t('profile.educationStatusRequired'))
-      return
+      return null
     }
-    if (status === 'graduated' && !graduationYear) {
-      setLocalError(t('profile.educationGraduationYearRequired'))
-      return
+    if (!graduationYear) {
+      setLocalError(
+        status === 'studying'
+          ? t('profile.educationExpectedGraduationYearRequired')
+          : t('profile.educationGraduationYearRequired'),
+      )
+      return null
     }
 
     const resolvedUniversity = universityIsOther ? universityCustom.trim() : university.trim()
     if (universityIsOther && !resolvedUniversity) {
       setLocalError(t('profile.educationUniversityCustomRequired'))
-      return
+      return null
     }
     if (!universityIsOther && !resolvedUniversity) {
       setLocalError(t('profile.educationUniversityRequired'))
-      return
+      return null
     }
     if (!program.trim()) {
       setLocalError(t('profile.educationProgramRequired'))
-      return
+      return null
     }
 
-    onSave({
+    return {
       id: initial?.id || createLocalEducationId(),
       degreeType,
       degreeOther: degreeType === 'other' ? degreeOther.trim() : '',
       status,
-      graduationYear: status === 'graduated' ? Number(graduationYear) : 0,
+      graduationYear: Number(graduationYear),
       university: resolvedUniversity,
       universityIsOther,
       program: program.trim(),
-    })
+    }
   }
 
+  function submit() {
+    const value = getValue()
+    if (value) onSave(value)
+  }
+
+  useImperativeHandle(ref, () => ({ getValue }))
+
   const displayError = localError || error
+  const fieldId = (name) => `${idPrefix}-${name}`
 
   return (
     <div className="profile-about-edit profile-edu-edit">
       <div className="form-field">
-        <label className="form-label" htmlFor="profile-edu-degree">
+        <label className="form-label" htmlFor={fieldId('degree')}>
           {t('profile.educationDegree')}
         </label>
         <select
-          id="profile-edu-degree"
+          id={fieldId('degree')}
           className={`form-input profile-edu-degree-select${!degreeType ? ' profile-edu-degree-select--placeholder' : ''}`}
           value={degreeType}
           onChange={(event) => {
@@ -290,11 +317,11 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, on
 
       {degreeType === 'other' ? (
         <div className="form-field">
-          <label className="form-label" htmlFor="profile-edu-degree-other">
+          <label className="form-label" htmlFor={fieldId('degree-other')}>
             {t('profile.educationDegreeOther')}
           </label>
           <input
-            id="profile-edu-degree-other"
+            id={fieldId('degree-other')}
             className="form-input profile-about-edit-field"
             type="text"
             value={degreeOther}
@@ -310,18 +337,18 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, on
       ) : null}
 
       <div className="form-field">
-        <label className="form-label" htmlFor="profile-edu-status">
+        <label className="form-label" htmlFor={fieldId('status')}>
           {t('profile.educationStatus')}
         </label>
         <select
-          id="profile-edu-status"
+          id={fieldId('status')}
           className={`form-input profile-edu-degree-select${!status ? ' profile-edu-degree-select--placeholder' : ''}`}
           value={status}
           onChange={(event) => {
             const nextStatus = event.target.value
             setLocalError('')
             setStatus(nextStatus)
-            if (nextStatus !== 'graduated') setGraduationYear('')
+            setGraduationYear('')
           }}
           disabled={saving}
         >
@@ -336,13 +363,15 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, on
         </select>
       </div>
 
-      {status === 'graduated' ? (
+      {status === 'studying' || status === 'graduated' ? (
         <div className="form-field">
-          <label className="form-label" htmlFor="profile-edu-graduation-year">
-            {t('profile.educationGraduationYear')}
+          <label className="form-label" htmlFor={fieldId('graduation-year')}>
+            {status === 'studying'
+              ? t('profile.educationExpectedGraduationYear')
+              : t('profile.educationGraduationYear')}
           </label>
           <select
-            id="profile-edu-graduation-year"
+            id={fieldId('graduation-year')}
             className={`form-input profile-edu-degree-select${!graduationYear ? ' profile-edu-degree-select--placeholder' : ''}`}
             value={graduationYear}
             onChange={(event) => {
@@ -354,21 +383,23 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, on
             <option value="" disabled>
               {t('profile.educationGraduationYearPlaceholder')}
             </option>
-            {GRADUATION_YEARS.map((year) => (
-              <option key={year} value={String(year)}>
-                {year}
-              </option>
-            ))}
+            {(status === 'studying' ? EXPECTED_GRADUATION_YEARS : PAST_GRADUATION_YEARS).map(
+              (year) => (
+                <option key={year} value={String(year)}>
+                  {year}
+                </option>
+              ),
+            )}
           </select>
         </div>
       ) : null}
 
       <div className="form-field">
-        <label className="form-label" htmlFor="profile-edu-university">
+        <label className="form-label" htmlFor={fieldId('university')}>
           {t('profile.educationUniversity')}
         </label>
         <select
-          id="profile-edu-university"
+          id={fieldId('university')}
           className={`form-input profile-edu-degree-select${!university && !universityIsOther ? ' profile-edu-degree-select--placeholder' : ''}`}
           value={universityIsOther ? UNIVERSITY_OTHER : university}
           onChange={(event) => {
@@ -400,11 +431,11 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, on
 
       {universityIsOther ? (
         <div className="form-field">
-          <label className="form-label" htmlFor="profile-edu-university-custom">
+          <label className="form-label" htmlFor={fieldId('university-custom')}>
             {t('profile.educationUniversityCustom')}
           </label>
           <input
-            id="profile-edu-university-custom"
+            id={fieldId('university-custom')}
             className="form-input profile-about-edit-field"
             type="text"
             value={universityCustom}
@@ -420,11 +451,11 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, on
       ) : null}
 
       <div className="form-field">
-        <label className="form-label" htmlFor="profile-edu-program">
+        <label className="form-label" htmlFor={fieldId('program')}>
           {t('profile.educationProgram')}
         </label>
         <input
-          id="profile-edu-program"
+          id={fieldId('program')}
           className="form-input profile-about-edit-field"
           type="text"
           value={program}
@@ -438,7 +469,7 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, on
         />
       </div>
 
-      <div className="profile-about-edit-actions">
+      {showActions ? <div className="profile-about-edit-actions">
         {onDelete ? (
           <button
             type="button"
@@ -455,22 +486,21 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, on
         <button type="button" onClick={submit} disabled={saving}>
           {saving ? t('profile.saving') : t('profile.save')}
         </button>
-      </div>
+      </div> : null}
       {displayError ? <p className="profile-about-edit-error" role="alert">{displayError}</p> : null}
     </div>
   )
-}
+})
 
 function EducationList({ t, educations, onSaveEducations }) {
   const items = Array.isArray(educations) ? educations : []
   const [managing, setManaging] = useState(false)
   const [editingId, setEditingId] = useState(null)
+  const [editItems, setEditItems] = useState([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-
-  const editingItem =
-    editingId && editingId !== 'new' ? items.find((item) => item.id === editingId) : null
-  const canAdd = items.length < MAX_EDUCATIONS && editingId === null
+  const editorRefs = useRef(new Map())
+  const canAdd = !managing && items.length < MAX_EDUCATIONS && editingId === null
 
   async function persist(nextItems) {
     setSaving(true)
@@ -478,7 +508,6 @@ function EducationList({ t, educations, onSaveEducations }) {
     try {
       const saved = await onSaveEducations(nextItems)
       setEditingId(null)
-      if (saved.length === 0) setManaging(false)
       return saved
     } catch (err) {
       console.error('Profile educations update failed:', err)
@@ -497,9 +526,32 @@ function EducationList({ t, educations, onSaveEducations }) {
     await persist(nextItems)
   }
 
-  async function handleDelete(id) {
-    if (saving) return
-    await persist(items.filter((item) => item.id !== id))
+  function startManaging() {
+    setError('')
+    setEditItems(items)
+    editorRefs.current.clear()
+    setManaging(true)
+  }
+
+  function cancelManaging() {
+    setError('')
+    setEditItems([])
+    editorRefs.current.clear()
+    setManaging(false)
+  }
+
+  async function saveManagedItems() {
+    const nextItems = editItems.map((item) => editorRefs.current.get(item.id)?.getValue())
+    if (nextItems.some((item) => !item)) return
+
+    try {
+      await persist(nextItems)
+      setEditItems([])
+      editorRefs.current.clear()
+      setManaging(false)
+    } catch {
+      // persist displays the localized error.
+    }
   }
 
   if (items.length === 0 && editingId !== 'new') {
@@ -521,15 +573,11 @@ function EducationList({ t, educations, onSaveEducations }) {
     <div className="profile-edu-list">
       <div className="profile-about-field-head">
         <p className="profile-about-kicker">{t('profile.education')}</p>
-        {editingId === null ? (
+        {!managing && editingId === null ? (
           <button
             type="button"
-            className={`profile-about-edit-btn profile-edu-manage-btn${managing ? ' profile-edu-manage-btn--active' : ''}`}
-            onClick={() => {
-              setError('')
-              setManaging((current) => !current)
-            }}
-            aria-pressed={managing}
+            className="profile-about-edit-btn"
+            onClick={startManaging}
             aria-label={`${t('profile.edit')} ${t('profile.education')}`}
             title={t('profile.edit')}
           >
@@ -538,38 +586,49 @@ function EducationList({ t, educations, onSaveEducations }) {
         ) : null}
       </div>
 
-      <ul className="profile-edu-items">
-        {items.map((item) => {
-          const ItemContainer = managing ? 'button' : 'div'
-
-          return (
-            <li key={item.id} className="profile-edu-item">
-              {editingId === item.id ? (
+      {managing ? (
+        <>
+          <ul className="profile-edu-items profile-edu-items--editing">
+            {editItems.map((item, index) => (
+              <li key={item.id} className="profile-edu-item profile-edu-item--editing">
                 <EducationEditorForm
+                  ref={(editor) => {
+                    if (editor) editorRefs.current.set(item.id, editor)
+                    else editorRefs.current.delete(item.id)
+                  }}
                   t={t}
                   initial={item}
+                  idPrefix={`profile-edu-${index}`}
                   saving={saving}
-                  error={error}
-                  onCancel={() => {
-                    setError('')
-                    setEditingId(null)
-                  }}
-                  onDelete={() => void handleDelete(item.id)}
-                  onSave={(payload) => void handleSaveItem(payload)}
+                  error=""
+                  showActions={false}
                 />
-              ) : (
-                <ItemContainer
-                  type={managing ? 'button' : undefined}
-                  className={`profile-edu-item-view${managing ? ' profile-edu-item-view--editable' : ''}`}
-                  onClick={
-                    managing
-                      ? () => {
-                          setError('')
-                          setEditingId(item.id)
-                        }
-                      : undefined
-                  }
+                <button
+                  type="button"
+                  className="profile-edu-delete-link"
+                  onClick={() => setEditItems((current) => current.filter((entry) => entry.id !== item.id))}
+                  disabled={saving}
                 >
+                  {t('profile.removeEducation')}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="profile-about-edit-actions">
+            <button type="button" onClick={cancelManaging} disabled={saving}>
+              {t('profile.cancel')}
+            </button>
+            <button type="button" onClick={() => void saveManagedItems()} disabled={saving}>
+              {saving ? t('profile.saving') : t('profile.save')}
+            </button>
+          </div>
+          {error ? <p className="profile-about-edit-error" role="alert">{error}</p> : null}
+        </>
+      ) : (
+        <ul className="profile-edu-items">
+          {items.map((item) => (
+            <li key={item.id} className="profile-edu-item">
+              <div className="profile-edu-item-view">
                 <div className="profile-edu-item-copy">
                   <p className="profile-about-lead profile-edu-item-title">
                     {degreeTypeLabel(t, item)}
@@ -582,12 +641,11 @@ function EducationList({ t, educations, onSaveEducations }) {
                     <p className="profile-about-edu-status">{educationStatusLabel(t, item)}</p>
                   ) : null}
                 </div>
-                </ItemContainer>
-              )}
+              </div>
             </li>
-          )
-        })}
-      </ul>
+          ))}
+        </ul>
+      )}
 
       {editingId === 'new' ? (
         <EducationEditorForm
