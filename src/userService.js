@@ -276,7 +276,7 @@ export async function saveUserProfileField(userId, field, value) {
   const maxLength = PROFILE_FIELD_LIMITS[field]
   const normalizedValue = typeof value === 'string' ? value.trim() : ''
 
-  if (!maxLength || !normalizedValue || normalizedValue.length > maxLength) {
+  if (!maxLength || normalizedValue.length > maxLength) {
     throw new Error('INVALID_PROFILE_FIELD')
   }
 

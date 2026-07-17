@@ -1135,6 +1135,16 @@
   border-left: 2px solid color-mix(in srgb, var(--accent-cyan) 55%, transparent);
 }
 
+.profile-about-degree--empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.profile-about-degree--empty > * {
+  width: 100%;
+}
+
 .profile-about-field-head {
   display: flex;
   align-items: flex-start;
@@ -1267,6 +1277,20 @@
   gap: 10px;
   width: 100%;
   margin-top: 6px;
+}
+
+.profile-about-edit-actions .profile-about-clear-btn {
+  margin-right: auto;
+  border-color: color-mix(in srgb, #f87171 32%, transparent);
+  color: #f87171;
+}
+
+.profile-about-edit-actions .profile-about-clear-btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, #f87171 55%, transparent);
+  background: color-mix(in srgb, #f87171 10%, transparent);
+  color: #f87171;
+  transform: none;
+  box-shadow: none;
 }
 
 .profile-about-edit-actions button {

@@ -701,6 +701,7 @@ function EditableProfileField({
   addLabel,
   multiline = false,
   maxLength,
+  allowEmpty = false,
   valueClassName,
   onSave,
 }) {
@@ -731,9 +732,15 @@ function EditableProfileField({
     setEditing(false)
   }
 
+  function clearDraft() {
+    setDraft('')
+    setError('')
+    fieldRef.current?.focus()
+  }
+
   async function save() {
     const nextValue = draft.trim()
-    if (!nextValue) {
+    if (!nextValue && !allowEmpty) {
       setError(t('profile.fieldRequired'))
       return
     }
@@ -741,7 +748,7 @@ function EditableProfileField({
       setError(t('profile.fieldTooLong', { max: maxLength }))
       return
     }
-    if (nextValue === value) {
+    if (nextValue === (value || '').trim()) {
       setEditing(false)
       return
     }
@@ -811,6 +818,16 @@ function EditableProfileField({
             </p>
           ) : null}
           <div className="profile-about-edit-actions">
+            {allowEmpty ? (
+              <button
+                type="button"
+                className="profile-about-clear-btn"
+                onClick={clearDraft}
+                disabled={saving || !draft}
+              >
+                {t('profile.clear')}
+              </button>
+            ) : null}
             <button type="button" onClick={cancelEditing} disabled={saving}>
               {t('profile.cancel')}
             </button>
@@ -864,7 +881,11 @@ function ProfileAboutSection({
   return (
     <section className="profile-about" aria-label={t('profile.sectionAbout')}>
       <div className="profile-about-side">
-        <div className="profile-about-degree">
+        <div
+          className={`profile-about-degree${
+            !loading && educations.length === 0 ? ' profile-about-degree--empty' : ''
+          }`}
+        >
           {loading ? (
             <p className="profile-about-loc-empty">…</p>
           ) : (
@@ -902,6 +923,7 @@ function ProfileAboutSection({
             addLabel={t('profile.addSummary')}
             multiline
             maxLength={500}
+            allowEmpty
             valueClassName="profile-about-bio"
             onSave={onSaveSummary}
           />

@@ -258,7 +258,7 @@ service cloud.firestore {
         // Shallow only — deep item checks live in isValidEducationUpdate to stay under
         // Firestore's per-request expression limit on large profiles.
         (!('educations' in data) || (data.educations is list && data.educations.size() <= 3)) &&
-        (!('summary' in data) || isValidProfileText(data.summary, 500));
+        (!('summary' in data) || isOptionalProfileText(data.summary, 500));
     }
 
     function isValidUserCreate(data) {
