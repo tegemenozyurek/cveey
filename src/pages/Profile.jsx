@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -7,7 +7,9 @@ import UserAvatar from '../components/UserAvatar'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import { resolveAuthMethod } from '../authUtils'
-import { getUserProfile } from '../userService'
+import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserProfileField } from '../userService'
+import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
+import { downloadCvFile } from '../storageService'
 
 const MOCK_MY_NETWORK = [
   {
@@ -134,6 +136,763 @@ function MessageIcon() {
   )
 }
 
+function EditIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 20h9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16.5 3.5a2.12 2.12 0 013 3L8 18l-4 1 1-4L16.5 3.5z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function PlusIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 5v14M5 12h14"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function degreeTypeLabel(t, education) {
+  if (!education?.degreeType) return ''
+  if (education.degreeType === 'other' && education.degreeOther) {
+    return education.degreeOther
+  }
+  return t(`profile.educationDegree.${education.degreeType}`)
+}
+
+function educationStatusLabel(t, education) {
+  if (!education?.status) return ''
+  if (education.graduationYear) {
+    if (education.status === 'studying') {
+      return t('profile.educationStatus.studyingYear', { year: education.graduationYear })
+    }
+    if (education.status === 'graduated') {
+      return t('profile.educationStatus.graduatedYear', { year: education.graduationYear })
+    }
+  }
+  return t(`profile.educationStatus.${education.status}`)
+}
+
+const EDUCATION_DEGREE_TYPES = ['associate', 'bachelor', 'master', 'doctorate', 'other']
+const EDUCATION_STATUSES = ['studying', 'graduated']
+const CURRENT_YEAR = new Date().getFullYear()
+const EXPECTED_GRADUATION_HORIZON = 10
+const PAST_GRADUATION_YEARS = Array.from(
+  { length: CURRENT_YEAR - 1949 },
+  (_, index) => CURRENT_YEAR - index,
+)
+const EXPECTED_GRADUATION_YEARS = Array.from(
+  { length: EXPECTED_GRADUATION_HORIZON + 1 },
+  (_, index) => CURRENT_YEAR + index,
+)
+
+function createLocalEducationId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `edu_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+}
+
+const EducationEditorForm = forwardRef(function EducationEditorForm(
+  {
+    t,
+    initial,
+    saving,
+    error,
+    idPrefix = 'profile-edu',
+    showActions = true,
+    onCancel,
+    onDelete,
+    onSave,
+  },
+  ref,
+) {
+  const [degreeType, setDegreeType] = useState(initial?.degreeType || '')
+  const [degreeOther, setDegreeOther] = useState(initial?.degreeOther || '')
+  const [status, setStatus] = useState(initial?.status || '')
+  const [graduationYear, setGraduationYear] = useState(
+    initial?.graduationYear ? String(initial.graduationYear) : '',
+  )
+  const [university, setUniversity] = useState(
+    initial?.universityIsOther ? UNIVERSITY_OTHER : initial?.university || '',
+  )
+  const [universityIsOther, setUniversityIsOther] = useState(Boolean(initial?.universityIsOther))
+  const [universityCustom, setUniversityCustom] = useState(
+    initial?.universityIsOther ? initial?.university || '' : '',
+  )
+  const [program, setProgram] = useState(initial?.program || '')
+  const [localError, setLocalError] = useState('')
+
+  function getValue() {
+    setLocalError('')
+    if (!degreeType) {
+      setLocalError(t('profile.educationDegreeRequired'))
+      return null
+    }
+    if (degreeType === 'other' && !degreeOther.trim()) {
+      setLocalError(t('profile.educationDegreeOtherRequired'))
+      return null
+    }
+    if (!status) {
+      setLocalError(t('profile.educationStatusRequired'))
+      return null
+    }
+    if (!graduationYear) {
+      setLocalError(
+        status === 'studying'
+          ? t('profile.educationExpectedGraduationYearRequired')
+          : t('profile.educationGraduationYearRequired'),
+      )
+      return null
+    }
+
+    const resolvedUniversity = universityIsOther ? universityCustom.trim() : university.trim()
+    if (universityIsOther && !resolvedUniversity) {
+      setLocalError(t('profile.educationUniversityCustomRequired'))
+      return null
+    }
+    if (!universityIsOther && !resolvedUniversity) {
+      setLocalError(t('profile.educationUniversityRequired'))
+      return null
+    }
+    if (!program.trim()) {
+      setLocalError(t('profile.educationProgramRequired'))
+      return null
+    }
+
+    return {
+      id: initial?.id || createLocalEducationId(),
+      degreeType,
+      degreeOther: degreeType === 'other' ? degreeOther.trim() : '',
+      status,
+      graduationYear: Number(graduationYear),
+      university: resolvedUniversity,
+      universityIsOther,
+      program: program.trim(),
+    }
+  }
+
+  function submit() {
+    const value = getValue()
+    if (value) onSave(value)
+  }
+
+  useImperativeHandle(ref, () => ({ getValue }))
+
+  const displayError = localError || error
+  const fieldId = (name) => `${idPrefix}-${name}`
+
+  return (
+    <div className="profile-about-edit profile-edu-edit">
+      <div className="form-field">
+        <label className="form-label" htmlFor={fieldId('degree')}>
+          {t('profile.educationDegree')}
+        </label>
+        <select
+          id={fieldId('degree')}
+          className={`form-input profile-edu-degree-select${!degreeType ? ' profile-edu-degree-select--placeholder' : ''}`}
+          value={degreeType}
+          onChange={(event) => {
+            const nextType = event.target.value
+            setLocalError('')
+            setDegreeType(nextType)
+            if (nextType !== 'other') setDegreeOther('')
+          }}
+          disabled={saving}
+        >
+          <option value="" disabled>
+            {t('profile.educationDegreePlaceholder')}
+          </option>
+          {EDUCATION_DEGREE_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {t(`profile.educationDegree.${type}`)}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {degreeType === 'other' ? (
+        <div className="form-field">
+          <label className="form-label" htmlFor={fieldId('degree-other')}>
+            {t('profile.educationDegreeOther')}
+          </label>
+          <input
+            id={fieldId('degree-other')}
+            className="form-input profile-about-edit-field"
+            type="text"
+            value={degreeOther}
+            onChange={(event) => {
+              setLocalError('')
+              setDegreeOther(event.target.value)
+            }}
+            placeholder={t('profile.educationDegreeOtherPlaceholder')}
+            maxLength={80}
+            disabled={saving}
+          />
+        </div>
+      ) : null}
+
+      <div className="form-field">
+        <label className="form-label" htmlFor={fieldId('status')}>
+          {t('profile.educationStatus')}
+        </label>
+        <select
+          id={fieldId('status')}
+          className={`form-input profile-edu-degree-select${!status ? ' profile-edu-degree-select--placeholder' : ''}`}
+          value={status}
+          onChange={(event) => {
+            const nextStatus = event.target.value
+            setLocalError('')
+            setStatus(nextStatus)
+            setGraduationYear('')
+          }}
+          disabled={saving}
+        >
+          <option value="" disabled>
+            {t('profile.educationStatusPlaceholder')}
+          </option>
+          {EDUCATION_STATUSES.map((item) => (
+            <option key={item} value={item}>
+              {t(`profile.educationStatus.${item}`)}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {status === 'studying' || status === 'graduated' ? (
+        <div className="form-field">
+          <label className="form-label" htmlFor={fieldId('graduation-year')}>
+            {status === 'studying'
+              ? t('profile.educationExpectedGraduationYear')
+              : t('profile.educationGraduationYear')}
+          </label>
+          <select
+            id={fieldId('graduation-year')}
+            className={`form-input profile-edu-degree-select${!graduationYear ? ' profile-edu-degree-select--placeholder' : ''}`}
+            value={graduationYear}
+            onChange={(event) => {
+              setLocalError('')
+              setGraduationYear(event.target.value)
+            }}
+            disabled={saving}
+          >
+            <option value="" disabled>
+              {t('profile.educationGraduationYearPlaceholder')}
+            </option>
+            {(status === 'studying' ? EXPECTED_GRADUATION_YEARS : PAST_GRADUATION_YEARS).map(
+              (year) => (
+                <option key={year} value={String(year)}>
+                  {year}
+                </option>
+              ),
+            )}
+          </select>
+        </div>
+      ) : null}
+
+      <div className="form-field">
+        <label className="form-label" htmlFor={fieldId('university')}>
+          {t('profile.educationUniversity')}
+        </label>
+        <select
+          id={fieldId('university')}
+          className={`form-input profile-edu-degree-select${!university && !universityIsOther ? ' profile-edu-degree-select--placeholder' : ''}`}
+          value={universityIsOther ? UNIVERSITY_OTHER : university}
+          onChange={(event) => {
+            const nextValue = event.target.value
+            setLocalError('')
+            if (nextValue === UNIVERSITY_OTHER) {
+              setUniversityIsOther(true)
+              setUniversity(UNIVERSITY_OTHER)
+              setUniversityCustom('')
+              return
+            }
+            setUniversityIsOther(false)
+            setUniversity(nextValue)
+            setUniversityCustom('')
+          }}
+          disabled={saving}
+        >
+          <option value="" disabled>
+            {t('profile.educationUniversityPlaceholder')}
+          </option>
+          <option value={UNIVERSITY_OTHER}>{t('profile.educationUniversityOther')}</option>
+          {TURKISH_UNIVERSITIES.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {universityIsOther ? (
+        <div className="form-field">
+          <label className="form-label" htmlFor={fieldId('university-custom')}>
+            {t('profile.educationUniversityCustom')}
+          </label>
+          <input
+            id={fieldId('university-custom')}
+            className="form-input profile-about-edit-field"
+            type="text"
+            value={universityCustom}
+            onChange={(event) => {
+              setLocalError('')
+              setUniversityCustom(event.target.value)
+            }}
+            placeholder={t('profile.educationUniversityCustomPlaceholder')}
+            maxLength={120}
+            disabled={saving}
+          />
+        </div>
+      ) : null}
+
+      <div className="form-field">
+        <label className="form-label" htmlFor={fieldId('program')}>
+          {t('profile.educationProgram')}
+        </label>
+        <input
+          id={fieldId('program')}
+          className="form-input profile-about-edit-field"
+          type="text"
+          value={program}
+          onChange={(event) => {
+            setLocalError('')
+            setProgram(event.target.value)
+          }}
+          placeholder={t('profile.educationProgramPlaceholder')}
+          maxLength={120}
+          disabled={saving}
+        />
+      </div>
+
+      {showActions ? <div className="profile-about-edit-actions">
+        {onDelete ? (
+          <button
+            type="button"
+            className="profile-edu-delete-action"
+            onClick={onDelete}
+            disabled={saving}
+          >
+            {t('profile.removeEducation')}
+          </button>
+        ) : null}
+        <button type="button" onClick={onCancel} disabled={saving}>
+          {t('profile.cancel')}
+        </button>
+        <button type="button" onClick={submit} disabled={saving}>
+          {saving ? t('profile.saving') : t('profile.save')}
+        </button>
+      </div> : null}
+      {displayError ? <p className="profile-about-edit-error" role="alert">{displayError}</p> : null}
+    </div>
+  )
+})
+
+function EducationList({ t, educations, onSaveEducations }) {
+  const items = Array.isArray(educations) ? educations : []
+  const [managing, setManaging] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [editItems, setEditItems] = useState([])
+  const [activeEditId, setActiveEditId] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const editorRefs = useRef(new Map())
+  const canAdd = !managing && items.length < MAX_EDUCATIONS && editingId === null
+
+  async function persist(nextItems) {
+    setSaving(true)
+    setError('')
+    try {
+      const saved = await onSaveEducations(nextItems)
+      setEditingId(null)
+      return saved
+    } catch (err) {
+      console.error('Profile educations update failed:', err)
+      setError(t('profile.updateError'))
+      throw err
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleSaveItem(payload) {
+    const exists = items.some((item) => item.id === payload.id)
+    const nextItems = exists
+      ? items.map((item) => (item.id === payload.id ? payload : item))
+      : [...items, payload]
+    await persist(nextItems)
+  }
+
+  function startManaging() {
+    setError('')
+    setEditItems(items)
+    setActiveEditId(items[0]?.id || null)
+    editorRefs.current.clear()
+    setManaging(true)
+  }
+
+  function cancelManaging() {
+    setError('')
+    setEditItems([])
+    setActiveEditId(null)
+    editorRefs.current.clear()
+    setManaging(false)
+  }
+
+  function selectEditItem(nextId) {
+    if (nextId === activeEditId) return
+    const currentValue = editorRefs.current.get(activeEditId)?.getValue()
+    if (!currentValue) return
+
+    setEditItems((current) =>
+      current.map((item) => (item.id === activeEditId ? currentValue : item)),
+    )
+    editorRefs.current.clear()
+    setActiveEditId(nextId)
+  }
+
+  function removeEditedItem(id) {
+    const remaining = editItems.filter((item) => item.id !== id)
+    setEditItems(remaining)
+    editorRefs.current.clear()
+    setActiveEditId(remaining[0]?.id || null)
+  }
+
+  async function saveManagedItems() {
+    const activeValue = activeEditId
+      ? editorRefs.current.get(activeEditId)?.getValue()
+      : null
+    if (activeEditId && !activeValue) return
+    const nextItems = editItems.map((item) =>
+      item.id === activeEditId ? activeValue : item,
+    )
+
+    try {
+      await persist(nextItems)
+      setEditItems([])
+      setActiveEditId(null)
+      editorRefs.current.clear()
+      setManaging(false)
+    } catch {
+      // persist displays the localized error.
+    }
+  }
+
+  if (items.length === 0 && editingId !== 'new') {
+    return (
+      <button
+        type="button"
+        className="profile-about-add-btn"
+        onClick={() => {
+          setError('')
+          setEditingId('new')
+        }}
+      >
+        <PlusIcon />
+        {t('profile.addEducation')}
+      </button>
+    )
+  }
+
+  return (
+    <div className="profile-edu-list">
+      <div className="profile-about-field-head">
+        <p className="profile-about-kicker">{t('profile.education')}</p>
+        {!managing && editingId === null ? (
+          <div className="profile-edu-head-actions">
+            {canAdd ? (
+              <button
+                type="button"
+                className="profile-about-edit-btn"
+                onClick={() => {
+                  setError('')
+                  setEditingId('new')
+                }}
+                aria-label={t('profile.addEducation')}
+                title={t('profile.addEducation')}
+              >
+                <PlusIcon />
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="profile-about-edit-btn"
+              onClick={startManaging}
+              aria-label={`${t('profile.edit')} ${t('profile.education')}`}
+              title={t('profile.edit')}
+            >
+              <EditIcon />
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {managing ? (
+        <>
+          <ul className="profile-edu-items profile-edu-items--editing">
+            {editItems.map((item, index) => (
+              <li
+                key={item.id}
+                className={`profile-edu-item profile-edu-item--editing${
+                  activeEditId === item.id ? ' profile-edu-item--active-edit' : ''
+                }`}
+              >
+                {activeEditId === item.id ? (
+                  <>
+                    <EducationEditorForm
+                      ref={(editor) => {
+                        if (editor) editorRefs.current.set(item.id, editor)
+                        else editorRefs.current.delete(item.id)
+                      }}
+                      t={t}
+                      initial={item}
+                      idPrefix={`profile-edu-${index}`}
+                      saving={saving}
+                      error=""
+                      showActions={false}
+                    />
+                    <button
+                      type="button"
+                      className="profile-edu-delete-link"
+                      onClick={() => removeEditedItem(item.id)}
+                      disabled={saving}
+                    >
+                      {t('profile.removeEducation')}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="profile-edu-edit-choice"
+                    onClick={() => selectEditItem(item.id)}
+                    disabled={saving}
+                  >
+                    <span>{degreeTypeLabel(t, item)} · {item.program}</span>
+                    <span>{item.university}</span>
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <div className="profile-about-edit-actions">
+            <button type="button" onClick={cancelManaging} disabled={saving}>
+              {t('profile.cancel')}
+            </button>
+            <button type="button" onClick={() => void saveManagedItems()} disabled={saving}>
+              {saving ? t('profile.saving') : t('profile.save')}
+            </button>
+          </div>
+          {error ? <p className="profile-about-edit-error" role="alert">{error}</p> : null}
+        </>
+      ) : (
+        <ul className="profile-edu-items">
+          {items.map((item) => (
+            <li key={item.id} className="profile-edu-item">
+              <div className="profile-edu-item-view">
+                <div className="profile-edu-item-copy">
+                  <p className="profile-about-lead profile-edu-item-title">
+                    {degreeTypeLabel(t, item)}
+                    {item.program ? ` · ${item.program}` : ''}
+                  </p>
+                  {item.university ? (
+                    <p className="profile-about-edu-uni">{item.university}</p>
+                  ) : null}
+                  {item.status ? (
+                    <p className="profile-about-edu-status">{educationStatusLabel(t, item)}</p>
+                  ) : null}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {editingId === 'new' ? (
+        <EducationEditorForm
+          t={t}
+          initial={null}
+          saving={saving}
+          error={error}
+          onCancel={() => {
+            setError('')
+            setEditingId(null)
+          }}
+          onSave={(payload) => void handleSaveItem(payload)}
+        />
+      ) : null}
+
+    </div>
+  )
+}
+
+function EditableProfileField({
+  t,
+  label,
+  value,
+  addLabel,
+  multiline = false,
+  maxLength,
+  allowEmpty = false,
+  valueClassName,
+  onSave,
+}) {
+  const hasValue = Boolean(value?.trim())
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value || '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const fieldRef = useRef(null)
+
+  useEffect(() => {
+    if (!editing) setDraft(value || '')
+  }, [editing, value])
+
+  useEffect(() => {
+    if (editing) fieldRef.current?.focus()
+  }, [editing])
+
+  function startEditing() {
+    setDraft(value || '')
+    setError('')
+    setEditing(true)
+  }
+
+  function cancelEditing() {
+    setDraft(value || '')
+    setError('')
+    setEditing(false)
+  }
+
+  function clearDraft() {
+    setDraft('')
+    setError('')
+    fieldRef.current?.focus()
+  }
+
+  async function save() {
+    const nextValue = draft.trim()
+    if (!nextValue && !allowEmpty) {
+      setError(t('profile.fieldRequired'))
+      return
+    }
+    if (maxLength && nextValue.length > maxLength) {
+      setError(t('profile.fieldTooLong', { max: maxLength }))
+      return
+    }
+    if (nextValue === (value || '').trim()) {
+      setEditing(false)
+      return
+    }
+
+    setSaving(true)
+    setError('')
+    try {
+      await onSave(nextValue)
+      setEditing(false)
+    } catch (err) {
+      console.error(`Profile ${label} update failed:`, err)
+      setError(t('profile.updateError'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const fieldProps = {
+    ref: fieldRef,
+    className: `profile-about-edit-field${multiline ? ' profile-about-edit-field--textarea' : ''}`,
+    value: draft,
+    onChange: (event) => setDraft(event.target.value),
+    onKeyDown: (event) => {
+      if (event.key === 'Escape') cancelEditing()
+      if (!multiline && event.key === 'Enter') void save()
+      if (multiline && event.key === 'Enter' && (event.metaKey || event.ctrlKey)) void save()
+    },
+    disabled: saving,
+    maxLength,
+    'aria-label': label,
+  }
+
+  if (!hasValue && !editing) {
+    return (
+      <button type="button" className="profile-about-add-btn" onClick={startEditing}>
+        <PlusIcon />
+        {addLabel}
+      </button>
+    )
+  }
+
+  return (
+    <>
+      <div className="profile-about-field-head">
+        <p className="profile-about-kicker">{label}</p>
+        {!editing ? (
+          <button
+            type="button"
+            className="profile-about-edit-btn"
+            onClick={startEditing}
+            aria-label={`${t('profile.edit')} ${label}`}
+            title={t('profile.edit')}
+          >
+            <EditIcon />
+          </button>
+        ) : null}
+      </div>
+
+      {editing ? (
+        <div className="profile-about-edit">
+          {multiline ? <textarea {...fieldProps} rows={7} /> : <input {...fieldProps} type="text" />}
+          {multiline && maxLength ? (
+            <p
+              className={`profile-about-char-count${draft.length > maxLength ? ' profile-about-char-count--over' : ''}`}
+              aria-live="polite"
+            >
+              {draft.length}/{maxLength}
+            </p>
+          ) : null}
+          <div className="profile-about-edit-actions">
+            {allowEmpty ? (
+              <button
+                type="button"
+                className="profile-about-clear-btn"
+                onClick={clearDraft}
+                disabled={saving || !draft}
+              >
+                {t('profile.clear')}
+              </button>
+            ) : null}
+            <button type="button" onClick={cancelEditing} disabled={saving}>
+              {t('profile.cancel')}
+            </button>
+            <button type="button" onClick={() => void save()} disabled={saving}>
+              {saving ? t('profile.saving') : t('profile.save')}
+            </button>
+          </div>
+          {error ? <p className="profile-about-edit-error" role="alert">{error}</p> : null}
+        </div>
+      ) : (
+        <p className={valueClassName}>{value}</p>
+      )}
+    </>
+  )
+}
+
 function PersonRow({ person, actionLabel, iconOnly = false }) {
   return (
     <li className="network-person">
@@ -157,41 +916,77 @@ function PersonRow({ person, actionLabel, iconOnly = false }) {
   )
 }
 
-function ProfileAboutSection({ t, preferredWorkCities, loading }) {
+function ProfileAboutSection({
+  t,
+  educations,
+  summary,
+  preferredWorkCities,
+  loading,
+  onSaveEducations,
+  onSaveSummary,
+}) {
   const workCities = preferredWorkCities.length > 0 ? preferredWorkCities : []
 
   return (
     <section className="profile-about" aria-label={t('profile.sectionAbout')}>
-      <div className="profile-about-side">
-        <div className="profile-about-degree">
-          <p className="profile-about-kicker">{t('profile.bachelor')}</p>
-          <p className="profile-about-lead">{t('profile.bachelorMock')}</p>
-          <p className="profile-about-kicker profile-about-kicker--follow">{t('profile.position')}</p>
-          <p className="profile-about-position">{t('profile.positionMock')}</p>
-        </div>
-
-        <div className="profile-about-work">
-          <p className="profile-about-kicker">{t('profile.workCities')}</p>
+      <div
+        className={`profile-about-side${
+          !loading && educations.length === 0 && workCities.length === 0
+            ? ' profile-about-side--empty'
+            : ''
+        }`}
+      >
+        <div
+          className={`profile-about-degree${
+            !loading && educations.length === 0 ? ' profile-about-degree--empty' : ''
+          }`}
+        >
           {loading ? (
             <p className="profile-about-loc-empty">…</p>
-          ) : workCities.length > 0 ? (
-            <ul className="profile-about-city-list">
-              {workCities.map((city) => (
-                <li key={city}>
-                  <span className="profile-about-city-dot" aria-hidden="true" />
-                  <span>{city}</span>
-                </li>
-              ))}
-            </ul>
           ) : (
-            <p className="profile-about-loc-empty">{t('profile.locationEmpty')}</p>
+            <EducationList t={t} educations={educations} onSaveEducations={onSaveEducations} />
           )}
         </div>
+
+        {workCities.length > 0 || loading ? (
+          <div className="profile-about-work">
+            <p className="profile-about-kicker">{t('profile.workCities')}</p>
+            {loading ? (
+              <p className="profile-about-loc-empty">…</p>
+            ) : (
+              <ul className="profile-about-city-list">
+                {workCities.map((city) => (
+                  <li key={city}>
+                    <span className="profile-about-city-dot" aria-hidden="true" />
+                    <span>{city}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : null}
       </div>
 
-      <div className="profile-about-main">
-        <span className="profile-about-kicker">{t('profile.summary')}</span>
-        <p className="profile-about-bio">{t('profile.summaryMock')}</p>
+      <div
+        className={`profile-about-main${
+          !loading && !summary.trim() ? ' profile-about-main--empty' : ''
+        }`}
+      >
+        {loading ? (
+          <p className="profile-about-loc-empty">…</p>
+        ) : (
+          <EditableProfileField
+            t={t}
+            label={t('profile.summary')}
+            value={summary}
+            addLabel={t('profile.addSummary')}
+            multiline
+            maxLength={500}
+            allowEmpty
+            valueClassName="profile-about-bio"
+            onSave={onSaveSummary}
+          />
+        )}
       </div>
     </section>
   )
@@ -201,10 +996,24 @@ function ActiveCvPanel({ t }) {
   const navigate = useNavigate()
   const { activeCv, activePreviewUrl, loading } = useResume()
   const [cvHidden, setCvHidden] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   function handlePreview() {
     if (!activePreviewUrl) return
     window.open(activePreviewUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  async function handleDownload() {
+    if (!activeCv?.fullPath || downloading) return
+
+    setDownloading(true)
+    try {
+      await downloadCvFile(activeCv.fullPath, activeCv.displayName)
+    } catch (err) {
+      console.error('Active CV download failed:', err)
+    } finally {
+      setDownloading(false)
+    }
   }
 
   const paperName = stripPdfExtension(activeCv?.displayName) || t('profile.activeCv')
@@ -286,6 +1095,14 @@ function ActiveCvPanel({ t }) {
             >
               {t('profile.cvPreview')}
             </button>
+            <button
+              type="button"
+              className="profile-cv-action"
+              onClick={() => void handleDownload()}
+              disabled={cvHidden || !activeCv.fullPath || downloading}
+            >
+              {downloading ? t('profile.cvDownloading') : t('profile.cvDownload')}
+            </button>
             <button type="button" className="profile-cv-action" onClick={() => navigate('/my-cv')}>
               {t('profile.cvChange')}
             </button>
@@ -307,14 +1124,20 @@ export default function Profile() {
   const { user, authLoading, setShowLogoutConfirm } = useAuth()
   const { t } = useLanguage()
   const [panel, setPanel] = useState(null)
+  const [username, setUsername] = useState('')
   const [homeCity, setHomeCity] = useState('')
   const [preferredWorkCities, setPreferredWorkCities] = useState([])
+  const [educations, setEducations] = useState([])
+  const [summary, setSummary] = useState('')
   const [profileDataLoading, setProfileDataLoading] = useState(true)
 
   useEffect(() => {
     if (!user?.uid) {
+      setUsername('')
       setHomeCity('')
       setPreferredWorkCities([])
+      setEducations([])
+      setSummary('')
       setProfileDataLoading(false)
       return undefined
     }
@@ -325,14 +1148,20 @@ export default function Profile() {
     getUserProfile(user.uid)
       .then((data) => {
         if (cancelled) return
+        setUsername(data.username)
         setHomeCity(data.homeCity)
         setPreferredWorkCities(data.preferredWorkCities)
+        setEducations(data.educations)
+        setSummary(data.summary)
       })
       .catch((err) => {
         console.error('Profile load failed:', err)
         if (!cancelled) {
+          setUsername('')
           setHomeCity('')
           setPreferredWorkCities([])
+          setEducations([])
+          setSummary('')
         }
       })
       .finally(() => {
@@ -348,6 +1177,17 @@ export default function Profile() {
     setPanel((current) => (current === next ? null : next))
   }
 
+  async function updateProfileField(field, value) {
+    await saveUserProfileField(user.uid, field, value)
+    if (field === 'summary') setSummary(value)
+  }
+
+  async function updateEducations(nextEducations) {
+    const saved = await saveUserEducations(user.uid, nextEducations)
+    setEducations(saved)
+    return saved
+  }
+
   if (authLoading) {
     return (
       <main className="main">
@@ -360,6 +1200,8 @@ export default function Profile() {
     return <Navigate to="/" replace />
   }
 
+  const profileUsername = username || user.email?.split('@')[0] || t('profile.untitled')
+
   return (
     <main className="main profile-page">
       <div className="profile-shell">
@@ -370,10 +1212,7 @@ export default function Profile() {
               <UserAvatar user={user} className="profile-page-avatar" />
             </div>
             <div className="profile-hero-text">
-              <p className="profile-hero-name">
-                {user.displayName || user.email?.split('@')[0] || t('profile.untitled')}
-              </p>
-              <p className="profile-hero-email">{user.email}</p>
+              <p className="profile-hero-name">@{profileUsername}</p>
             </div>
             <p
               className={`profile-hero-city${!homeCity && !profileDataLoading ? ' profile-hero-city--muted' : ''}`}
@@ -494,8 +1333,12 @@ export default function Profile() {
         <div className="profile-page-main">
           <ProfileAboutSection
             t={t}
+            educations={educations}
+            summary={summary}
             preferredWorkCities={preferredWorkCities}
             loading={profileDataLoading}
+            onSaveEducations={updateEducations}
+            onSaveSummary={(value) => updateProfileField('summary', value)}
           />
           <ActiveCvPanel t={t} />
         </div>
