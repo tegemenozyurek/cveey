@@ -411,10 +411,25 @@ export async function syncUserToFirestore(user) {
 
 export async function deleteUserAccount(user) {
   const email = user.email || user.providerData?.find((p) => p.email)?.email || ''
+
+  // Storage + files subcollection first, then education, then user doc, then auth index, then Auth.
   await deleteUserStorageFiles(user.uid)
   await deleteAllEducationDocs(user.uid)
-  await deleteDoc(doc(db, 'users', user.uid))
-  if (email) await removePasswordAccountIndex(email)
+
+  try {
+    await deleteDoc(doc(db, 'users', user.uid))
+  } catch (err) {
+    if (err?.code !== 'not-found') throw err
+  }
+
+  if (email) {
+    try {
+      await removePasswordAccountIndex(email)
+    } catch (err) {
+      if (err?.code !== 'not-found') throw err
+    }
+  }
+
   await deleteUser(user)
 }
 

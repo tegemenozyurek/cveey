@@ -6,6 +6,7 @@ import { useResume } from '../context/ResumeContext'
 import UserAvatar from '../components/UserAvatar'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
+import ChangePasswordModal from '../components/ChangePasswordModal'
 import { resolveAuthMethod } from '../authUtils'
 import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserProfileField } from '../userService'
 import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
@@ -177,6 +178,34 @@ function PrefsLogoutIcon() {
       />
       <path
         d="M16 17l5-5-5-5M21 12H9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function PrefsPasswordIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="11" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M8 11V8a4 4 0 1 1 8 0v3"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function PrefsDeleteIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
@@ -1207,9 +1236,11 @@ function ActiveCvPanel({ t }) {
 }
 
 export default function Profile() {
-  const { user, authLoading, setShowLogoutConfirm } = useAuth()
+  const { user, authLoading, setShowLogoutConfirm, setShowDeleteConfirm } = useAuth()
   const { t } = useLanguage()
+  const { files, activeFileId } = useResume()
   const [panel, setPanel] = useState(null)
+  const [showChangePassword, setShowChangePassword] = useState(false)
   const [username, setUsername] = useState('')
   const [homeCity, setHomeCity] = useState('')
   const [preferredWorkCities, setPreferredWorkCities] = useState([])
@@ -1425,6 +1456,48 @@ export default function Profile() {
                   </div>
                 </section>
 
+                <section className="prefs-section" aria-label={t('prefs.account')}>
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon" aria-hidden="true">
+                        <PrefsPasswordIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.changePassword')}</p>
+                        <p className="prefs-row-hint">{t('prefs.changePasswordHint')}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="prefs-action-btn"
+                      onClick={() => setShowChangePassword(true)}
+                    >
+                      {t('prefs.changePasswordAction')}
+                    </button>
+                  </div>
+                </section>
+
+                <section className="prefs-section prefs-section--warn" aria-label={t('prefs.deleteAccount')}>
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon prefs-row-icon--warn" aria-hidden="true">
+                        <PrefsDeleteIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.deleteAccount')}</p>
+                        <p className="prefs-row-hint">{t('prefs.deleteAccountHint')}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="prefs-warn-btn"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    >
+                      {t('prefs.deleteAccountAction')}
+                    </button>
+                  </div>
+                </section>
+
                 <section className="prefs-section prefs-section--danger" aria-label={t('prefs.logout')}>
                   <div className="prefs-row">
                     <div className="prefs-row-leading">
@@ -1449,6 +1522,10 @@ export default function Profile() {
             </div>
           ) : null}
         </header>
+
+        {showChangePassword && user ? (
+          <ChangePasswordModal user={user} onClose={() => setShowChangePassword(false)} />
+        ) : null}
 
         <div className="profile-page-main">
           <ProfileAboutSection

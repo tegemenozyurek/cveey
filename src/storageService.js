@@ -342,11 +342,26 @@ export async function activateCv(uid, fileId) {
 
 export async function deleteUserStorageFiles(uid) {
   const userRef = ref(storage, `users/${uid}`)
-  const listing = await listAll(userRef)
-  await Promise.all(listing.items.map((item) => deleteObject(item)))
+  try {
+    const listing = await listAll(userRef)
+    await Promise.all(listing.items.map((item) => deleteObject(item)))
+  } catch (err) {
+    // Missing folder / empty storage is fine during account wipe.
+    if (err?.code !== 'storage/object-not-found') {
+      console.warn('Storage cleanup warning:', err)
+    }
+  }
   await deleteAllCvFileRecords(uid)
-  await clearActiveFileId(uid)
-  await pruneLegacyUserFields(uid)
+  try {
+    await clearActiveFileId(uid)
+  } catch {
+    // User doc may already be gone or missing the field.
+  }
+  try {
+    await pruneLegacyUserFields(uid)
+  } catch {
+    // Ignore legacy cleanup failures during wipe.
+  }
   invalidateCvCache(uid)
 }
 
