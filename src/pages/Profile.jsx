@@ -7,7 +7,7 @@ import UserAvatar from '../components/UserAvatar'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import { resolveAuthMethod } from '../authUtils'
-import { getUserProfile, saveUserEducation, saveUserProfileField } from '../userService'
+import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserProfileField } from '../userService'
 import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
 import { downloadCvFile } from '../storageService'
 
@@ -188,146 +188,79 @@ const EDUCATION_STATUSES = ['studying', 'graduated']
 const CURRENT_YEAR = new Date().getFullYear()
 const GRADUATION_YEARS = Array.from({ length: CURRENT_YEAR - 1949 }, (_, index) => CURRENT_YEAR - index)
 
-function EducationField({ t, education, onSave }) {
-  const hasValue = educationHasContent(education)
-  const [editing, setEditing] = useState(false)
-  const [degreeType, setDegreeType] = useState('')
-  const [degreeOther, setDegreeOther] = useState('')
-  const [status, setStatus] = useState('')
-  const [graduationYear, setGraduationYear] = useState('')
-  const [university, setUniversity] = useState('')
-  const [universityIsOther, setUniversityIsOther] = useState(false)
-  const [universityCustom, setUniversityCustom] = useState('')
-  const [program, setProgram] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-
-  function hydrateFromEducation(next) {
-    setDegreeType(next?.degreeType || '')
-    setDegreeOther(next?.degreeOther || '')
-    setStatus(next?.status || '')
-    setGraduationYear(next?.graduationYear ? String(next.graduationYear) : '')
-    setUniversityIsOther(Boolean(next?.universityIsOther))
-    if (next?.universityIsOther) {
-      setUniversity(UNIVERSITY_OTHER)
-      setUniversityCustom(next?.university || '')
-    } else {
-      setUniversity(next?.university || '')
-      setUniversityCustom('')
-    }
-    setProgram(next?.program || '')
+function createLocalEducationId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
   }
+  return `edu_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+}
 
-  useEffect(() => {
-    if (!editing) hydrateFromEducation(education)
-  }, [editing, education])
+function EducationEditorForm({ t, initial, saving, error, onCancel, onSave }) {
+  const [degreeType, setDegreeType] = useState(initial?.degreeType || '')
+  const [degreeOther, setDegreeOther] = useState(initial?.degreeOther || '')
+  const [status, setStatus] = useState(initial?.status || '')
+  const [graduationYear, setGraduationYear] = useState(
+    initial?.graduationYear ? String(initial.graduationYear) : '',
+  )
+  const [university, setUniversity] = useState(
+    initial?.universityIsOther ? UNIVERSITY_OTHER : initial?.university || '',
+  )
+  const [universityIsOther, setUniversityIsOther] = useState(Boolean(initial?.universityIsOther))
+  const [universityCustom, setUniversityCustom] = useState(
+    initial?.universityIsOther ? initial?.university || '' : '',
+  )
+  const [program, setProgram] = useState(initial?.program || '')
+  const [localError, setLocalError] = useState('')
 
-  function startEditing() {
-    hydrateFromEducation(education)
-    setError('')
-    setEditing(true)
-  }
-
-  function cancelEditing() {
-    hydrateFromEducation(education)
-    setError('')
-    setEditing(false)
-  }
-
-  async function save() {
+  function submit() {
+    setLocalError('')
     if (!degreeType) {
-      setError(t('profile.educationDegreeRequired'))
+      setLocalError(t('profile.educationDegreeRequired'))
       return
     }
     if (degreeType === 'other' && !degreeOther.trim()) {
-      setError(t('profile.educationDegreeOtherRequired'))
+      setLocalError(t('profile.educationDegreeOtherRequired'))
       return
     }
     if (!status) {
-      setError(t('profile.educationStatusRequired'))
+      setLocalError(t('profile.educationStatusRequired'))
       return
     }
     if (status === 'graduated' && !graduationYear) {
-      setError(t('profile.educationGraduationYearRequired'))
+      setLocalError(t('profile.educationGraduationYearRequired'))
       return
     }
 
     const resolvedUniversity = universityIsOther ? universityCustom.trim() : university.trim()
     if (universityIsOther && !resolvedUniversity) {
-      setError(t('profile.educationUniversityCustomRequired'))
+      setLocalError(t('profile.educationUniversityCustomRequired'))
       return
     }
     if (!universityIsOther && !resolvedUniversity) {
-      setError(t('profile.educationUniversityRequired'))
+      setLocalError(t('profile.educationUniversityRequired'))
       return
     }
     if (!program.trim()) {
-      setError(t('profile.educationProgramRequired'))
+      setLocalError(t('profile.educationProgramRequired'))
       return
     }
 
-    setSaving(true)
-    setError('')
-    try {
-      await onSave({
-        degreeType,
-        degreeOther: degreeType === 'other' ? degreeOther.trim() : '',
-        status,
-        graduationYear: status === 'graduated' ? Number(graduationYear) : 0,
-        university: resolvedUniversity,
-        universityIsOther,
-        program: program.trim(),
-      })
-      setEditing(false)
-    } catch (err) {
-      console.error('Profile education update failed:', err)
-      setError(t('profile.updateError'))
-    } finally {
-      setSaving(false)
-    }
+    onSave({
+      id: initial?.id || createLocalEducationId(),
+      degreeType,
+      degreeOther: degreeType === 'other' ? degreeOther.trim() : '',
+      status,
+      graduationYear: status === 'graduated' ? Number(graduationYear) : 0,
+      university: resolvedUniversity,
+      universityIsOther,
+      program: program.trim(),
+    })
   }
 
-  if (!hasValue && !editing) {
-    return (
-      <button type="button" className="profile-about-add-btn" onClick={startEditing}>
-        {t('profile.addEducation')}
-      </button>
-    )
-  }
-
-  if (!editing) {
-    return (
-      <>
-        <div className="profile-about-field-head">
-          <p className="profile-about-kicker">{t('profile.education')}</p>
-          <button
-            type="button"
-            className="profile-about-edit-btn"
-            onClick={startEditing}
-            aria-label={`${t('profile.edit')} ${t('profile.education')}`}
-            title={t('profile.edit')}
-          >
-            <EditIcon />
-          </button>
-        </div>
-        <p className="profile-about-lead">
-          {degreeTypeLabel(t, education)}
-          {education.program ? ` · ${education.program}` : ''}
-        </p>
-        {education.university ? (
-          <p className="profile-about-edu-uni">{education.university}</p>
-        ) : null}
-        {education.status ? (
-          <p className="profile-about-edu-status">{educationStatusLabel(t, education)}</p>
-        ) : null}
-      </>
-    )
-  }
+  const displayError = localError || error
 
   return (
     <div className="profile-about-edit profile-edu-edit">
-      <p className="profile-about-kicker">{t('profile.education')}</p>
-
       <div className="form-field">
         <label className="form-label" htmlFor="profile-edu-degree">
           {t('profile.educationDegree')}
@@ -338,7 +271,7 @@ function EducationField({ t, education, onSave }) {
           value={degreeType}
           onChange={(event) => {
             const nextType = event.target.value
-            setError('')
+            setLocalError('')
             setDegreeType(nextType)
             if (nextType !== 'other') setDegreeOther('')
           }}
@@ -366,7 +299,7 @@ function EducationField({ t, education, onSave }) {
             type="text"
             value={degreeOther}
             onChange={(event) => {
-              setError('')
+              setLocalError('')
               setDegreeOther(event.target.value)
             }}
             placeholder={t('profile.educationDegreeOtherPlaceholder')}
@@ -386,7 +319,7 @@ function EducationField({ t, education, onSave }) {
           value={status}
           onChange={(event) => {
             const nextStatus = event.target.value
-            setError('')
+            setLocalError('')
             setStatus(nextStatus)
             if (nextStatus !== 'graduated') setGraduationYear('')
           }}
@@ -413,7 +346,7 @@ function EducationField({ t, education, onSave }) {
             className={`form-input profile-edu-degree-select${!graduationYear ? ' profile-edu-degree-select--placeholder' : ''}`}
             value={graduationYear}
             onChange={(event) => {
-              setError('')
+              setLocalError('')
               setGraduationYear(event.target.value)
             }}
             disabled={saving}
@@ -440,7 +373,7 @@ function EducationField({ t, education, onSave }) {
           value={universityIsOther ? UNIVERSITY_OTHER : university}
           onChange={(event) => {
             const nextValue = event.target.value
-            setError('')
+            setLocalError('')
             if (nextValue === UNIVERSITY_OTHER) {
               setUniversityIsOther(true)
               setUniversity(UNIVERSITY_OTHER)
@@ -476,7 +409,7 @@ function EducationField({ t, education, onSave }) {
             type="text"
             value={universityCustom}
             onChange={(event) => {
-              setError('')
+              setLocalError('')
               setUniversityCustom(event.target.value)
             }}
             placeholder={t('profile.educationUniversityCustomPlaceholder')}
@@ -496,7 +429,7 @@ function EducationField({ t, education, onSave }) {
           type="text"
           value={program}
           onChange={(event) => {
-            setError('')
+            setLocalError('')
             setProgram(event.target.value)
           }}
           placeholder={t('profile.educationProgramPlaceholder')}
@@ -506,14 +439,165 @@ function EducationField({ t, education, onSave }) {
       </div>
 
       <div className="profile-about-edit-actions">
-        <button type="button" onClick={cancelEditing} disabled={saving}>
+        <button type="button" onClick={onCancel} disabled={saving}>
           {t('profile.cancel')}
         </button>
-        <button type="button" onClick={() => void save()} disabled={saving}>
+        <button type="button" onClick={submit} disabled={saving}>
           {saving ? t('profile.saving') : t('profile.save')}
         </button>
       </div>
-      {error ? <p className="profile-about-edit-error" role="alert">{error}</p> : null}
+      {displayError ? <p className="profile-about-edit-error" role="alert">{displayError}</p> : null}
+    </div>
+  )
+}
+
+function EducationList({ t, educations, onSaveEducations }) {
+  const items = Array.isArray(educations) ? educations : []
+  const [editingId, setEditingId] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const editingItem =
+    editingId && editingId !== 'new' ? items.find((item) => item.id === editingId) : null
+  const canAdd = items.length < MAX_EDUCATIONS && editingId === null
+
+  async function persist(nextItems) {
+    setSaving(true)
+    setError('')
+    try {
+      const saved = await onSaveEducations(nextItems)
+      setEditingId(null)
+      return saved
+    } catch (err) {
+      console.error('Profile educations update failed:', err)
+      setError(t('profile.updateError'))
+      throw err
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleSaveItem(payload) {
+    const exists = items.some((item) => item.id === payload.id)
+    const nextItems = exists
+      ? items.map((item) => (item.id === payload.id ? payload : item))
+      : [...items, payload]
+    await persist(nextItems)
+  }
+
+  async function handleDelete(id) {
+    if (saving) return
+    await persist(items.filter((item) => item.id !== id))
+  }
+
+  if (items.length === 0 && editingId !== 'new') {
+    return (
+      <button
+        type="button"
+        className="profile-about-add-btn"
+        onClick={() => {
+          setError('')
+          setEditingId('new')
+        }}
+      >
+        {t('profile.addEducation')}
+      </button>
+    )
+  }
+
+  return (
+    <div className="profile-edu-list">
+      <div className="profile-about-field-head">
+        <p className="profile-about-kicker">{t('profile.education')}</p>
+      </div>
+
+      <ul className="profile-edu-items">
+        {items.map((item) => (
+          <li key={item.id} className="profile-edu-item">
+            {editingId === item.id ? (
+              <EducationEditorForm
+                t={t}
+                initial={item}
+                saving={saving}
+                error={error}
+                onCancel={() => {
+                  setError('')
+                  setEditingId(null)
+                }}
+                onSave={(payload) => void handleSaveItem(payload)}
+              />
+            ) : (
+              <div className="profile-edu-item-view">
+                <div className="profile-edu-item-copy">
+                  <p className="profile-about-lead profile-edu-item-title">
+                    {degreeTypeLabel(t, item)}
+                    {item.program ? ` · ${item.program}` : ''}
+                  </p>
+                  {item.university ? (
+                    <p className="profile-about-edu-uni">{item.university}</p>
+                  ) : null}
+                  {item.status ? (
+                    <p className="profile-about-edu-status">{educationStatusLabel(t, item)}</p>
+                  ) : null}
+                </div>
+                {editingId === null ? (
+                  <div className="profile-edu-item-actions">
+                    <button
+                      type="button"
+                      className="profile-about-edit-btn"
+                      onClick={() => {
+                        setError('')
+                        setEditingId(item.id)
+                      }}
+                      aria-label={`${t('profile.edit')} ${t('profile.education')}`}
+                      title={t('profile.edit')}
+                    >
+                      <EditIcon />
+                    </button>
+                    <button
+                      type="button"
+                      className="profile-edu-remove-btn"
+                      onClick={() => void handleDelete(item.id)}
+                      disabled={saving}
+                      aria-label={t('profile.removeEducation')}
+                      title={t('profile.removeEducation')}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {editingId === 'new' ? (
+        <EducationEditorForm
+          t={t}
+          initial={null}
+          saving={saving}
+          error={error}
+          onCancel={() => {
+            setError('')
+            setEditingId(null)
+          }}
+          onSave={(payload) => void handleSaveItem(payload)}
+        />
+      ) : null}
+
+      {canAdd ? (
+        <button
+          type="button"
+          className="profile-about-add-btn profile-about-add-btn--compact"
+          onClick={() => {
+            setError('')
+            setEditingId('new')
+          }}
+        >
+          {t('profile.addEducation')}
+        </button>
+      ) : null}
     </div>
   )
 }
@@ -676,11 +760,11 @@ function PersonRow({ person, actionLabel, iconOnly = false }) {
 
 function ProfileAboutSection({
   t,
-  education,
+  educations,
   summary,
   preferredWorkCities,
   loading,
-  onSaveEducation,
+  onSaveEducations,
   onSaveSummary,
 }) {
   const workCities = preferredWorkCities.length > 0 ? preferredWorkCities : []
@@ -692,7 +776,7 @@ function ProfileAboutSection({
           {loading ? (
             <p className="profile-about-loc-empty">…</p>
           ) : (
-            <EducationField t={t} education={education} onSave={onSaveEducation} />
+            <EducationList t={t} educations={educations} onSaveEducations={onSaveEducations} />
           )}
         </div>
 
@@ -870,15 +954,7 @@ export default function Profile() {
   const [username, setUsername] = useState('')
   const [homeCity, setHomeCity] = useState('')
   const [preferredWorkCities, setPreferredWorkCities] = useState([])
-  const [education, setEducation] = useState({
-    degreeType: '',
-    degreeOther: '',
-    status: '',
-    graduationYear: null,
-    university: '',
-    universityIsOther: false,
-    program: '',
-  })
+  const [educations, setEducations] = useState([])
   const [summary, setSummary] = useState('')
   const [profileDataLoading, setProfileDataLoading] = useState(true)
 
@@ -887,15 +963,7 @@ export default function Profile() {
       setUsername('')
       setHomeCity('')
       setPreferredWorkCities([])
-      setEducation({
-        degreeType: '',
-        degreeOther: '',
-        status: '',
-        graduationYear: null,
-        university: '',
-        universityIsOther: false,
-        program: '',
-      })
+      setEducations([])
       setSummary('')
       setProfileDataLoading(false)
       return undefined
@@ -910,7 +978,7 @@ export default function Profile() {
         setUsername(data.username)
         setHomeCity(data.homeCity)
         setPreferredWorkCities(data.preferredWorkCities)
-        setEducation(data.education)
+        setEducations(data.educations)
         setSummary(data.summary)
       })
       .catch((err) => {
@@ -919,15 +987,7 @@ export default function Profile() {
           setUsername('')
           setHomeCity('')
           setPreferredWorkCities([])
-          setEducation({
-            degreeType: '',
-            degreeOther: '',
-            status: '',
-            graduationYear: null,
-            university: '',
-            universityIsOther: false,
-            program: '',
-          })
+          setEducations([])
           setSummary('')
         }
       })
@@ -949,9 +1009,10 @@ export default function Profile() {
     if (field === 'summary') setSummary(value)
   }
 
-  async function updateEducation(payload) {
-    const saved = await saveUserEducation(user.uid, payload)
-    setEducation(saved)
+  async function updateEducations(nextEducations) {
+    const saved = await saveUserEducations(user.uid, nextEducations)
+    setEducations(saved)
+    return saved
   }
 
   if (authLoading) {
@@ -1099,11 +1160,11 @@ export default function Profile() {
         <div className="profile-page-main">
           <ProfileAboutSection
             t={t}
-            education={education}
+            educations={educations}
             summary={summary}
             preferredWorkCities={preferredWorkCities}
             loading={profileDataLoading}
-            onSaveEducation={updateEducation}
+            onSaveEducations={updateEducations}
             onSaveSummary={(value) => updateProfileField('summary', value)}
           />
           <ActiveCvPanel t={t} />

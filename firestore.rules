@@ -7,10 +7,9 @@ rules_version = '2';
 // users/{userId}
 //   uid, email, createdAt, lastLoginAt, authMethod, activeFileId?,
 //   username?, homeCity?, preferredWorkCities?, locationSetupComplete?,
-//   bachelor?, educationDegreeType?, educationDegreeOther?,
-//   educationStatus?, educationGraduationYear?, educationUniversity?,
-//   educationUniversityIsOther?, educationProgram?,
-//   legacy optional: bachelorStatus?, bachelorName?, bachelorUniversity?,
+//   bachelor?, educations? (list of education maps, max 3),
+//   legacy optional flat education fields (educationDegreeType, ...),
+//   bachelorStatus?, bachelorName?, bachelorUniversity?,
 //   moreEducationStatus?, moreEducationDegree?, moreEducationOther?,
 //   summary?
 //
@@ -129,6 +128,61 @@ service cloud.firestore {
       );
     }
 
+    function isValidEducationItem(item) {
+      return item is map &&
+        item.id is string &&
+        item.id.size() > 0 &&
+        item.id.size() <= 64 &&
+        item.degreeType is string &&
+        (
+          item.degreeType == 'associate' ||
+          item.degreeType == 'bachelor' ||
+          item.degreeType == 'master' ||
+          item.degreeType == 'doctorate' ||
+          item.degreeType == 'other'
+        ) &&
+        item.degreeOther is string &&
+        item.degreeOther.size() <= 80 &&
+        (item.degreeType != 'other' || item.degreeOther.size() > 0) &&
+        item.status is string &&
+        (item.status == 'studying' || item.status == 'graduated') &&
+        item.graduationYear is int &&
+        (
+          (item.status == 'studying' && item.graduationYear == 0) ||
+          (
+            item.status == 'graduated' &&
+            item.graduationYear >= 1900 &&
+            item.graduationYear <= request.time.year()
+          )
+        ) &&
+        item.university is string &&
+        item.university.size() > 0 &&
+        item.university.size() <= 120 &&
+        item.universityIsOther is bool &&
+        item.program is string &&
+        item.program.size() > 0 &&
+        item.program.size() <= 120;
+    }
+
+    // Nested short-circuit keeps evaluation under Firestore's 1000-expression cap.
+    function isValidEducationsList(list) {
+      return list is list &&
+        list.size() <= 3 &&
+        (
+          list.size() == 0 ||
+          (
+            isValidEducationItem(list[0]) &&
+            (
+              list.size() == 1 ||
+              (
+                isValidEducationItem(list[1]) &&
+                (list.size() == 2 || isValidEducationItem(list[2]))
+              )
+            )
+          )
+        );
+    }
+
     function isValidEducationFields(data) {
       return isValidEducationDegreeType(data.educationDegreeType) &&
         isOptionalProfileText(data.educationDegreeOther, 80) &&
@@ -160,7 +214,7 @@ service cloud.firestore {
           'moreEducationStatus', 'moreEducationDegree', 'moreEducationOther',
           'educationDegreeType', 'educationDegreeOther', 'educationUniversity',
           'educationUniversityIsOther', 'educationProgram', 'educationStatus',
-          'educationGraduationYear', 'summary'
+          'educationGraduationYear', 'educations', 'summary'
         ]) &&
         data.uid is string &&
         data.uid.size() > 0 &&
@@ -193,6 +247,9 @@ service cloud.firestore {
         (!('educationUniversity' in data) || isOptionalProfileText(data.educationUniversity, 120)) &&
         (!('educationUniversityIsOther' in data) || data.educationUniversityIsOther is bool) &&
         (!('educationProgram' in data) || isOptionalProfileText(data.educationProgram, 120)) &&
+        // Shallow only — deep item checks live in isValidEducationUpdate to stay under
+        // Firestore's per-request expression limit on large profiles.
+        (!('educations' in data) || (data.educations is list && data.educations.size() <= 3)) &&
         (!('summary' in data) || isValidProfileText(data.summary, 500));
     }
 
@@ -204,7 +261,9 @@ service cloud.firestore {
     }
 
     function isValidUserUpdate(data) {
-      return isValidUser(data) &&
+      // Educations must go through isValidEducationUpdate (deep item validation).
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['educations']) &&
+        isValidUser(data) &&
         data.uid == resource.data.uid &&
         data.uid == request.auth.uid &&
         data.email == resource.data.email &&
@@ -261,13 +320,29 @@ service cloud.firestore {
 
     function isValidEducationUpdate() {
       let diff = request.resource.data.diff(resource.data).affectedKeys();
-      return diff.hasOnly([
-          'educationDegreeType', 'educationDegreeOther', 'educationUniversity',
-          'educationUniversityIsOther', 'educationProgram', 'educationStatus',
-          'educationGraduationYear', 'bachelor'
-        ]) &&
-        userCoreFieldsMatch() &&
-        isValidEducationFields(request.resource.data);
+      return (
+          (
+            diff.hasOnly(['educations', 'bachelor']) ||
+            diff.hasOnly(['educations']) ||
+            diff.hasOnly([
+              'educationDegreeType', 'educationDegreeOther', 'educationUniversity',
+              'educationUniversityIsOther', 'educationProgram', 'educationStatus',
+              'educationGraduationYear', 'bachelor'
+            ])
+          ) &&
+          userCoreFieldsMatch() &&
+          (
+            (
+              'educations' in request.resource.data &&
+              isValidEducationsList(request.resource.data.educations) &&
+              isOptionalProfileText(request.resource.data.bachelor, 120)
+            ) ||
+            (
+              !('educations' in request.resource.data) &&
+              isValidEducationFields(request.resource.data)
+            )
+          )
+        );
     }
 
     function isValidStorageObject(name) {
@@ -335,13 +410,13 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow create: if isOwner(userId) && isValidUserCreate(request.resource.data);
       allow update: if isOwner(userId) && (
-        isValidUserUpdate(request.resource.data) ||
+        isValidEducationUpdate() ||
         isValidUserLoginUpdate() ||
         isValidLocationSetupUpdate() ||
-        isValidEducationUpdate() ||
         isValidActiveFileIdUpdate() ||
         isValidActiveFileIdClear() ||
-        isValidLegacyUserCleanup()
+        isValidLegacyUserCleanup() ||
+        isValidUserUpdate(request.resource.data)
       );
       allow delete: if isOwner(userId);
 

@@ -1339,6 +1339,86 @@
   color: var(--text-dim);
 }
 
+.profile-about-add-btn--compact {
+  min-height: 42px;
+  margin-top: 4px;
+}
+
+.profile-edu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-edu-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-edu-item {
+  margin: 0;
+}
+
+.profile-edu-item-view {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.profile-edu-item-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-edu-item-title {
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.profile-edu-item-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.profile-edu-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-top: -6px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.profile-edu-remove-btn:hover:not(:disabled) {
+  color: #f87171;
+  border-color: color-mix(in srgb, #f87171 35%, transparent);
+  background: color-mix(in srgb, #f87171 10%, transparent);
+}
+
+.profile-edu-remove-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
 .profile-edu-edit {
   gap: 12px;
 }

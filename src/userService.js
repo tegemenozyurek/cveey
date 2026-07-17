@@ -84,7 +84,7 @@ export async function getUserProfile(userId) {
       homeCity: '',
       preferredWorkCities: [],
       bachelor: '',
-      education: emptyEducation(),
+      educations: [],
       summary: '',
     }
   }
@@ -97,69 +97,111 @@ export async function getUserProfile(userId) {
       ? data.preferredWorkCities.filter((city) => typeof city === 'string' && city.trim())
       : [],
     bachelor: typeof data.bachelor === 'string' ? data.bachelor : '',
-    education: normalizeEducation(data),
+    educations: normalizeEducations(data),
     summary: typeof data.summary === 'string' ? data.summary : '',
   }
 }
 
 const EDUCATION_DEGREE_TYPES = new Set(['associate', 'bachelor', 'master', 'doctorate', 'other'])
 const EDUCATION_STATUSES = new Set(['studying', 'graduated'])
+export const MAX_EDUCATIONS = 3
 
-function emptyEducation() {
-  return {
-    degreeType: '',
-    degreeOther: '',
-    status: '',
-    graduationYear: null,
-    university: '',
-    universityIsOther: false,
-    program: '',
+function createEducationId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
   }
+  return `edu_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
 }
 
-function normalizeEducation(data) {
-  const degreeType = EDUCATION_DEGREE_TYPES.has(data.educationDegreeType)
-    ? data.educationDegreeType
-    : ''
-  const degreeOther = typeof data.educationDegreeOther === 'string' ? data.educationDegreeOther : ''
-  const status = EDUCATION_STATUSES.has(data.educationStatus) ? data.educationStatus : ''
+function educationItemHasContent(item) {
+  return Boolean(
+    item?.degreeType &&
+      item?.status &&
+      item?.university?.trim() &&
+      item?.program?.trim() &&
+      (item.status !== 'graduated' || item.graduationYear),
+  )
+}
+
+function normalizeEducationItem(raw) {
+  if (!raw || typeof raw !== 'object') return null
+
+  const degreeType = EDUCATION_DEGREE_TYPES.has(raw.degreeType) ? raw.degreeType : ''
+  const degreeOther = typeof raw.degreeOther === 'string' ? raw.degreeOther.trim() : ''
+  const status = EDUCATION_STATUSES.has(raw.status) ? raw.status : ''
   const graduationYear =
     status === 'graduated' &&
-    Number.isInteger(data.educationGraduationYear) &&
-    data.educationGraduationYear > 0
-      ? data.educationGraduationYear
+    Number.isInteger(raw.graduationYear) &&
+    raw.graduationYear > 0
+      ? raw.graduationYear
       : null
-  const university = typeof data.educationUniversity === 'string' ? data.educationUniversity : ''
-  const universityIsOther = data.educationUniversityIsOther === true
-  const program =
-    typeof data.educationProgram === 'string' && data.educationProgram.trim()
-      ? data.educationProgram
-      : typeof data.bachelor === 'string'
-        ? data.bachelor
-        : ''
+  const university = typeof raw.university === 'string' ? raw.university.trim() : ''
+  const universityIsOther = raw.universityIsOther === true
+  const program = typeof raw.program === 'string' ? raw.program.trim() : ''
+  const id =
+    typeof raw.id === 'string' && raw.id.trim()
+      ? raw.id.trim().slice(0, 64)
+      : createEducationId()
 
-  return {
+  const item = {
+    id,
     degreeType,
-    degreeOther,
+    degreeOther: degreeType === 'other' ? degreeOther : '',
     status,
     graduationYear,
     university,
     universityIsOther,
     program,
   }
+
+  return educationItemHasContent(item) ? item : null
 }
 
-export async function saveUserEducation(userId, payload) {
-  const degreeType = EDUCATION_DEGREE_TYPES.has(payload.degreeType) ? payload.degreeType : ''
+function legacyEducationFromData(data) {
+  return normalizeEducationItem({
+    id: 'legacy',
+    degreeType: data.educationDegreeType,
+    degreeOther: data.educationDegreeOther,
+    status: data.educationStatus,
+    graduationYear: data.educationGraduationYear,
+    university: data.educationUniversity,
+    universityIsOther: data.educationUniversityIsOther === true,
+    program:
+      typeof data.educationProgram === 'string' && data.educationProgram.trim()
+        ? data.educationProgram
+        : typeof data.bachelor === 'string'
+          ? data.bachelor
+          : '',
+  })
+}
+
+function normalizeEducations(data) {
+  if (Array.isArray(data.educations)) {
+    return data.educations
+      .map((item) => normalizeEducationItem(item))
+      .filter(Boolean)
+      .slice(0, MAX_EDUCATIONS)
+  }
+
+  const legacy = legacyEducationFromData(data)
+  return legacy ? [legacy] : []
+}
+
+function serializeEducationItem(item) {
+  const degreeType = EDUCATION_DEGREE_TYPES.has(item.degreeType) ? item.degreeType : ''
   const degreeOther =
-    degreeType === 'other' ? asTrimmedString(payload.degreeOther, 80) : ''
-  const status = EDUCATION_STATUSES.has(payload.status) ? payload.status : ''
+    degreeType === 'other' ? asTrimmedString(item.degreeOther, 80) : ''
+  const status = EDUCATION_STATUSES.has(item.status) ? item.status : ''
   const currentYear = new Date().getFullYear()
   const graduationYear =
-    status === 'graduated' ? Number(payload.graduationYear) : 0
-  const universityIsOther = payload.universityIsOther === true
-  const university = asTrimmedString(payload.university, 120)
-  const program = asTrimmedString(payload.program, 120)
+    status === 'graduated' ? Number(item.graduationYear) : 0
+  const universityIsOther = item.universityIsOther === true
+  const university = asTrimmedString(item.university, 120)
+  const program = asTrimmedString(item.program, 120)
+  const id =
+    typeof item.id === 'string' && item.id.trim()
+      ? item.id.trim().slice(0, 64)
+      : createEducationId()
 
   if (!degreeType || !status || !university || !program) {
     throw new Error('INVALID_EDUCATION')
@@ -174,26 +216,45 @@ export async function saveUserEducation(userId, payload) {
     throw new Error('INVALID_EDUCATION')
   }
 
-  await updateDoc(doc(db, 'users', userId), {
-    educationDegreeType: degreeType,
-    educationDegreeOther: degreeOther,
-    educationStatus: status,
-    educationGraduationYear: graduationYear,
-    educationUniversity: university,
-    educationUniversityIsOther: universityIsOther,
-    educationProgram: program,
-    bachelor: program,
-  })
-
   return {
+    id,
     degreeType,
     degreeOther,
     status,
-    graduationYear: status === 'graduated' ? graduationYear : null,
+    graduationYear,
     university,
     universityIsOther,
     program,
   }
+}
+
+export async function saveUserEducations(userId, educations) {
+  if (!Array.isArray(educations) || educations.length > MAX_EDUCATIONS) {
+    throw new Error('INVALID_EDUCATION')
+  }
+
+  const stored = educations.map((item) => serializeEducationItem(item))
+  const display = stored.map((item) => ({
+    ...item,
+    graduationYear: item.status === 'graduated' ? item.graduationYear : null,
+  }))
+
+  await updateDoc(doc(db, 'users', userId), {
+    educations: stored,
+    bachelor: stored[0]?.program || '',
+  })
+
+  return display
+}
+
+/** @deprecated Prefer saveUserEducations */
+export async function saveUserEducation(userId, payload) {
+  return saveUserEducations(userId, [
+    {
+      ...payload,
+      id: payload.id || createEducationId(),
+    },
+  ])
 }
 
 const PROFILE_FIELD_LIMITS = {
@@ -273,7 +334,12 @@ export async function searchUsersByEmail(emailQuery, { excludeUid } = {}) {
         email: data.email || '',
         homeCity: data.homeCity || '',
         displayName: data.username || data.email || docSnap.id,
-        headline: data.educationProgram || data.bachelor || data.email || '',
+        headline:
+          (Array.isArray(data.educations) && data.educations[0]?.program) ||
+          data.educationProgram ||
+          data.bachelor ||
+          data.email ||
+          '',
         location: data.homeCity || '',
         photoURL: null,
       }
