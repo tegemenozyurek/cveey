@@ -317,23 +317,23 @@ function ProfileAboutSection({
           <p className="profile-about-position">{t('profile.positionMock')}</p>
         </div>
 
-        <div className="profile-about-work">
-          <p className="profile-about-kicker">{t('profile.workCities')}</p>
-          {loading ? (
-            <p className="profile-about-loc-empty">…</p>
-          ) : workCities.length > 0 ? (
-            <ul className="profile-about-city-list">
-              {workCities.map((city) => (
-                <li key={city}>
-                  <span className="profile-about-city-dot" aria-hidden="true" />
-                  <span>{city}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="profile-about-loc-empty">{t('profile.locationEmpty')}</p>
-          )}
-        </div>
+        {workCities.length > 0 || loading ? (
+          <div className="profile-about-work">
+            <p className="profile-about-kicker">{t('profile.workCities')}</p>
+            {loading ? (
+              <p className="profile-about-loc-empty">…</p>
+            ) : (
+              <ul className="profile-about-city-list">
+                {workCities.map((city) => (
+                  <li key={city}>
+                    <span className="profile-about-city-dot" aria-hidden="true" />
+                    <span>{city}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : null}
       </div>
 
       <div className="profile-about-main">
@@ -462,6 +462,7 @@ export default function Profile() {
   const { user, authLoading, setShowLogoutConfirm } = useAuth()
   const { t } = useLanguage()
   const [panel, setPanel] = useState(null)
+  const [username, setUsername] = useState('')
   const [homeCity, setHomeCity] = useState('')
   const [preferredWorkCities, setPreferredWorkCities] = useState([])
   const [bachelor, setBachelor] = useState('')
@@ -470,6 +471,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user?.uid) {
+      setUsername('')
       setHomeCity('')
       setPreferredWorkCities([])
       setBachelor('')
@@ -484,6 +486,7 @@ export default function Profile() {
     getUserProfile(user.uid)
       .then((data) => {
         if (cancelled) return
+        setUsername(data.username)
         setHomeCity(data.homeCity)
         setPreferredWorkCities(data.preferredWorkCities)
         setBachelor(data.bachelor)
@@ -492,6 +495,7 @@ export default function Profile() {
       .catch((err) => {
         console.error('Profile load failed:', err)
         if (!cancelled) {
+          setUsername('')
           setHomeCity('')
           setPreferredWorkCities([])
           setBachelor('')
@@ -529,6 +533,9 @@ export default function Profile() {
     return <Navigate to="/" replace />
   }
 
+  const displayName =
+    user.displayName || username || user.email?.split('@')[0] || t('profile.untitled')
+
   return (
     <main className="main profile-page">
       <div className="profile-shell">
@@ -539,9 +546,10 @@ export default function Profile() {
               <UserAvatar user={user} className="profile-page-avatar" />
             </div>
             <div className="profile-hero-text">
-              <p className="profile-hero-name">
-                {user.displayName || user.email?.split('@')[0] || t('profile.untitled')}
-              </p>
+              <p className="profile-hero-name">{displayName}</p>
+              {username ? (
+                <p className="profile-hero-username">@{username}</p>
+              ) : null}
               <p className="profile-hero-email">{user.email}</p>
             </div>
             <p

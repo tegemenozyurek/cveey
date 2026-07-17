@@ -6,7 +6,9 @@ rules_version = '2';
 //
 // users/{userId}
 //   uid, email, createdAt, lastLoginAt, authMethod, activeFileId?,
-//   homeCity?, preferredWorkCities?, locationSetupComplete?, bachelor?, summary?
+//   username?, homeCity?, preferredWorkCities?, locationSetupComplete?,
+//   bachelor?, bachelorStatus?, bachelorName?, bachelorUniversity?,
+//   moreEducationStatus?, moreEducationDegree?, moreEducationOther?, summary?
 //
 // users/{userId}/files/{fileId}
 //   displayName: string
@@ -68,10 +70,50 @@ service cloud.firestore {
         value.size() <= maxLength;
     }
 
+    function isOptionalProfileText(value, maxLength) {
+      return value is string && value.size() <= maxLength;
+    }
+
+    function isValidUsername(username) {
+      return username is string &&
+        username.size() >= 3 &&
+        username.size() <= 30 &&
+        username.matches('^[a-zA-Z0-9._]+$');
+    }
+
+    function isValidBachelorStatus(status) {
+      return status is string && (
+        status == 'not_studying' ||
+        status == 'studying' ||
+        status == 'finished'
+      );
+    }
+
+    function isValidMoreEducationStatus(status) {
+      return status is string && (
+        status == 'none' ||
+        status == 'studying' ||
+        status == 'finished'
+      );
+    }
+
+    function isValidMoreEducationDegree(degree) {
+      return degree is string && (
+        degree == '' ||
+        degree == 'bachelor' ||
+        degree == 'master' ||
+        degree == 'doctorate' ||
+        degree == 'prof' ||
+        degree == 'other'
+      );
+    }
+
     function isValidUser(data) {
       return data.keys().hasOnly([
           'uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod', 'activeFileId',
-          'homeCity', 'preferredWorkCities', 'locationSetupComplete', 'bachelor', 'summary'
+          'username', 'homeCity', 'preferredWorkCities', 'locationSetupComplete',
+          'bachelor', 'bachelorStatus', 'bachelorName', 'bachelorUniversity',
+          'moreEducationStatus', 'moreEducationDegree', 'moreEducationOther', 'summary'
         ]) &&
         data.uid is string &&
         data.uid.size() > 0 &&
@@ -86,10 +128,17 @@ service cloud.firestore {
           data.activeFileId.size() > 0 &&
           data.activeFileId.size() <= 128
         )) &&
+        (!('username' in data) || isValidUsername(data.username)) &&
         (!('homeCity' in data) || isValidCityName(data.homeCity)) &&
         (!('preferredWorkCities' in data) || isValidPreferredWorkCities(data.preferredWorkCities)) &&
         (!('locationSetupComplete' in data) || data.locationSetupComplete is bool) &&
-        (!('bachelor' in data) || isValidProfileText(data.bachelor, 120)) &&
+        (!('bachelor' in data) || isOptionalProfileText(data.bachelor, 120)) &&
+        (!('bachelorStatus' in data) || isValidBachelorStatus(data.bachelorStatus)) &&
+        (!('bachelorName' in data) || isOptionalProfileText(data.bachelorName, 120)) &&
+        (!('bachelorUniversity' in data) || isOptionalProfileText(data.bachelorUniversity, 120)) &&
+        (!('moreEducationStatus' in data) || isValidMoreEducationStatus(data.moreEducationStatus)) &&
+        (!('moreEducationDegree' in data) || isValidMoreEducationDegree(data.moreEducationDegree)) &&
+        (!('moreEducationOther' in data) || isOptionalProfileText(data.moreEducationOther, 80)) &&
         (!('summary' in data) || isValidProfileText(data.summary, 1200));
     }
 
@@ -148,12 +197,12 @@ service cloud.firestore {
 
     function isValidLocationSetupUpdate() {
       let diff = request.resource.data.diff(resource.data).affectedKeys();
-      return diff.hasOnly(['homeCity', 'preferredWorkCities', 'locationSetupComplete']) &&
+      return diff.hasOnly(['username', 'homeCity', 'locationSetupComplete']) &&
         userCoreFieldsMatch() &&
         canCompleteLocationSetup() &&
         request.resource.data.locationSetupComplete == true &&
-        isValidCityName(request.resource.data.homeCity) &&
-        isValidPreferredWorkCities(request.resource.data.preferredWorkCities);
+        isValidUsername(request.resource.data.username) &&
+        isValidCityName(request.resource.data.homeCity);
     }
 
     function isValidStorageObject(name) {

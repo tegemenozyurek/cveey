@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { signOut } from 'firebase/auth'
 import { useLanguage } from '../context/LanguageContext'
-import { TURKISH_CITIES } from '../data/turkishCities'
+import { filterTurkishCities } from '../data/turkishCities'
 import { auth } from '../firebase'
-import { saveUserLocation } from '../userService'
+import { saveUserOnboarding } from '../userService'
 
-const MAX_WORK_CITIES = 3
+const USERNAME_MIN = 3
+const USERNAME_MAX = 30
+const USERNAME_RE = /^[a-zA-Z0-9._]+$/
 
 function ChevronIcon() {
   return (
@@ -15,60 +17,140 @@ function ChevronIcon() {
   )
 }
 
-export default function LocationSetupModal({ user, onComplete }) {
-  const { t } = useLanguage()
-  const [homeCity, setHomeCity] = useState('')
-  const [workCities, setWorkCities] = useState([])
-  const [homeOpen, setHomeOpen] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const homeFieldRef = useRef(null)
+function SearchableSelect({
+  id,
+  label,
+  value,
+  placeholder,
+  searchPlaceholder,
+  noResults,
+  onSearch,
+  onSelect,
+  disabled,
+  open,
+  setOpen,
+}) {
+  const fieldRef = useRef(null)
+  const [query, setQuery] = useState('')
+  const listId = useId()
 
   useEffect(() => {
-    if (!homeOpen) return undefined
+    if (!open) {
+      setQuery('')
+      return undefined
+    }
     const handleClickOutside = (event) => {
-      if (homeFieldRef.current && !homeFieldRef.current.contains(event.target)) {
-        setHomeOpen(false)
+      if (fieldRef.current && !fieldRef.current.contains(event.target)) {
+        setOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [homeOpen])
+  }, [open, setOpen])
 
-  const selectHomeCity = (city) => {
-    setError('')
-    setHomeCity(city)
-    setHomeOpen(false)
-  }
+  const filtered = open ? onSearch(query) : []
 
-  const toggleWorkCity = (city) => {
-    setError('')
-    setWorkCities((current) => {
-      if (current.includes(city)) {
-        return current.filter((item) => item !== city)
-      }
-      if (current.length >= MAX_WORK_CITIES) return current
-      return [...current, city]
-    })
-  }
+  return (
+    <div className="form-field location-setup-home-field" ref={fieldRef}>
+      <label className="form-label" htmlFor={id}>
+        {label}
+      </label>
+      <button
+        type="button"
+        id={id}
+        className={`form-input location-setup-select-trigger${value ? '' : ' location-setup-select-trigger--placeholder'}`}
+        onClick={() => setOpen((current) => !current)}
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listId}
+      >
+        <span>{value || placeholder}</span>
+        <span className="location-setup-select-arrow" aria-hidden="true">
+          <ChevronIcon />
+        </span>
+      </button>
+
+      {open && (
+        <div className="location-setup-dropdown">
+          <input
+            type="search"
+            className="form-input location-setup-search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={searchPlaceholder}
+            autoFocus
+            disabled={disabled}
+            aria-controls={listId}
+          />
+          <div className="location-setup-dropdown-list" id={listId} role="listbox">
+            {filtered.length === 0 ? (
+              <p className="location-setup-empty">{noResults}</p>
+            ) : (
+              filtered.map((option) => {
+                const selected = value === option
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    className={`location-setup-city-option${selected ? ' location-setup-city-option--selected' : ''}`}
+                    onClick={() => {
+                      onSelect(option)
+                      setOpen(false)
+                      setQuery('')
+                    }}
+                    disabled={disabled}
+                  >
+                    <span className="location-setup-city-check" aria-hidden="true">
+                      {selected ? '✓' : ''}
+                    </span>
+                    <span>{option}</span>
+                  </button>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function LocationSetupModal({ user, onComplete }) {
+  const { t } = useLanguage()
+  const [username, setUsername] = useState('')
+  const [homeCity, setHomeCity] = useState('')
+  const [cityOpen, setCityOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
+
+    const trimmedUsername = username.trim()
+    if (trimmedUsername.length < USERNAME_MIN || trimmedUsername.length > USERNAME_MAX) {
+      setError(t('locationSetup.usernameRequired'))
+      return
+    }
+    if (!USERNAME_RE.test(trimmedUsername)) {
+      setError(t('locationSetup.usernameInvalid'))
+      return
+    }
 
     if (!homeCity) {
       setError(t('locationSetup.homeCityRequired'))
       return
     }
 
-    if (workCities.length === 0) {
-      setError(t('locationSetup.workCitiesRequired'))
-      return
-    }
-
     setSaving(true)
     try {
-      await saveUserLocation(user.uid, { homeCity, preferredWorkCities: workCities })
+      await saveUserOnboarding(user.uid, {
+        username: trimmedUsername,
+        homeCity,
+      })
       onComplete()
     } catch {
       setError(t('locationSetup.error'))
@@ -84,7 +166,7 @@ export default function LocationSetupModal({ user, onComplete }) {
   return (
     <div className="modal-backdrop modal-backdrop--blocking">
       <div
-        className="modal modal--auth modal--location"
+        className="modal modal--auth modal--location modal--onboarding"
         role="dialog"
         aria-labelledby="location-setup-title"
         onClick={(event) => event.stopPropagation()}
@@ -100,104 +182,49 @@ export default function LocationSetupModal({ user, onComplete }) {
         <form className="modal-auth-body location-setup-form" onSubmit={handleSubmit}>
           <p className="location-setup-text">{t('locationSetup.subtitle')}</p>
 
-          <div className="form-field location-setup-home-field" ref={homeFieldRef}>
-            <label className="form-label" htmlFor="home-city-trigger">
-              {t('locationSetup.homeCity')}
-            </label>
-            <button
-              type="button"
-              id="home-city-trigger"
-              className={`form-input location-setup-select-trigger${homeCity ? '' : ' location-setup-select-trigger--placeholder'}`}
-              onClick={() => setHomeOpen((open) => !open)}
-              disabled={saving}
-              aria-haspopup="listbox"
-              aria-expanded={homeOpen}
-            >
-              <span>{homeCity || t('locationSetup.homeCityPlaceholder')}</span>
-              <span className="location-setup-select-arrow" aria-hidden="true">
-                <ChevronIcon />
-              </span>
-            </button>
+          <section className="location-setup-section" aria-labelledby="onboarding-info-heading">
+            <h3 id="onboarding-info-heading" className="location-setup-section-title">
+              {t('locationSetup.sectionInfo')}
+            </h3>
 
-            {homeOpen && (
-              <div className="location-setup-dropdown">
-                <div className="location-setup-dropdown-list" role="listbox">
-                  {TURKISH_CITIES.map((city) => {
-                    const selected = homeCity === city
-                    return (
-                      <button
-                        key={city}
-                        type="button"
-                        role="option"
-                        aria-selected={selected}
-                        className={`location-setup-city-option${selected ? ' location-setup-city-option--selected' : ''}`}
-                        onClick={() => selectHomeCity(city)}
-                        disabled={saving}
-                      >
-                        <span className="location-setup-city-check" aria-hidden="true">
-                          {selected ? '✓' : ''}
-                        </span>
-                        <span>{city}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="form-field location-setup-work-field">
-            <div className="location-setup-work-head">
-              <label className="form-label">
-                {t('locationSetup.workCities')}
+            <div className="form-field">
+              <label className="form-label" htmlFor="onboarding-username">
+                {t('locationSetup.username')}
               </label>
-              <span className="location-setup-count">
-                {t('locationSetup.selectedCount', { count: workCities.length, max: MAX_WORK_CITIES })}
-              </span>
+              <input
+                id="onboarding-username"
+                className="form-input"
+                type="text"
+                autoComplete="username"
+                value={username}
+                onChange={(event) => {
+                  setError('')
+                  setUsername(event.target.value)
+                }}
+                placeholder={t('locationSetup.usernamePlaceholder')}
+                maxLength={USERNAME_MAX}
+                disabled={saving}
+              />
+              <p className="location-setup-hint">{t('locationSetup.usernameHint')}</p>
             </div>
-            <p className="location-setup-hint">{t('locationSetup.workCitiesHint')}</p>
 
-            {workCities.length > 0 && (
-              <div className="location-setup-chips" aria-label={t('locationSetup.workCities')}>
-                {workCities.map((city) => (
-                  <button
-                    key={city}
-                    type="button"
-                    className="location-setup-chip"
-                    onClick={() => toggleWorkCity(city)}
-                    disabled={saving}
-                  >
-                    {city}
-                    <span aria-hidden="true">×</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="location-setup-city-list" role="listbox" aria-multiselectable="true">
-              {TURKISH_CITIES.map((city) => {
-                const selected = workCities.includes(city)
-                const disabled = saving || (!selected && workCities.length >= MAX_WORK_CITIES)
-
-                return (
-                  <button
-                    key={city}
-                    type="button"
-                    role="option"
-                    aria-selected={selected}
-                    className={`location-setup-city-option${selected ? ' location-setup-city-option--selected' : ''}`}
-                    onClick={() => toggleWorkCity(city)}
-                    disabled={disabled}
-                  >
-                    <span className="location-setup-city-check" aria-hidden="true">
-                      {selected ? '✓' : ''}
-                    </span>
-                    <span>{city}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+            <SearchableSelect
+              id="home-city-trigger"
+              label={t('locationSetup.homeCity')}
+              value={homeCity}
+              placeholder={t('locationSetup.homeCityPlaceholder')}
+              searchPlaceholder={t('locationSetup.searchPlaceholder')}
+              noResults={t('locationSetup.noResults')}
+              onSearch={filterTurkishCities}
+              onSelect={(city) => {
+                setError('')
+                setHomeCity(city)
+              }}
+              disabled={saving}
+              open={cityOpen}
+              setOpen={setCityOpen}
+            />
+          </section>
 
           <div className="modal-auth-error">
             {error && <p className="location-setup-error">{error}</p>}

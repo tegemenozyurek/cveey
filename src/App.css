@@ -957,6 +957,16 @@
   white-space: nowrap;
 }
 
+.profile-hero-username {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-cyan);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .profile-page-actions {
   display: flex;
   align-items: center;
@@ -4531,6 +4541,10 @@
   padding: 20px 28px 22px;
 }
 
+.modal.modal--onboarding {
+  max-width: 520px;
+}
+
 .modal--location .modal-auth-header {
   margin-bottom: 12px;
 }
@@ -4558,8 +4572,34 @@
   color: var(--text-muted);
 }
 
+.location-setup-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 0 4px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.location-setup-section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.location-setup-section-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 .location-setup-home-field {
   position: relative;
+}
+
+.location-setup-search {
+  margin-bottom: 6px;
 }
 
 .location-setup-select-trigger {
@@ -4613,7 +4653,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 240px;
+  max-height: 220px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -4664,7 +4704,7 @@
 }
 
 .location-setup-hint {
-  margin: 0;
+  margin: 6px 0 0;
   font-size: 12px;
   line-height: 1.5;
   color: var(--text-dim);

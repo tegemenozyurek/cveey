@@ -45,6 +45,29 @@ export async function needsLocationSetup(userId) {
   return snap.data().locationSetupComplete !== true
 }
 
+function asTrimmedString(value, maxLength) {
+  if (typeof value !== 'string') return ''
+  const trimmed = value.trim()
+  if (!trimmed || trimmed.length > maxLength) return ''
+  return trimmed
+}
+
+export async function saveUserOnboarding(userId, payload) {
+  const username = asTrimmedString(payload.username, 30)
+  const homeCity = asTrimmedString(payload.homeCity, 80)
+
+  if (!username || !homeCity) {
+    throw new Error('INVALID_ONBOARDING')
+  }
+
+  await updateDoc(doc(db, 'users', userId), {
+    username,
+    homeCity,
+    locationSetupComplete: true,
+  })
+}
+
+/** @deprecated Use saveUserOnboarding */
 export async function saveUserLocation(userId, { homeCity, preferredWorkCities }) {
   await updateDoc(doc(db, 'users', userId), {
     homeCity,
@@ -57,6 +80,7 @@ export async function getUserProfile(userId) {
   const snap = await getDoc(doc(db, 'users', userId))
   if (!snap.exists()) {
     return {
+      username: '',
       homeCity: '',
       preferredWorkCities: [],
       bachelor: '',
@@ -66,6 +90,7 @@ export async function getUserProfile(userId) {
 
   const data = snap.data()
   return {
+    username: typeof data.username === 'string' ? data.username : '',
     homeCity: typeof data.homeCity === 'string' ? data.homeCity : '',
     preferredWorkCities: Array.isArray(data.preferredWorkCities)
       ? data.preferredWorkCities.filter((city) => typeof city === 'string' && city.trim())
@@ -152,8 +177,8 @@ export async function searchUsersByEmail(emailQuery, { excludeUid } = {}) {
         uid: data.uid || docSnap.id,
         email: data.email || '',
         homeCity: data.homeCity || '',
-        displayName: data.email || docSnap.id,
-        headline: data.email || '',
+        displayName: data.username || data.email || docSnap.id,
+        headline: data.bachelorName || data.bachelor || data.email || '',
         location: data.homeCity || '',
         photoURL: null,
       }
