@@ -156,6 +156,19 @@ function EditIcon() {
   )
 }
 
+function PlusIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 5v14M5 12h14"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 function degreeTypeLabel(t, education) {
   if (!education?.degreeType) return ''
   if (education.degreeType === 'other' && education.degreeOther) {
@@ -574,15 +587,31 @@ function EducationList({ t, educations, onSaveEducations }) {
       <div className="profile-about-field-head">
         <p className="profile-about-kicker">{t('profile.education')}</p>
         {!managing && editingId === null ? (
-          <button
-            type="button"
-            className="profile-about-edit-btn"
-            onClick={startManaging}
-            aria-label={`${t('profile.edit')} ${t('profile.education')}`}
-            title={t('profile.edit')}
-          >
-            <EditIcon />
-          </button>
+          <div className="profile-edu-head-actions">
+            {canAdd ? (
+              <button
+                type="button"
+                className="profile-about-edit-btn"
+                onClick={() => {
+                  setError('')
+                  setEditingId('new')
+                }}
+                aria-label={t('profile.addEducation')}
+                title={t('profile.addEducation')}
+              >
+                <PlusIcon />
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="profile-about-edit-btn"
+              onClick={startManaging}
+              aria-label={`${t('profile.edit')} ${t('profile.education')}`}
+              title={t('profile.edit')}
+            >
+              <EditIcon />
+            </button>
+          </div>
         ) : null}
       </div>
 
@@ -661,18 +690,6 @@ function EducationList({ t, educations, onSaveEducations }) {
         />
       ) : null}
 
-      {canAdd ? (
-        <button
-          type="button"
-          className="profile-about-add-btn profile-about-add-btn--compact"
-          onClick={() => {
-            setError('')
-            setEditingId('new')
-          }}
-        >
-          {t('profile.addEducation')}
-        </button>
-      ) : null}
     </div>
   )
 }
