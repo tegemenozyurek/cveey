@@ -577,6 +577,7 @@ function EducationList({ t, educations, onSaveEducations }) {
           setEditingId('new')
         }}
       >
+        <PlusIcon />
         {t('profile.addEducation')}
       </button>
     )
@@ -784,6 +785,7 @@ function EditableProfileField({
   if (!hasValue && !editing) {
     return (
       <button type="button" className="profile-about-add-btn" onClick={startEditing}>
+        <PlusIcon />
         {addLabel}
       </button>
     )
@@ -880,7 +882,13 @@ function ProfileAboutSection({
 
   return (
     <section className="profile-about" aria-label={t('profile.sectionAbout')}>
-      <div className="profile-about-side">
+      <div
+        className={`profile-about-side${
+          !loading && educations.length === 0 && workCities.length === 0
+            ? ' profile-about-side--empty'
+            : ''
+        }`}
+      >
         <div
           className={`profile-about-degree${
             !loading && educations.length === 0 ? ' profile-about-degree--empty' : ''
@@ -912,7 +920,11 @@ function ProfileAboutSection({
         ) : null}
       </div>
 
-      <div className="profile-about-main">
+      <div
+        className={`profile-about-main${
+          !loading && !summary.trim() ? ' profile-about-main--empty' : ''
+        }`}
+      >
         {loading ? (
           <p className="profile-about-loc-empty">…</p>
         ) : (
