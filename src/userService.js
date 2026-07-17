@@ -84,6 +84,7 @@ export async function getUserProfile(userId) {
       homeCity: '',
       preferredWorkCities: [],
       bachelor: '',
+      education: emptyEducation(),
       summary: '',
     }
   }
@@ -96,13 +97,81 @@ export async function getUserProfile(userId) {
       ? data.preferredWorkCities.filter((city) => typeof city === 'string' && city.trim())
       : [],
     bachelor: typeof data.bachelor === 'string' ? data.bachelor : '',
+    education: normalizeEducation(data),
     summary: typeof data.summary === 'string' ? data.summary : '',
   }
 }
 
+const EDUCATION_DEGREE_TYPES = new Set(['associate', 'bachelor', 'master', 'doctorate', 'other'])
+
+function emptyEducation() {
+  return {
+    degreeType: '',
+    degreeOther: '',
+    university: '',
+    universityIsOther: false,
+    program: '',
+  }
+}
+
+function normalizeEducation(data) {
+  const degreeType = EDUCATION_DEGREE_TYPES.has(data.educationDegreeType)
+    ? data.educationDegreeType
+    : ''
+  const degreeOther = typeof data.educationDegreeOther === 'string' ? data.educationDegreeOther : ''
+  const university = typeof data.educationUniversity === 'string' ? data.educationUniversity : ''
+  const universityIsOther = data.educationUniversityIsOther === true
+  const program =
+    typeof data.educationProgram === 'string' && data.educationProgram.trim()
+      ? data.educationProgram
+      : typeof data.bachelor === 'string'
+        ? data.bachelor
+        : ''
+
+  return {
+    degreeType,
+    degreeOther,
+    university,
+    universityIsOther,
+    program,
+  }
+}
+
+export async function saveUserEducation(userId, payload) {
+  const degreeType = EDUCATION_DEGREE_TYPES.has(payload.degreeType) ? payload.degreeType : ''
+  const degreeOther =
+    degreeType === 'other' ? asTrimmedString(payload.degreeOther, 80) : ''
+  const universityIsOther = payload.universityIsOther === true
+  const university = asTrimmedString(payload.university, 120)
+  const program = asTrimmedString(payload.program, 120)
+
+  if (!degreeType || !university || !program) {
+    throw new Error('INVALID_EDUCATION')
+  }
+  if (degreeType === 'other' && !degreeOther) {
+    throw new Error('INVALID_EDUCATION')
+  }
+
+  await updateDoc(doc(db, 'users', userId), {
+    educationDegreeType: degreeType,
+    educationDegreeOther: degreeOther,
+    educationUniversity: university,
+    educationUniversityIsOther: universityIsOther,
+    educationProgram: program,
+    bachelor: program,
+  })
+
+  return {
+    degreeType,
+    degreeOther,
+    university,
+    universityIsOther,
+    program,
+  }
+}
+
 const PROFILE_FIELD_LIMITS = {
-  bachelor: 120,
-  summary: 1200,
+  summary: 500,
 }
 
 export async function saveUserProfileField(userId, field, value) {
@@ -178,7 +247,7 @@ export async function searchUsersByEmail(emailQuery, { excludeUid } = {}) {
         email: data.email || '',
         homeCity: data.homeCity || '',
         displayName: data.username || data.email || docSnap.id,
-        headline: data.bachelorName || data.bachelor || data.email || '',
+        headline: data.educationProgram || data.bachelor || data.email || '',
         location: data.homeCity || '',
         photoURL: null,
       }

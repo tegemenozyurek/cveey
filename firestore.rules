@@ -7,8 +7,11 @@ rules_version = '2';
 // users/{userId}
 //   uid, email, createdAt, lastLoginAt, authMethod, activeFileId?,
 //   username?, homeCity?, preferredWorkCities?, locationSetupComplete?,
-//   bachelor?, bachelorStatus?, bachelorName?, bachelorUniversity?,
-//   moreEducationStatus?, moreEducationDegree?, moreEducationOther?, summary?
+//   bachelor?, educationDegreeType?, educationDegreeOther?,
+//   educationUniversity?, educationUniversityIsOther?, educationProgram?,
+//   legacy optional: bachelorStatus?, bachelorName?, bachelorUniversity?,
+//   moreEducationStatus?, moreEducationDegree?, moreEducationOther?,
+//   summary?
 //
 // users/{userId}/files/{fileId}
 //   displayName: string
@@ -108,12 +111,37 @@ service cloud.firestore {
       );
     }
 
+    function isValidEducationDegreeType(type) {
+      return type is string && (
+        type == 'associate' ||
+        type == 'bachelor' ||
+        type == 'master' ||
+        type == 'doctorate' ||
+        type == 'other'
+      );
+    }
+
+    function isValidEducationFields(data) {
+      return isValidEducationDegreeType(data.educationDegreeType) &&
+        isOptionalProfileText(data.educationDegreeOther, 80) &&
+        isValidProfileText(data.educationUniversity, 120) &&
+        data.educationUniversityIsOther is bool &&
+        isValidProfileText(data.educationProgram, 120) &&
+        isValidProfileText(data.bachelor, 120) &&
+        (
+          data.educationDegreeType != 'other' ||
+          data.educationDegreeOther.size() > 0
+        );
+    }
+
     function isValidUser(data) {
       return data.keys().hasOnly([
           'uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod', 'activeFileId',
           'username', 'homeCity', 'preferredWorkCities', 'locationSetupComplete',
           'bachelor', 'bachelorStatus', 'bachelorName', 'bachelorUniversity',
-          'moreEducationStatus', 'moreEducationDegree', 'moreEducationOther', 'summary'
+          'moreEducationStatus', 'moreEducationDegree', 'moreEducationOther',
+          'educationDegreeType', 'educationDegreeOther', 'educationUniversity',
+          'educationUniversityIsOther', 'educationProgram', 'summary'
         ]) &&
         data.uid is string &&
         data.uid.size() > 0 &&
@@ -139,7 +167,12 @@ service cloud.firestore {
         (!('moreEducationStatus' in data) || isValidMoreEducationStatus(data.moreEducationStatus)) &&
         (!('moreEducationDegree' in data) || isValidMoreEducationDegree(data.moreEducationDegree)) &&
         (!('moreEducationOther' in data) || isOptionalProfileText(data.moreEducationOther, 80)) &&
-        (!('summary' in data) || isValidProfileText(data.summary, 1200));
+        (!('educationDegreeType' in data) || isValidEducationDegreeType(data.educationDegreeType)) &&
+        (!('educationDegreeOther' in data) || isOptionalProfileText(data.educationDegreeOther, 80)) &&
+        (!('educationUniversity' in data) || isOptionalProfileText(data.educationUniversity, 120)) &&
+        (!('educationUniversityIsOther' in data) || data.educationUniversityIsOther is bool) &&
+        (!('educationProgram' in data) || isOptionalProfileText(data.educationProgram, 120)) &&
+        (!('summary' in data) || isValidProfileText(data.summary, 500));
     }
 
     function isValidUserCreate(data) {
@@ -203,6 +236,16 @@ service cloud.firestore {
         request.resource.data.locationSetupComplete == true &&
         isValidUsername(request.resource.data.username) &&
         isValidCityName(request.resource.data.homeCity);
+    }
+
+    function isValidEducationUpdate() {
+      let diff = request.resource.data.diff(resource.data).affectedKeys();
+      return diff.hasOnly([
+          'educationDegreeType', 'educationDegreeOther', 'educationUniversity',
+          'educationUniversityIsOther', 'educationProgram', 'bachelor'
+        ]) &&
+        userCoreFieldsMatch() &&
+        isValidEducationFields(request.resource.data);
     }
 
     function isValidStorageObject(name) {
@@ -273,6 +316,7 @@ service cloud.firestore {
         isValidUserUpdate(request.resource.data) ||
         isValidUserLoginUpdate() ||
         isValidLocationSetupUpdate() ||
+        isValidEducationUpdate() ||
         isValidActiveFileIdUpdate() ||
         isValidActiveFileIdClear() ||
         isValidLegacyUserCleanup()
