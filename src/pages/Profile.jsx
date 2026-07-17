@@ -9,6 +9,7 @@ import ThemeSwitcher from '../components/ThemeSwitcher'
 import { resolveAuthMethod } from '../authUtils'
 import { getUserProfile, saveUserEducation, saveUserProfileField } from '../userService'
 import { UNIVERSITY_OTHER, filterUniversities } from '../data/turkishUniversities'
+import { downloadCvFile } from '../storageService'
 
 const MOCK_MY_NETWORK = [
   {
@@ -749,10 +750,24 @@ function ActiveCvPanel({ t }) {
   const navigate = useNavigate()
   const { activeCv, activePreviewUrl, loading } = useResume()
   const [cvHidden, setCvHidden] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   function handlePreview() {
     if (!activePreviewUrl) return
     window.open(activePreviewUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  async function handleDownload() {
+    if (!activeCv?.fullPath || downloading) return
+
+    setDownloading(true)
+    try {
+      await downloadCvFile(activeCv.fullPath, activeCv.displayName)
+    } catch (err) {
+      console.error('Active CV download failed:', err)
+    } finally {
+      setDownloading(false)
+    }
   }
 
   const paperName = stripPdfExtension(activeCv?.displayName) || t('profile.activeCv')
@@ -833,6 +848,14 @@ function ActiveCvPanel({ t }) {
               disabled={cvHidden || !activePreviewUrl}
             >
               {t('profile.cvPreview')}
+            </button>
+            <button
+              type="button"
+              className="profile-cv-action"
+              onClick={() => void handleDownload()}
+              disabled={cvHidden || !activeCv.fullPath || downloading}
+            >
+              {downloading ? t('profile.cvDownloading') : t('profile.cvDownload')}
             </button>
             <button type="button" className="profile-cv-action" onClick={() => navigate('/my-cv')}>
               {t('profile.cvChange')}
