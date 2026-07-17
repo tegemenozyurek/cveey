@@ -277,6 +277,7 @@ export const translations = {
 
     'prefs.title': 'Preferences',
     'prefs.subtitle': 'Manage your account and app settings.',
+    'prefs.signInHint': 'How you access your account.',
     'prefs.language': 'Language',
     'prefs.languageHint': 'Choose your preferred display language.',
     'prefs.theme': 'Theme',
@@ -713,6 +714,7 @@ export const translations = {
 
     'prefs.title': 'Tercihler',
     'prefs.subtitle': 'Hesap ve uygulama ayarlarınızı yönetin.',
+    'prefs.signInHint': 'Hesabınıza nasıl giriş yaptığınız.',
     'prefs.language': 'Dil',
     'prefs.languageHint': 'Tercih ettiğiniz görüntüleme dilini seçin.',
     'prefs.theme': 'Tema',

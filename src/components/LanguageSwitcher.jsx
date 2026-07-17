@@ -13,7 +13,6 @@ export default function LanguageSwitcher() {
       >
         EN
       </button>
-      <span className="option-switcher-divider" aria-hidden="true">|</span>
       <button
         type="button"
         className={`option-switcher-btn${lang === 'tr' ? ' option-switcher-btn--active' : ''}`}

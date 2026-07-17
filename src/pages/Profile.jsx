@@ -100,6 +100,92 @@ function CloseIcon() {
   )
 }
 
+function PrefsAuthIcon({ method }) {
+  if (method === 'github') {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.52 2.87 8.35 6.84 9.71.5.1.68-.22.68-.48 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.27 2.75 1.05A9.3 9.3 0 0 1 12 6.84c.85 0 1.71.12 2.51.34 1.91-1.32 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.48-.01 2.81 0 .27.18.59.69.48A10.04 10.04 0 0 0 22 12.26C22 6.58 17.52 2 12 2Z" />
+      </svg>
+    )
+  }
+  if (method === 'google') {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M21.35 11.1h-9.17v2.98h5.27c-.23 1.24-1.4 3.63-5.27 3.63-3.17 0-5.76-2.62-5.76-5.85s2.59-5.85 5.76-5.85c1.81 0 3.02.77 3.71 1.43l2.53-2.44C16.84 3.7 14.84 2.8 12.18 2.8 6.98 2.8 2.8 7.02 2.8 12.2s4.18 9.4 9.38 9.4c5.41 0 8.99-3.8 8.99-9.16 0-.62-.07-1.08-.17-1.54Z"
+        />
+      </svg>
+    )
+  }
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect
+        x="4"
+        y="11"
+        width="16"
+        height="10"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+      <path
+        d="M8 11V8a4 4 0 1 1 8 0v3"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function PrefsLanguageIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M3 12h18M12 3c2.5 2.7 3.75 5.7 3.75 9S14.5 18.3 12 21c-2.5-2.7-3.75-5.7-3.75-9S9.5 5.7 12 3Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+    </svg>
+  )
+}
+
+function PrefsThemeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 3v1.5M12 19.5V21M4.93 4.93l1.06 1.06M17.999 18.001l1.06 1.06M3 12h1.5M19.5 12H21M4.93 19.07l1.06-1.06M18 6l1.06-1.06"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.75" />
+    </svg>
+  )
+}
+
+function PrefsLogoutIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16 17l5-5-5-5M21 12H9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 function PinIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1277,9 +1363,12 @@ export default function Profile() {
           ) : null}
 
           {panel === 'settings' ? (
-            <div className="profile-page-panel">
+            <div className="profile-page-panel prefs-panel">
               <div className="profile-page-panel-head">
-                <p className="profile-page-panel-title">{t('nav.preferences')}</p>
+                <div className="prefs-panel-heading">
+                  <p className="profile-page-panel-title">{t('prefs.title')}</p>
+                  <p className="prefs-panel-subtitle">{t('prefs.subtitle')}</p>
+                </div>
                 <button
                   type="button"
                   className="profile-page-icon-btn profile-page-panel-close"
@@ -1290,41 +1379,72 @@ export default function Profile() {
                   <CloseIcon />
                 </button>
               </div>
-              <div className="prefs-row">
-                <div className="prefs-row-info">
-                  <p className="prefs-row-label">{t('profile.signInMethod')}</p>
-                  <p className="prefs-row-hint">{authMethodLabel(resolveAuthMethod(user), t)}</p>
-                </div>
-              </div>
-              <div className="prefs-divider" />
-              <div className="prefs-row">
-                <div className="prefs-row-info">
-                  <p className="prefs-row-label">{t('prefs.language')}</p>
-                  <p className="prefs-row-hint">{t('prefs.languageHint')}</p>
-                </div>
-                <LanguageSwitcher />
-              </div>
-              <div className="prefs-divider" />
-              <div className="prefs-row">
-                <div className="prefs-row-info">
-                  <p className="prefs-row-label">{t('prefs.theme')}</p>
-                  <p className="prefs-row-hint">{t('prefs.themeHint')}</p>
-                </div>
-                <ThemeSwitcher />
-              </div>
-              <div className="prefs-divider" />
-              <div className="prefs-row">
-                <div className="prefs-row-info">
-                  <p className="prefs-row-label">{t('prefs.logout')}</p>
-                  <p className="prefs-row-hint">{t('prefs.logoutHint')}</p>
-                </div>
-                <button
-                  type="button"
-                  className="prefs-logout-btn"
-                  onClick={() => setShowLogoutConfirm(true)}
-                >
-                  {t('nav.logout')}
-                </button>
+
+              <div className="prefs-body">
+                <section className="prefs-section" aria-label={t('profile.signInMethod')}>
+                  <div className="prefs-row prefs-row--static">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon" aria-hidden="true">
+                        <PrefsAuthIcon method={resolveAuthMethod(user)} />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('profile.signInMethod')}</p>
+                        <p className="prefs-row-hint">{t('prefs.signInHint')}</p>
+                      </div>
+                    </div>
+                    <span className="prefs-auth-badge">
+                      {authMethodLabel(resolveAuthMethod(user), t)}
+                    </span>
+                  </div>
+                </section>
+
+                <section className="prefs-section" aria-label={t('prefs.title')}>
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon" aria-hidden="true">
+                        <PrefsLanguageIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.language')}</p>
+                        <p className="prefs-row-hint">{t('prefs.languageHint')}</p>
+                      </div>
+                    </div>
+                    <LanguageSwitcher />
+                  </div>
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon" aria-hidden="true">
+                        <PrefsThemeIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.theme')}</p>
+                        <p className="prefs-row-hint">{t('prefs.themeHint')}</p>
+                      </div>
+                    </div>
+                    <ThemeSwitcher />
+                  </div>
+                </section>
+
+                <section className="prefs-section prefs-section--danger" aria-label={t('prefs.logout')}>
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon prefs-row-icon--danger" aria-hidden="true">
+                        <PrefsLogoutIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.logout')}</p>
+                        <p className="prefs-row-hint">{t('prefs.logoutHint')}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="prefs-logout-btn"
+                      onClick={() => setShowLogoutConfirm(true)}
+                    >
+                      {t('nav.logout')}
+                    </button>
+                  </div>
+                </section>
               </div>
             </div>
           ) : null}

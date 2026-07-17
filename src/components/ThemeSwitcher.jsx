@@ -15,7 +15,6 @@ export default function ThemeSwitcher() {
       >
         {t('prefs.dark')}
       </button>
-      <span className="option-switcher-divider" aria-hidden="true">|</span>
       <button
         type="button"
         className={`option-switcher-btn${theme === 'light' ? ' option-switcher-btn--active' : ''}`}
