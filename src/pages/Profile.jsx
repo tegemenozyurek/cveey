@@ -7,7 +7,8 @@ import UserAvatar from '../components/UserAvatar'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import ChangePasswordModal from '../components/ChangePasswordModal'
-import { resolveAuthMethod } from '../authUtils'
+import ChangeEmailModal from '../components/ChangeEmailModal'
+import { resolveAuthMethod, AUTH_METHOD_EMAIL_PASSWORD } from '../authUtils'
 import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserProfileField } from '../userService'
 import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
 import { downloadCvFile } from '../storageService'
@@ -196,6 +197,21 @@ function PrefsPasswordIcon() {
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function PrefsEmailIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M3 7l9 6 9-6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   )
@@ -1241,6 +1257,7 @@ export default function Profile() {
   const { files, activeFileId } = useResume()
   const [panel, setPanel] = useState(null)
   const [showChangePassword, setShowChangePassword] = useState(false)
+  const [showChangeEmail, setShowChangeEmail] = useState(false)
   const [username, setUsername] = useState('')
   const [homeCity, setHomeCity] = useState('')
   const [preferredWorkCities, setPreferredWorkCities] = useState([])
@@ -1457,6 +1474,26 @@ export default function Profile() {
                 </section>
 
                 <section className="prefs-section" aria-label={t('prefs.account')}>
+                  {resolveAuthMethod(user) === AUTH_METHOD_EMAIL_PASSWORD ? (
+                    <div className="prefs-row">
+                      <div className="prefs-row-leading">
+                        <span className="prefs-row-icon" aria-hidden="true">
+                          <PrefsEmailIcon />
+                        </span>
+                        <div className="prefs-row-info">
+                          <p className="prefs-row-label">{t('prefs.changeEmail')}</p>
+                          <p className="prefs-row-hint">{t('prefs.changeEmailHint')}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="prefs-action-btn"
+                        onClick={() => setShowChangeEmail(true)}
+                      >
+                        {t('prefs.changeEmailAction')}
+                      </button>
+                    </div>
+                  ) : null}
                   <div className="prefs-row">
                     <div className="prefs-row-leading">
                       <span className="prefs-row-icon" aria-hidden="true">
@@ -1522,6 +1559,10 @@ export default function Profile() {
             </div>
           ) : null}
         </header>
+
+        {showChangeEmail && user ? (
+          <ChangeEmailModal user={user} onClose={() => setShowChangeEmail(false)} />
+        ) : null}
 
         {showChangePassword && user ? (
           <ChangePasswordModal user={user} onClose={() => setShowChangePassword(false)} />

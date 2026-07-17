@@ -5,6 +5,7 @@ import {
   reauthenticateWithCredential,
   reauthenticateWithPopup,
   updatePassword,
+  verifyBeforeUpdateEmail,
 } from 'firebase/auth'
 import {
   AUTH_METHOD_EMAIL_PASSWORD,
@@ -15,6 +16,14 @@ import {
 
 const GOOGLE_SECURITY_URL = 'https://myaccount.google.com/security'
 const GITHUB_SECURITY_URL = 'https://github.com/settings/security'
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+
+function getActionCodeSettings() {
+  return {
+    url: window.location.origin,
+    handleCodeInApp: false,
+  }
+}
 
 export function getPasswordProviderUrl(method) {
   if (method === AUTH_METHOD_GOOGLE) return GOOGLE_SECURITY_URL
@@ -23,6 +32,10 @@ export function getPasswordProviderUrl(method) {
 }
 
 export function canChangePasswordInApp(method) {
+  return method === AUTH_METHOD_EMAIL_PASSWORD
+}
+
+export function canChangeEmailInApp(method) {
   return method === AUTH_METHOD_EMAIL_PASSWORD
 }
 
@@ -73,4 +86,25 @@ export async function changeEmailPassword(user, { currentPassword, newPassword }
 
   await reauthenticateWithPassword(user, currentPassword)
   await updatePassword(user, trimmedNew)
+}
+
+export async function changeUserEmail(user, { currentPassword, newEmail }) {
+  if (resolveAuthMethod(user) !== AUTH_METHOD_EMAIL_PASSWORD) {
+    throw Object.assign(new Error('AUTH_METHOD_NOT_PASSWORD'), {
+      code: 'AUTH_METHOD_NOT_PASSWORD',
+    })
+  }
+
+  const trimmed = typeof newEmail === 'string' ? newEmail.trim().toLowerCase() : ''
+  if (!trimmed || !EMAIL_PATTERN.test(trimmed)) {
+    throw Object.assign(new Error('INVALID_EMAIL'), { code: 'auth/invalid-email' })
+  }
+
+  const current = (user.email || '').trim().toLowerCase()
+  if (trimmed === current) {
+    throw Object.assign(new Error('SAME_EMAIL'), { code: 'SAME_EMAIL' })
+  }
+
+  await reauthenticateWithPassword(user, currentPassword)
+  await verifyBeforeUpdateEmail(user, trimmed, getActionCodeSettings())
 }

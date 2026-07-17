@@ -402,9 +402,25 @@ export async function syncUserToFirestore(user) {
       return
     }
 
-    await updateDoc(userRef, {
-      lastLoginAt: serverTimestamp(),
-    })
+    const data = snap.data()
+    const nextEmail = normalizeEmailKey(email)
+    const prevEmail = typeof data.email === 'string' ? normalizeEmailKey(data.email) : ''
+    const patch = { lastLoginAt: serverTimestamp() }
+
+    if (prevEmail && nextEmail && prevEmail !== nextEmail) {
+      patch.email = nextEmail
+    }
+
+    await updateDoc(userRef, patch)
+
+    if (prevEmail && nextEmail && prevEmail !== nextEmail) {
+      try {
+        await removePasswordAccountIndex(prevEmail)
+      } catch (err) {
+        if (err?.code !== 'not-found') console.warn('Old email index cleanup failed:', err)
+      }
+    }
+
     await syncPasswordAccountIndex(user)
   })
 }
