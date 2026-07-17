@@ -9,12 +9,12 @@ const PERSONAL_FIELD_META = {
   fullName: { type: 'text', placeholderKey: 'createCv.fullNamePlaceholder', autoComplete: 'name', full: true },
   jobTitle: { type: 'text', placeholderKey: 'createCv.jobTitlePlaceholder', full: true },
   email: { type: 'email', placeholder: 'you@example.com', autoComplete: 'email', full: true },
-  linkedin: { type: 'url', placeholder: 'linkedin.com/in/username' },
-  github: { type: 'url', placeholder: 'github.com/username' },
-  portfolio: { type: 'url', placeholder: 'yourportfolio.com', full: true },
-  behance: { type: 'url', placeholder: 'behance.net/username' },
-  dribbble: { type: 'url', placeholder: 'dribbble.com/username' },
-  stackoverflow: { type: 'url', placeholder: 'stackoverflow.com/users/...' },
+  linkedin: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'linkedin.com/in/username' },
+  github: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'github.com/username' },
+  portfolio: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'yourportfolio.com', full: true },
+  behance: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'behance.net/username' },
+  dribbble: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'dribbble.com/username' },
+  stackoverflow: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'stackoverflow.com/users/...' },
   drivingLicense: { type: 'text', placeholderKey: 'createCv.drivingLicensePlaceholder' },
   medicalLicense: { type: 'text', placeholderKey: 'createCv.medicalLicensePlaceholder' },
   specialty: { type: 'text', placeholderKey: 'createCv.specialtyPlaceholder' },
@@ -151,6 +151,7 @@ export default function PersonalInfoSection({
                 id={`cv-${field}`}
                 className="form-input"
                 type={meta.type}
+                inputMode={meta.inputMode}
                 value={personal[field] || ''}
                 onChange={(e) => set(field, e.target.value)}
                 placeholder={placeholder}

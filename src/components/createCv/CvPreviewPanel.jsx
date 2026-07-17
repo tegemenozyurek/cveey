@@ -60,6 +60,7 @@ const CvPreviewPanel = forwardRef(function CvPreviewPanel({
   visibleSectionIds,
   fieldVisibility,
   t,
+  cornerActions,
 }, ref) {
   const fitRef = useRef(null)
   const wrapRef = useRef(null)
@@ -109,8 +110,14 @@ const CvPreviewPanel = forwardRef(function CvPreviewPanel({
     if (!fitNode || !wrapNode || isExporting) return undefined
 
     const updateScale = () => {
-      // Golden rule: A4 height fills the same vertical frame as create-cv-panel.
-      const availableHeight = fitNode.clientHeight || wrapNode.clientHeight
+      // Golden rule: on desktop the visible A4 stage and editor panel must end
+      // on the exact same horizontal line. Read the panel itself instead of
+      // inferring its height from the preview wrapper (which may have a footer).
+      const workspaceNode = wrapNode.closest('.create-cv-workspace')
+      const panelNode = workspaceNode?.querySelector('.create-cv-panel')
+      const availableHeight = !isMobilePreview && panelNode?.clientHeight
+        ? panelNode.clientHeight
+        : (fitNode.clientHeight || wrapNode.clientHeight)
       if (!availableHeight) return
 
       let nextScale = availableHeight / A4_HEIGHT_PX
@@ -134,8 +141,10 @@ const CvPreviewPanel = forwardRef(function CvPreviewPanel({
     const observer = new ResizeObserver(updateScale)
     observer.observe(wrapNode)
     observer.observe(fitNode)
-    const workspace = wrapNode.parentElement
-    if (workspace) observer.observe(workspace)
+    const workspaceNode = wrapNode.closest('.create-cv-workspace')
+    const panelNode = workspaceNode?.querySelector('.create-cv-panel')
+    if (workspaceNode) observer.observe(workspaceNode)
+    if (panelNode) observer.observe(panelNode)
 
     return () => {
       cancelAnimationFrame(raf)
@@ -537,6 +546,17 @@ const CvPreviewPanel = forwardRef(function CvPreviewPanel({
               />
             </div>
           )}
+
+          {!isExporting && cornerActions ? (
+            <div
+              className="create-cv-preview-corner-actions"
+              onPointerEnter={() => setIsMagnifying(false)}
+              onPointerMove={(event) => event.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
+            >
+              {cornerActions}
+            </div>
+          ) : null}
         </div>
       </div>
 

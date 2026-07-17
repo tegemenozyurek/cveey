@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useLanguage } from '../../../context/LanguageContext'
 import {
   findCountryByCode,
   formatLocationValue,
   parseLocationValue,
 } from '../../../data/countries'
-import { TURKISH_CITIES } from '../../../data/turkishCities'
 import CountrySelect from './CountrySelect'
 import FieldLabel from './FieldLabel'
+import TurkishCitySelect from './TurkishCitySelect'
 
 export default function LocationFields({
   idPrefix,
@@ -20,7 +20,6 @@ export default function LocationFields({
 }) {
   const { lang } = useLanguage()
   const parsed = useMemo(() => parseLocationValue(value), [value])
-  const [cityQuery, setCityQuery] = useState('')
 
   const country = findCountryByCode(parsed.countryCode)
   const isTurkey = parsed.countryCode === 'TR'
@@ -28,13 +27,6 @@ export default function LocationFields({
   const emit = (city, countryCode) => {
     onChange(formatLocationValue(city, countryCode, lang))
   }
-
-  const filteredCities = useMemo(() => {
-    if (!isTurkey) return []
-    const needle = cityQuery.trim().toLocaleLowerCase('tr-TR')
-    if (!needle) return TURKISH_CITIES
-    return TURKISH_CITIES.filter((city) => city.toLocaleLowerCase('tr-TR').includes(needle))
-  }, [cityQuery, isTurkey])
 
   return (
     <div className={`create-cv-location${fullWidth ? ' create-cv-field--full' : ''}`}>
@@ -55,7 +47,6 @@ export default function LocationFields({
             onChange={(nextCode) => {
               const nextCity = nextCode === parsed.countryCode ? parsed.city : (nextCode === 'TR' ? '' : parsed.city)
               emit(nextCode === parsed.countryCode ? nextCity : (nextCode === 'TR' ? '' : nextCity), nextCode)
-              setCityQuery('')
             }}
           />
         </div>
@@ -68,26 +59,14 @@ export default function LocationFields({
             t={t}
           />
           {isTurkey ? (
-            <div className="create-cv-city-combobox">
-              <input
-                id={`${idPrefix}-city`}
-                className="form-input"
-                list={`${idPrefix}-city-list`}
-                value={parsed.city}
-                required={required}
-                placeholder={t('createCv.cityPlaceholder')}
-                onChange={(e) => {
-                  setCityQuery(e.target.value)
-                  emit(e.target.value, parsed.countryCode || 'TR')
-                }}
-                autoComplete="address-level2"
-              />
-              <datalist id={`${idPrefix}-city-list`}>
-                {filteredCities.map((city) => (
-                  <option key={city} value={city} />
-                ))}
-              </datalist>
-            </div>
+            <TurkishCitySelect
+              id={`${idPrefix}-city`}
+              value={parsed.city}
+              required={required}
+              placeholder={t('createCv.cityPlaceholder')}
+              t={t}
+              onChange={(city) => emit(city, parsed.countryCode || 'TR')}
+            />
           ) : (
             <input
               id={`${idPrefix}-city`}

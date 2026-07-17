@@ -354,25 +354,6 @@ export default function CreateCV() {
         inert={showTemplateOverlay}
       >
         <div className="create-cv-topbar">
-          <div className="create-cv-topbar-export">
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm create-cv-export-btn"
-              onClick={handleDownloadCv}
-              disabled={isExportBusy}
-            >
-              {isDownloading ? t('createCv.downloading') : t('createCv.downloadCv')}
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm create-cv-export-btn"
-              onClick={handleSaveToMyCv}
-              disabled={isExportBusy}
-            >
-              {isSavingToMyCv ? t('createCv.savingToMyCv') : t('createCv.saveToMyCv')}
-            </button>
-          </div>
-
           <h1 className="create-cv-page-title">{t('createCv.title')}</h1>
 
           <div className="create-cv-topbar-actions">
@@ -448,9 +429,9 @@ export default function CreateCV() {
                   </button>
                 )}
               </div>
-              {(saveStatus || downloadStatus) && (
+              {saveStatus && (
                 <p className="create-cv-save-status" role="status">
-                  {[saveStatus, downloadStatus].filter(Boolean).join(' · ')}
+                  {saveStatus}
                 </p>
               )}
             </form>
@@ -468,6 +449,33 @@ export default function CreateCV() {
               visibleSectionIds={sections.map((section) => section.id)}
               fieldVisibility={fieldVisibility}
               t={t}
+              cornerActions={(
+                <>
+              <div className="create-cv-preview-export-actions">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm create-cv-export-btn"
+                  onClick={handleDownloadCv}
+                  disabled={isExportBusy}
+                >
+                  {isDownloading ? t('createCv.downloading') : t('createCv.downloadCv')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm create-cv-export-btn"
+                  onClick={handleSaveToMyCv}
+                  disabled={isExportBusy}
+                >
+                  {isSavingToMyCv ? t('createCv.savingToMyCv') : t('createCv.saveToMyCv')}
+                </button>
+              </div>
+              {downloadStatus && (
+                <p className="create-cv-preview-export-status" role="status">
+                  {downloadStatus}
+                </p>
+              )}
+                </>
+              )}
             />
           </CvPreviewErrorBoundary>
         </div>

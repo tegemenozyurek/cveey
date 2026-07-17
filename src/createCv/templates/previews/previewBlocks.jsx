@@ -1,5 +1,6 @@
 import { formatLinkLabel, displayValue } from '../../utils/previewHelpers'
 import { VISIBILITY } from '../../fieldVisibility'
+import { formatPhoneForDisplay } from '../../../utils/phoneFormat'
 
 export function formatDateRange(start, end, currentlyWorking, t) {
   if (!start?.trim() && !end?.trim()) return ''
@@ -272,7 +273,12 @@ export function PreviewReferences({ items, t, showHeading = true }) {
         <article key={item.id} className="cv-preview-entry">
           <div className="cv-preview-entry-head"><strong>{item.name.trim()}</strong></div>
           <p className="cv-preview-entry-meta">
-            {[item.title?.trim(), item.company?.trim(), item.phone?.trim(), item.email?.trim()]
+            {[
+              item.title?.trim(),
+              item.company?.trim(),
+              formatPhoneForDisplay(item.phone),
+              item.email?.trim(),
+            ]
               .filter(Boolean)
               .join(' · ')}
           </p>
@@ -295,7 +301,7 @@ export function PreviewPersonalHeader({
 
   const contactItems = [
     isVisible('email') && personal.email?.trim(),
-    isVisible('phone') && personal.phone?.trim(),
+    isVisible('phone') && formatPhoneForDisplay(personal.phone),
     isVisible('location') && personal.location?.trim(),
   ].filter(Boolean)
 
@@ -390,6 +396,7 @@ export function PreviewSidebarPanel({
   const ratedSkills = content.skills?.rated?.filter((item) => item.name?.trim()) || []
   const certs = content.certifications?.filter((c) => c.name?.trim()) || []
   const highlights = sidebar?.highlights?.filter((h) => h?.trim()) || []
+  const phoneDisplay = isVisible('phone') ? formatPhoneForDisplay(personal.phone) : ''
 
   return (
     <aside className="cv-preview-sidebar">
@@ -401,7 +408,7 @@ export function PreviewSidebarPanel({
         <h3 className="cv-preview-sidebar-title">{t('createCv.preview.contactHeading')}</h3>
         <ul className="cv-preview-sidebar-list">
           {isVisible('email') && personal.email?.trim() && <li>{personal.email.trim()}</li>}
-          {isVisible('phone') && personal.phone?.trim() && <li>{personal.phone.trim()}</li>}
+          {phoneDisplay ? <li>{phoneDisplay}</li> : null}
           {isVisible('location') && personal.location?.trim() && <li>{personal.location.trim()}</li>}
           {isVisible('linkedin') && personal.linkedin?.trim() && <li>{formatLinkLabel(personal.linkedin)}</li>}
           {isVisible('github') && personal.github?.trim() && <li>{formatLinkLabel(personal.github)}</li>}
