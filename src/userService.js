@@ -103,11 +103,14 @@ export async function getUserProfile(userId) {
 }
 
 const EDUCATION_DEGREE_TYPES = new Set(['associate', 'bachelor', 'master', 'doctorate', 'other'])
+const EDUCATION_STATUSES = new Set(['studying', 'graduated'])
 
 function emptyEducation() {
   return {
     degreeType: '',
     degreeOther: '',
+    status: '',
+    graduationYear: null,
     university: '',
     universityIsOther: false,
     program: '',
@@ -119,6 +122,13 @@ function normalizeEducation(data) {
     ? data.educationDegreeType
     : ''
   const degreeOther = typeof data.educationDegreeOther === 'string' ? data.educationDegreeOther : ''
+  const status = EDUCATION_STATUSES.has(data.educationStatus) ? data.educationStatus : ''
+  const graduationYear =
+    status === 'graduated' &&
+    Number.isInteger(data.educationGraduationYear) &&
+    data.educationGraduationYear > 0
+      ? data.educationGraduationYear
+      : null
   const university = typeof data.educationUniversity === 'string' ? data.educationUniversity : ''
   const universityIsOther = data.educationUniversityIsOther === true
   const program =
@@ -131,6 +141,8 @@ function normalizeEducation(data) {
   return {
     degreeType,
     degreeOther,
+    status,
+    graduationYear,
     university,
     universityIsOther,
     program,
@@ -141,20 +153,32 @@ export async function saveUserEducation(userId, payload) {
   const degreeType = EDUCATION_DEGREE_TYPES.has(payload.degreeType) ? payload.degreeType : ''
   const degreeOther =
     degreeType === 'other' ? asTrimmedString(payload.degreeOther, 80) : ''
+  const status = EDUCATION_STATUSES.has(payload.status) ? payload.status : ''
+  const currentYear = new Date().getFullYear()
+  const graduationYear =
+    status === 'graduated' ? Number(payload.graduationYear) : 0
   const universityIsOther = payload.universityIsOther === true
   const university = asTrimmedString(payload.university, 120)
   const program = asTrimmedString(payload.program, 120)
 
-  if (!degreeType || !university || !program) {
+  if (!degreeType || !status || !university || !program) {
     throw new Error('INVALID_EDUCATION')
   }
   if (degreeType === 'other' && !degreeOther) {
+    throw new Error('INVALID_EDUCATION')
+  }
+  if (
+    status === 'graduated' &&
+    (!Number.isInteger(graduationYear) || graduationYear < 1900 || graduationYear > currentYear)
+  ) {
     throw new Error('INVALID_EDUCATION')
   }
 
   await updateDoc(doc(db, 'users', userId), {
     educationDegreeType: degreeType,
     educationDegreeOther: degreeOther,
+    educationStatus: status,
+    educationGraduationYear: graduationYear,
     educationUniversity: university,
     educationUniversityIsOther: universityIsOther,
     educationProgram: program,
@@ -164,6 +188,8 @@ export async function saveUserEducation(userId, payload) {
   return {
     degreeType,
     degreeOther,
+    status,
+    graduationYear: status === 'graduated' ? graduationYear : null,
     university,
     universityIsOther,
     program,

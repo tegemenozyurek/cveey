@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -8,7 +8,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import { resolveAuthMethod } from '../authUtils'
 import { getUserProfile, saveUserEducation, saveUserProfileField } from '../userService'
-import { UNIVERSITY_OTHER, filterUniversities } from '../data/turkishUniversities'
+import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
 import { downloadCvFile } from '../storageService'
 
 const MOCK_MY_NETWORK = [
@@ -160,8 +160,10 @@ function educationHasContent(education) {
   if (!education) return false
   return Boolean(
     education.degreeType &&
+      education.status &&
       education.university?.trim() &&
-      education.program?.trim(),
+      education.program?.trim() &&
+      (education.status !== 'graduated' || education.graduationYear),
   )
 }
 
@@ -173,136 +175,41 @@ function degreeTypeLabel(t, education) {
   return t(`profile.educationDegree.${education.degreeType}`)
 }
 
-function UniversitySearchSelect({
-  t,
-  value,
-  isOther,
-  disabled,
-  open,
-  setOpen,
-  onSelectUniversity,
-  onSelectOther,
-}) {
-  const fieldRef = useRef(null)
-  const [query, setQuery] = useState('')
-  const listId = useId()
-
-  useEffect(() => {
-    if (!open) {
-      setQuery('')
-      return undefined
-    }
-    const handleClickOutside = (event) => {
-      if (fieldRef.current && !fieldRef.current.contains(event.target)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [open, setOpen])
-
-  const filtered = open ? filterUniversities(query) : []
-  const displayValue = isOther
-    ? t('profile.educationUniversityOther')
-    : value || t('profile.educationUniversityPlaceholder')
-
-  return (
-    <div className="form-field profile-edu-uni-field" ref={fieldRef}>
-      <label className="form-label" htmlFor="profile-edu-university">
-        {t('profile.educationUniversity')}
-      </label>
-      <button
-        type="button"
-        id="profile-edu-university"
-        className={`form-input profile-edu-select-trigger${!value && !isOther ? ' profile-edu-select-trigger--placeholder' : ''}`}
-        onClick={() => setOpen((current) => !current)}
-        disabled={disabled}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={listId}
-      >
-        <span>{displayValue}</span>
-        <span aria-hidden="true">▾</span>
-      </button>
-
-      {open ? (
-        <div className="profile-edu-dropdown">
-          <input
-            type="search"
-            className="form-input profile-edu-search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t('profile.educationUniversitySearch')}
-            autoFocus
-            disabled={disabled}
-          />
-          <div className="profile-edu-dropdown-list" id={listId} role="listbox">
-            <button
-              type="button"
-              role="option"
-              aria-selected={isOther}
-              className={`profile-edu-option profile-edu-option--other${isOther ? ' profile-edu-option--selected' : ''}`}
-              onClick={() => {
-                onSelectOther()
-                setOpen(false)
-                setQuery('')
-              }}
-              disabled={disabled}
-            >
-              {t('profile.educationUniversityOther')}
-            </button>
-            {filtered.length === 0 ? (
-              <p className="profile-edu-empty">{t('profile.educationUniversityNoResults')}</p>
-            ) : (
-              filtered.map((name) => {
-                const selected = !isOther && value === name
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    role="option"
-                    aria-selected={selected}
-                    className={`profile-edu-option${selected ? ' profile-edu-option--selected' : ''}`}
-                    onClick={() => {
-                      onSelectUniversity(name)
-                      setOpen(false)
-                      setQuery('')
-                    }}
-                    disabled={disabled}
-                  >
-                    {name}
-                  </button>
-                )
-              })
-            )}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  )
+function educationStatusLabel(t, education) {
+  if (!education?.status) return ''
+  if (education.status === 'graduated' && education.graduationYear) {
+    return t('profile.educationStatus.graduatedYear', { year: education.graduationYear })
+  }
+  return t(`profile.educationStatus.${education.status}`)
 }
 
 const EDUCATION_DEGREE_TYPES = ['associate', 'bachelor', 'master', 'doctorate', 'other']
+const EDUCATION_STATUSES = ['studying', 'graduated']
+const CURRENT_YEAR = new Date().getFullYear()
+const GRADUATION_YEARS = Array.from({ length: CURRENT_YEAR - 1949 }, (_, index) => CURRENT_YEAR - index)
 
 function EducationField({ t, education, onSave }) {
   const hasValue = educationHasContent(education)
   const [editing, setEditing] = useState(false)
   const [degreeType, setDegreeType] = useState('')
   const [degreeOther, setDegreeOther] = useState('')
+  const [status, setStatus] = useState('')
+  const [graduationYear, setGraduationYear] = useState('')
   const [university, setUniversity] = useState('')
   const [universityIsOther, setUniversityIsOther] = useState(false)
   const [universityCustom, setUniversityCustom] = useState('')
   const [program, setProgram] = useState('')
-  const [uniOpen, setUniOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   function hydrateFromEducation(next) {
     setDegreeType(next?.degreeType || '')
     setDegreeOther(next?.degreeOther || '')
+    setStatus(next?.status || '')
+    setGraduationYear(next?.graduationYear ? String(next.graduationYear) : '')
     setUniversityIsOther(Boolean(next?.universityIsOther))
     if (next?.universityIsOther) {
-      setUniversity('')
+      setUniversity(UNIVERSITY_OTHER)
       setUniversityCustom(next?.university || '')
     } else {
       setUniversity(next?.university || '')
@@ -323,7 +230,6 @@ function EducationField({ t, education, onSave }) {
 
   function cancelEditing() {
     hydrateFromEducation(education)
-    setUniOpen(false)
     setError('')
     setEditing(false)
   }
@@ -335,6 +241,14 @@ function EducationField({ t, education, onSave }) {
     }
     if (degreeType === 'other' && !degreeOther.trim()) {
       setError(t('profile.educationDegreeOtherRequired'))
+      return
+    }
+    if (!status) {
+      setError(t('profile.educationStatusRequired'))
+      return
+    }
+    if (status === 'graduated' && !graduationYear) {
+      setError(t('profile.educationGraduationYearRequired'))
       return
     }
 
@@ -358,6 +272,8 @@ function EducationField({ t, education, onSave }) {
       await onSave({
         degreeType,
         degreeOther: degreeType === 'other' ? degreeOther.trim() : '',
+        status,
+        graduationYear: status === 'graduated' ? Number(graduationYear) : 0,
         university: resolvedUniversity,
         universityIsOther,
         program: program.trim(),
@@ -401,6 +317,9 @@ function EducationField({ t, education, onSave }) {
         {education.university ? (
           <p className="profile-about-edu-uni">{education.university}</p>
         ) : null}
+        {education.status ? (
+          <p className="profile-about-edu-status">{educationStatusLabel(t, education)}</p>
+        ) : null}
       </>
     )
   }
@@ -410,28 +329,30 @@ function EducationField({ t, education, onSave }) {
       <p className="profile-about-kicker">{t('profile.education')}</p>
 
       <div className="form-field">
-        <span className="form-label">{t('profile.educationDegree')}</span>
-        <div className="profile-edu-degree-grid">
-          {EDUCATION_DEGREE_TYPES.map((type) => {
-            const selected = degreeType === type
-            return (
-              <button
-                key={type}
-                type="button"
-                className={`profile-edu-degree-option${selected ? ' profile-edu-degree-option--selected' : ''}`}
-                onClick={() => {
-                  setError('')
-                  setDegreeType(type)
-                  if (type !== 'other') setDegreeOther('')
-                }}
-                disabled={saving}
-                aria-pressed={selected}
-              >
-                {t(`profile.educationDegree.${type}`)}
-              </button>
-            )
-          })}
-        </div>
+        <label className="form-label" htmlFor="profile-edu-degree">
+          {t('profile.educationDegree')}
+        </label>
+        <select
+          id="profile-edu-degree"
+          className={`form-input profile-edu-degree-select${!degreeType ? ' profile-edu-degree-select--placeholder' : ''}`}
+          value={degreeType}
+          onChange={(event) => {
+            const nextType = event.target.value
+            setError('')
+            setDegreeType(nextType)
+            if (nextType !== 'other') setDegreeOther('')
+          }}
+          disabled={saving}
+        >
+          <option value="" disabled>
+            {t('profile.educationDegreePlaceholder')}
+          </option>
+          {EDUCATION_DEGREE_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {t(`profile.educationDegree.${type}`)}
+            </option>
+          ))}
+        </select>
       </div>
 
       {degreeType === 'other' ? (
@@ -455,26 +376,94 @@ function EducationField({ t, education, onSave }) {
         </div>
       ) : null}
 
-      <UniversitySearchSelect
-        t={t}
-        value={university}
-        isOther={universityIsOther}
-        disabled={saving}
-        open={uniOpen}
-        setOpen={setUniOpen}
-        onSelectUniversity={(name) => {
-          setError('')
-          setUniversityIsOther(false)
-          setUniversity(name)
-          setUniversityCustom('')
-        }}
-        onSelectOther={() => {
-          setError('')
-          setUniversityIsOther(true)
-          setUniversity(UNIVERSITY_OTHER)
-          setUniversityCustom('')
-        }}
-      />
+      <div className="form-field">
+        <label className="form-label" htmlFor="profile-edu-status">
+          {t('profile.educationStatus')}
+        </label>
+        <select
+          id="profile-edu-status"
+          className={`form-input profile-edu-degree-select${!status ? ' profile-edu-degree-select--placeholder' : ''}`}
+          value={status}
+          onChange={(event) => {
+            const nextStatus = event.target.value
+            setError('')
+            setStatus(nextStatus)
+            if (nextStatus !== 'graduated') setGraduationYear('')
+          }}
+          disabled={saving}
+        >
+          <option value="" disabled>
+            {t('profile.educationStatusPlaceholder')}
+          </option>
+          {EDUCATION_STATUSES.map((item) => (
+            <option key={item} value={item}>
+              {t(`profile.educationStatus.${item}`)}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {status === 'graduated' ? (
+        <div className="form-field">
+          <label className="form-label" htmlFor="profile-edu-graduation-year">
+            {t('profile.educationGraduationYear')}
+          </label>
+          <select
+            id="profile-edu-graduation-year"
+            className={`form-input profile-edu-degree-select${!graduationYear ? ' profile-edu-degree-select--placeholder' : ''}`}
+            value={graduationYear}
+            onChange={(event) => {
+              setError('')
+              setGraduationYear(event.target.value)
+            }}
+            disabled={saving}
+          >
+            <option value="" disabled>
+              {t('profile.educationGraduationYearPlaceholder')}
+            </option>
+            {GRADUATION_YEARS.map((year) => (
+              <option key={year} value={String(year)}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
+
+      <div className="form-field">
+        <label className="form-label" htmlFor="profile-edu-university">
+          {t('profile.educationUniversity')}
+        </label>
+        <select
+          id="profile-edu-university"
+          className={`form-input profile-edu-degree-select${!university && !universityIsOther ? ' profile-edu-degree-select--placeholder' : ''}`}
+          value={universityIsOther ? UNIVERSITY_OTHER : university}
+          onChange={(event) => {
+            const nextValue = event.target.value
+            setError('')
+            if (nextValue === UNIVERSITY_OTHER) {
+              setUniversityIsOther(true)
+              setUniversity(UNIVERSITY_OTHER)
+              setUniversityCustom('')
+              return
+            }
+            setUniversityIsOther(false)
+            setUniversity(nextValue)
+            setUniversityCustom('')
+          }}
+          disabled={saving}
+        >
+          <option value="" disabled>
+            {t('profile.educationUniversityPlaceholder')}
+          </option>
+          <option value={UNIVERSITY_OTHER}>{t('profile.educationUniversityOther')}</option>
+          {TURKISH_UNIVERSITIES.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {universityIsOther ? (
         <div className="form-field">
@@ -884,6 +873,8 @@ export default function Profile() {
   const [education, setEducation] = useState({
     degreeType: '',
     degreeOther: '',
+    status: '',
+    graduationYear: null,
     university: '',
     universityIsOther: false,
     program: '',
@@ -899,6 +890,8 @@ export default function Profile() {
       setEducation({
         degreeType: '',
         degreeOther: '',
+        status: '',
+        graduationYear: null,
         university: '',
         universityIsOther: false,
         program: '',
@@ -929,6 +922,8 @@ export default function Profile() {
           setEducation({
             degreeType: '',
             degreeOther: '',
+            status: '',
+            graduationYear: null,
             university: '',
             universityIsOther: false,
             program: '',
