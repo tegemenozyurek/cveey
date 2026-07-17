@@ -1824,6 +1824,10 @@
   overflow: hidden;
 }
 
+.profile-cv-post--empty {
+  grid-template-columns: 108px minmax(0, 1fr);
+}
+
 .profile-cv-post-media {
   background: color-mix(in srgb, var(--glass-strong) 85%, transparent);
   border-right: 1px solid var(--glass-border);
@@ -1837,6 +1841,10 @@
   min-height: 200px;
 }
 
+.profile-cv-post-body--empty {
+  min-height: 124px;
+}
+
 .profile-cv-post-content {
   display: flex;
   flex-direction: column;
@@ -1845,6 +1853,11 @@
   flex: 1;
   padding: 16px 20px;
   min-width: 0;
+}
+
+.profile-cv-post-body--empty .profile-cv-post-content {
+  gap: 5px;
+  padding: 14px 16px;
 }
 
 .profile-cv-label {
@@ -1874,6 +1887,11 @@
   overflow: visible;
 }
 
+.profile-cv-post-body--empty .profile-cv-heading {
+  font-size: 17px;
+  letter-spacing: -0.03em;
+}
+
 .profile-cv-caption {
   margin: 0;
   min-width: 0;
@@ -1881,6 +1899,12 @@
   font-weight: 500;
   line-height: 1.45;
   color: var(--text-muted);
+}
+
+.profile-cv-post-body--empty .profile-cv-caption {
+  max-width: 36ch;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .profile-cv-inline-link {
@@ -1906,6 +1930,77 @@
   width: 96px;
   border-left: 1px solid var(--glass-border);
   background: color-mix(in srgb, var(--glass-hover) 55%, transparent);
+}
+
+.profile-cv-actions.profile-cv-actions--cta {
+  width: 280px;
+  min-width: 280px;
+  align-items: stretch;
+}
+
+.profile-cv-cta {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 14px 22px;
+  border-radius: 0;
+  border: none;
+  white-space: nowrap;
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--accent-cyan) 18%, transparent),
+      color-mix(in srgb, var(--accent-pink) 8%, transparent) 70%,
+      transparent
+    );
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  text-align: center;
+  text-decoration: none;
+  line-height: 1.25;
+  transition: background 0.15s ease, filter 0.15s ease;
+}
+
+.profile-cv-cta span {
+  max-width: none;
+  white-space: nowrap;
+}
+
+.profile-cv-cta svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: color-mix(in srgb, var(--accent-cyan) 88%, var(--text));
+}
+
+.profile-cv-cta:hover {
+  filter: brightness(1.05);
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--accent-cyan) 24%, transparent),
+      color-mix(in srgb, var(--accent-pink) 12%, transparent) 70%,
+      transparent
+    );
+}
+
+.profile-cv-cta:active {
+  filter: brightness(0.98);
+}
+
+.profile-cv-cta:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: -2px;
 }
 
 .profile-cv-action {
@@ -1957,6 +2052,10 @@
     var(--glass-strong);
 }
 
+.profile-cv-post--empty .profile-cv-sheet {
+  min-height: 124px;
+}
+
 .profile-cv-sheet--hidden {
   display: flex;
   align-items: center;
@@ -1978,17 +2077,42 @@
   box-sizing: border-box;
 }
 
+.profile-cv-post--empty .profile-cv-sheet-status {
+  min-height: 124px;
+  padding: 10px;
+}
+
 .profile-cv-sheet-status p {
   margin: 0;
   max-width: 16ch;
   line-height: 1.45;
 }
 
-.profile-cv-sheet-status--empty .profile-cv-empty-title {
-  font-size: 13px;
-  font-weight: 650;
-  color: var(--text);
-  max-width: 18ch;
+.profile-cv-sheet-status--empty {
+  gap: 0;
+}
+
+.profile-cv-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: color-mix(in srgb, var(--accent-cyan) 80%, var(--text));
+  background: color-mix(in srgb, var(--accent-cyan) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 24%, transparent);
+}
+
+.profile-cv-post--empty .profile-cv-empty-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.profile-cv-post--empty .profile-cv-empty-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .profile-cv-paper {
@@ -2134,13 +2258,63 @@
     min-height: 180px;
   }
 
+  .profile-cv-post--empty {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-cv-post--empty .profile-cv-sheet,
+  .profile-cv-post--empty .profile-cv-sheet-status {
+    min-height: 88px;
+  }
+
   .profile-cv-post-body {
     min-height: 0;
     flex-direction: column;
   }
 
+  .profile-cv-post-body--empty {
+    min-height: 0;
+  }
+
   .profile-cv-post-content {
     padding: 16px;
+  }
+
+  .profile-cv-post-body--empty .profile-cv-post-content {
+    padding: 14px 16px 12px;
+    gap: 5px;
+  }
+
+  .profile-cv-post-body--empty .profile-cv-heading {
+    font-size: 16px;
+  }
+
+  .profile-cv-post-body--empty .profile-cv-caption {
+    max-width: none;
+  }
+
+  .profile-cv-actions--cta {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    border-left: none;
+    border-top: 1px solid var(--glass-border);
+  }
+
+  .profile-cv-actions.profile-cv-actions--cta {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .profile-cv-cta {
+    flex-direction: row;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+
+  .profile-cv-cta span {
+    max-width: none;
   }
 
   .profile-cv-heading {

@@ -1150,7 +1150,10 @@ function ActiveCvPanel({ t }) {
   const paperName = stripPdfExtension(activeCv?.displayName) || t('profile.activeCv')
 
   return (
-    <section className="profile-cv-post" aria-labelledby="profile-active-cv-heading">
+    <section
+      className={`profile-cv-post${!activeCv && !loading ? ' profile-cv-post--empty' : ''}`}
+      aria-labelledby="profile-active-cv-heading"
+    >
       <div className="profile-cv-post-media">
         <div className={`profile-cv-sheet${cvHidden ? ' profile-cv-sheet--hidden' : ''}`}>
           {loading ? (
@@ -1163,8 +1166,24 @@ function ActiveCvPanel({ t }) {
             </div>
           ) : !activeCv ? (
             <div className="profile-cv-sheet-status profile-cv-sheet-status--empty">
-              <p className="profile-cv-empty-title">{t('profile.cvEmpty')}</p>
-              <p>{t('profile.cvEmptyHint')}</p>
+              <span className="profile-cv-empty-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M14 2v6h6M12 18v-6M9 15h6"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
             </div>
           ) : (
             <button
@@ -1203,7 +1222,7 @@ function ActiveCvPanel({ t }) {
         </div>
       </div>
 
-      <div className="profile-cv-post-body">
+      <div className={`profile-cv-post-body${!activeCv && !loading ? ' profile-cv-post-body--empty' : ''}`}>
         <div className="profile-cv-post-content">
           <span className="profile-cv-label">{t('profile.activeCv')}</span>
           <h2
@@ -1215,12 +1234,24 @@ function ActiveCvPanel({ t }) {
           <p className="profile-cv-caption">
             {activeCv || loading ? t('profile.activeCvIntro') : t('profile.cvEmptyIntro')}
           </p>
-          {!activeCv && !loading ? (
-            <Link to="/my-cv" className="profile-cv-inline-link">
-              {t('profile.goToMyCv')}
-            </Link>
-          ) : null}
         </div>
+
+        {!activeCv && !loading ? (
+          <div className="profile-cv-actions profile-cv-actions--cta" role="group" aria-label={t('profile.activeCv')}>
+            <Link to="/my-cv" className="profile-cv-cta">
+              <span>{t('profile.goToMyCv')}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M5 12h14M13 6l6 6-6 6"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+          </div>
+        ) : null}
 
         {activeCv ? (
           <div className="profile-cv-actions" role="group" aria-label={t('profile.activeCv')}>
