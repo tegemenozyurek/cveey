@@ -4535,63 +4535,167 @@
 /* ── Location setup modal ─────────────────────────── */
 .modal.modal--location {
   min-height: auto;
-  max-width: 460px;
+  width: min(760px, calc(100vw - 40px));
+  max-width: 760px;
   max-height: calc(100dvh - 40px);
-  overflow-y: auto;
-  padding: 20px 28px 22px;
+  display: grid;
+  grid-template-columns: minmax(250px, 0.85fr) minmax(360px, 1.15fr);
+  padding: 0;
+  overflow: visible;
+  border-radius: 28px;
+  background: var(--glass-strong);
 }
 
 .modal.modal--onboarding {
-  max-width: 520px;
+  max-width: 760px;
 }
 
-.modal--location .modal-auth-header {
-  margin-bottom: 12px;
-}
-
-.location-setup-header {
+.location-setup-intro {
+  position: relative;
+  min-height: 520px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-right: 28px;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 30px;
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(34, 211, 238, 0.24), transparent 35%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(30, 20, 55, 0.96));
+  border-radius: 27px 0 0 27px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.modal--location .modal-heading {
-  font-size: 24px;
-  line-height: 1.25;
+[data-theme='light'] .location-setup-intro {
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(34, 211, 238, 0.28), transparent 35%),
+    linear-gradient(145deg, #172033, #2f2347);
+}
+
+.location-setup-brand {
+  position: relative;
+  z-index: 2;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+}
+
+.location-setup-brand span {
+  color: #22d3ee;
+}
+
+.location-setup-intro-content {
+  position: relative;
+  z-index: 2;
+  max-width: 260px;
+  margin: auto 0;
+}
+
+.location-setup-title {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 38px);
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+}
+
+.location-setup-orb {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+.location-setup-orb--one {
+  right: -70px;
+  bottom: -60px;
+  width: 210px;
+  height: 210px;
+  background: rgba(232, 121, 249, 0.12);
+  border: 1px solid rgba(232, 121, 249, 0.16);
+}
+
+.location-setup-orb--two {
+  right: 38px;
+  bottom: 70px;
+  width: 78px;
+  height: 78px;
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.14);
+}
+
+.location-setup-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 34px 36px 22px;
 }
 
 .location-setup-form {
-  gap: 14px;
+  gap: 20px;
 }
 
 .location-setup-text {
-  margin: 0 0 6px;
+  margin: 12px 0 0;
   font-size: 14px;
-  line-height: 1.6;
-  color: var(--text-muted);
+  line-height: 1.65;
+  color: rgba(226, 232, 240, 0.68);
+}
+
+.location-setup-form-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .location-setup-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px 0 4px;
-  border-top: 1px solid var(--glass-border);
-}
-
-.location-setup-section:first-of-type {
-  border-top: none;
-  padding-top: 0;
+  gap: 16px;
+  padding: 0;
+  border: 0;
 }
 
 .location-setup-section-title {
   margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.location-setup-field-card {
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+[data-theme='light'] .location-setup-field-card {
+  background: rgba(15, 23, 42, 0.025);
+}
+
+.location-setup-field-card:focus-within {
+  background: rgba(34, 211, 238, 0.025);
+  border-color: rgba(34, 211, 238, 0.2);
+}
+
+.location-setup-field-card .form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.location-setup-field-card .form-input {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
 }
 
 .location-setup-home-field {
@@ -4635,17 +4739,17 @@
 
 .location-setup-dropdown {
   position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 20;
-  padding: 6px;
+  top: calc(100% + 8px);
+  left: -1px;
+  right: -1px;
+  z-index: 120;
+  padding: 8px;
   background: var(--glass-strong);
   border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
   animation: slideUp 0.15s ease;
 }
 
@@ -4704,7 +4808,7 @@
 }
 
 .location-setup-hint {
-  margin: 6px 0 0;
+  margin: 8px 2px 0;
   font-size: 12px;
   line-height: 1.5;
   color: var(--text-dim);
@@ -4852,9 +4956,13 @@
 
 .location-setup-error {
   margin: 0;
+  padding: 10px 12px;
   font-size: 13px;
   line-height: 1.5;
   color: #f87171;
+  background: rgba(248, 113, 113, 0.07);
+  border: 1px solid rgba(248, 113, 113, 0.14);
+  border-radius: 12px;
 }
 
 .modal--location .modal-auth-error:empty {
@@ -4862,7 +4970,7 @@
 }
 
 .location-setup-actions {
-  margin-top: 8px;
+  margin-top: auto;
 }
 
 .location-setup-submit:disabled {
@@ -4874,19 +4982,153 @@
   color: var(--text-dim);
 }
 
-@media (max-width: 480px) {
+.location-setup-footer.modal-auth-footer {
+  min-height: 28px;
+  margin-top: 12px;
+}
+
+@media (max-width: 700px) {
   .modal.modal--location {
-    padding: 18px 18px 18px;
+    width: min(500px, calc(100vw - 28px));
+    max-width: 500px;
+    max-height: calc(100dvh - 28px);
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+    border-radius: 24px;
   }
 
-  .location-setup-city-list {
-    max-height: 40dvh;
+  .location-setup-intro {
+    min-height: 178px;
+    padding: 22px 24px;
+    border-radius: 23px 23px 0 0;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .location-setup-brand {
+    font-size: 15px;
+  }
+
+  .location-setup-intro-content {
+    max-width: 360px;
+    margin: 18px 0 0;
+  }
+
+  .location-setup-title {
+    max-width: 100%;
+    font-size: clamp(25px, 8vw, 32px);
+  }
+
+  .location-setup-text {
+    max-width: calc(100% - 48px);
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .location-setup-orb--one {
+    right: -80px;
+    bottom: -100px;
+  }
+
+  .location-setup-orb--two {
+    right: 70px;
+    bottom: -25px;
+  }
+
+  .location-setup-content {
+    padding: 24px 24px 18px;
+  }
+
+  .location-setup-dropdown-list {
+    max-height: min(210px, 28dvh);
   }
 }
 
-@media (max-width: 360px) {
-  .location-setup-city-list {
-    grid-template-columns: 1fr;
+@media (max-width: 420px) {
+  .modal-backdrop:has(.modal--onboarding) {
+    align-items: flex-end;
+    padding: 8px;
+  }
+
+  .modal.modal--location {
+    width: 100%;
+    max-height: calc(100dvh - 8px);
+    border-radius: 24px 24px 18px 18px;
+  }
+
+  .location-setup-intro {
+    min-height: 154px;
+    padding: 18px 20px;
+    border-radius: 23px 23px 0 0;
+  }
+
+  .location-setup-intro-content {
+    margin-top: 14px;
+  }
+
+  .location-setup-title {
+    font-size: 25px;
+  }
+
+  .location-setup-text {
+    max-width: calc(100% - 30px);
+  }
+
+  .location-setup-content {
+    padding: 20px 16px 14px;
+  }
+
+  .location-setup-form {
+    gap: 16px;
+  }
+
+  .location-setup-section {
+    gap: 12px;
+  }
+
+  .location-setup-field-card {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .location-setup-field-card .form-input {
+    min-height: 44px;
+  }
+
+  .location-setup-dropdown {
+    left: -5px;
+    right: -5px;
+  }
+
+  .location-setup-dropdown-list {
+    max-height: min(180px, 24dvh);
+  }
+}
+
+@media (max-height: 620px) and (min-width: 701px) {
+  .modal.modal--location {
+    max-height: calc(100dvh - 24px);
+  }
+
+  .location-setup-intro {
+    min-height: 440px;
+  }
+
+  .location-setup-content {
+    padding-block: 24px 16px;
+  }
+
+  .location-setup-form {
+    gap: 14px;
+  }
+
+  .location-setup-section {
+    gap: 10px;
+  }
+
+  .location-setup-field-card {
+    padding: 11px;
   }
 }
 

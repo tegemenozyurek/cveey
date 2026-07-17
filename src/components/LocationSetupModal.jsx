@@ -171,87 +171,97 @@ export default function LocationSetupModal({ user, onComplete }) {
         aria-labelledby="location-setup-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="modal-auth-header">
-          <div className="location-setup-header">
-            <h2 id="location-setup-title" className="modal-heading">
+        <div className="location-setup-intro">
+          <div className="location-setup-brand" aria-label="cveey">
+            cveey<span>.</span>
+          </div>
+          <div className="location-setup-intro-content">
+            <h2 id="location-setup-title" className="location-setup-title">
               {t('locationSetup.title')}
             </h2>
+            <p className="location-setup-text">{t('locationSetup.subtitle')}</p>
           </div>
+          <div className="location-setup-orb location-setup-orb--one" aria-hidden="true" />
+          <div className="location-setup-orb location-setup-orb--two" aria-hidden="true" />
         </div>
 
-        <form className="modal-auth-body location-setup-form" onSubmit={handleSubmit}>
-          <p className="location-setup-text">{t('locationSetup.subtitle')}</p>
-
-          <section className="location-setup-section" aria-labelledby="onboarding-info-heading">
-            <h3 id="onboarding-info-heading" className="location-setup-section-title">
-              {t('locationSetup.sectionInfo')}
-            </h3>
-
-            <div className="form-field">
-              <label className="form-label" htmlFor="onboarding-username">
-                {t('locationSetup.username')}
-              </label>
-              <input
-                id="onboarding-username"
-                className="form-input"
-                type="text"
-                autoComplete="username"
-                value={username}
-                onChange={(event) => {
-                  setError('')
-                  setUsername(event.target.value)
-                }}
-                placeholder={t('locationSetup.usernamePlaceholder')}
-                maxLength={USERNAME_MAX}
-                disabled={saving}
-              />
-              <p className="location-setup-hint">{t('locationSetup.usernameHint')}</p>
+        <div className="location-setup-content">
+          <form className="modal-auth-body location-setup-form" onSubmit={handleSubmit}>
+            <div className="location-setup-form-heading">
+              <h3 id="onboarding-info-heading" className="location-setup-section-title">
+                {t('locationSetup.sectionInfo')}
+              </h3>
             </div>
 
-            <SearchableSelect
-              id="home-city-trigger"
-              label={t('locationSetup.homeCity')}
-              value={homeCity}
-              placeholder={t('locationSetup.homeCityPlaceholder')}
-              searchPlaceholder={t('locationSetup.searchPlaceholder')}
-              noResults={t('locationSetup.noResults')}
-              onSearch={filterTurkishCities}
-              onSelect={(city) => {
-                setError('')
-                setHomeCity(city)
-              }}
-              disabled={saving}
-              open={cityOpen}
-              setOpen={setCityOpen}
-            />
-          </section>
+            <section className="location-setup-section" aria-labelledby="onboarding-info-heading">
+              <div className="form-field location-setup-field-card">
+                <label className="form-label" htmlFor="onboarding-username">
+                  {t('locationSetup.username')}
+                </label>
+                <input
+                  id="onboarding-username"
+                  className="form-input"
+                  type="text"
+                  autoComplete="username"
+                  value={username}
+                  onChange={(event) => {
+                    setError('')
+                    setUsername(event.target.value)
+                  }}
+                  placeholder={t('locationSetup.usernamePlaceholder')}
+                  maxLength={USERNAME_MAX}
+                  disabled={saving}
+                />
+                <p className="location-setup-hint">{t('locationSetup.usernameHint')}</p>
+              </div>
 
-          <div className="modal-auth-error">
-            {error && <p className="location-setup-error">{error}</p>}
-          </div>
+              <div className="location-setup-field-card">
+                <SearchableSelect
+                  id="home-city-trigger"
+                  label={t('locationSetup.homeCity')}
+                  value={homeCity}
+                  placeholder={t('locationSetup.homeCityPlaceholder')}
+                  searchPlaceholder={t('locationSetup.searchPlaceholder')}
+                  noResults={t('locationSetup.noResults')}
+                  onSearch={filterTurkishCities}
+                  onSelect={(city) => {
+                    setError('')
+                    setHomeCity(city)
+                  }}
+                  disabled={saving}
+                  open={cityOpen}
+                  setOpen={setCityOpen}
+                />
+              </div>
+            </section>
 
-          <div className="location-setup-actions">
+            <div className="modal-auth-error">
+              {error && <p className="location-setup-error">{error}</p>}
+            </div>
+
+            <div className="location-setup-actions">
+              <button
+                type="submit"
+                className="btn-gradient-wrap btn-gradient-wrap--block location-setup-submit"
+                disabled={saving}
+              >
+                <span className="btn-gradient-inner">
+                  {saving ? t('locationSetup.saving') : t('locationSetup.submit')}
+                </span>
+              </button>
+            </div>
+          </form>
+
+          <div className="modal-auth-footer location-setup-footer">
             <button
-              type="submit"
-              className="btn-gradient-wrap btn-gradient-wrap--block location-setup-submit"
+              type="button"
+              className="login-back-btn location-setup-signout"
+              onClick={handleSignOut}
               disabled={saving}
             >
-              <span className="btn-gradient-inner">
-                {saving ? t('locationSetup.saving') : t('locationSetup.submit')}
-              </span>
+              {t('locationSetup.signOut')}
             </button>
           </div>
-        </form>
-
-        <div className="modal-auth-footer">
-          <button
-            type="button"
-            className="login-back-btn location-setup-signout"
-            onClick={handleSignOut}
-            disabled={saving}
-          >
-            {t('locationSetup.signOut')}
-          </button>
         </div>
       </div>
     </div>
