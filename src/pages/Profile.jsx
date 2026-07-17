@@ -195,7 +195,7 @@ function createLocalEducationId() {
   return `edu_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
 }
 
-function EducationEditorForm({ t, initial, saving, error, onCancel, onSave }) {
+function EducationEditorForm({ t, initial, saving, error, onCancel, onDelete, onSave }) {
   const [degreeType, setDegreeType] = useState(initial?.degreeType || '')
   const [degreeOther, setDegreeOther] = useState(initial?.degreeOther || '')
   const [status, setStatus] = useState(initial?.status || '')
@@ -439,6 +439,16 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onSave }) {
       </div>
 
       <div className="profile-about-edit-actions">
+        {onDelete ? (
+          <button
+            type="button"
+            className="profile-edu-delete-action"
+            onClick={onDelete}
+            disabled={saving}
+          >
+            {t('profile.removeEducation')}
+          </button>
+        ) : null}
         <button type="button" onClick={onCancel} disabled={saving}>
           {t('profile.cancel')}
         </button>
@@ -453,6 +463,7 @@ function EducationEditorForm({ t, initial, saving, error, onCancel, onSave }) {
 
 function EducationList({ t, educations, onSaveEducations }) {
   const items = Array.isArray(educations) ? educations : []
+  const [managing, setManaging] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -467,6 +478,7 @@ function EducationList({ t, educations, onSaveEducations }) {
     try {
       const saved = await onSaveEducations(nextItems)
       setEditingId(null)
+      if (saved.length === 0) setManaging(false)
       return saved
     } catch (err) {
       console.error('Profile educations update failed:', err)
@@ -509,25 +521,55 @@ function EducationList({ t, educations, onSaveEducations }) {
     <div className="profile-edu-list">
       <div className="profile-about-field-head">
         <p className="profile-about-kicker">{t('profile.education')}</p>
+        {editingId === null ? (
+          <button
+            type="button"
+            className={`profile-about-edit-btn profile-edu-manage-btn${managing ? ' profile-edu-manage-btn--active' : ''}`}
+            onClick={() => {
+              setError('')
+              setManaging((current) => !current)
+            }}
+            aria-pressed={managing}
+            aria-label={`${t('profile.edit')} ${t('profile.education')}`}
+            title={t('profile.edit')}
+          >
+            <EditIcon />
+          </button>
+        ) : null}
       </div>
 
       <ul className="profile-edu-items">
-        {items.map((item) => (
-          <li key={item.id} className="profile-edu-item">
-            {editingId === item.id ? (
-              <EducationEditorForm
-                t={t}
-                initial={item}
-                saving={saving}
-                error={error}
-                onCancel={() => {
-                  setError('')
-                  setEditingId(null)
-                }}
-                onSave={(payload) => void handleSaveItem(payload)}
-              />
-            ) : (
-              <div className="profile-edu-item-view">
+        {items.map((item) => {
+          const ItemContainer = managing ? 'button' : 'div'
+
+          return (
+            <li key={item.id} className="profile-edu-item">
+              {editingId === item.id ? (
+                <EducationEditorForm
+                  t={t}
+                  initial={item}
+                  saving={saving}
+                  error={error}
+                  onCancel={() => {
+                    setError('')
+                    setEditingId(null)
+                  }}
+                  onDelete={() => void handleDelete(item.id)}
+                  onSave={(payload) => void handleSaveItem(payload)}
+                />
+              ) : (
+                <ItemContainer
+                  type={managing ? 'button' : undefined}
+                  className={`profile-edu-item-view${managing ? ' profile-edu-item-view--editable' : ''}`}
+                  onClick={
+                    managing
+                      ? () => {
+                          setError('')
+                          setEditingId(item.id)
+                        }
+                      : undefined
+                  }
+                >
                 <div className="profile-edu-item-copy">
                   <p className="profile-about-lead profile-edu-item-title">
                     {degreeTypeLabel(t, item)}
@@ -540,36 +582,11 @@ function EducationList({ t, educations, onSaveEducations }) {
                     <p className="profile-about-edu-status">{educationStatusLabel(t, item)}</p>
                   ) : null}
                 </div>
-                {editingId === null ? (
-                  <div className="profile-edu-item-actions">
-                    <button
-                      type="button"
-                      className="profile-about-edit-btn"
-                      onClick={() => {
-                        setError('')
-                        setEditingId(item.id)
-                      }}
-                      aria-label={`${t('profile.edit')} ${t('profile.education')}`}
-                      title={t('profile.edit')}
-                    >
-                      <EditIcon />
-                    </button>
-                    <button
-                      type="button"
-                      className="profile-edu-remove-btn"
-                      onClick={() => void handleDelete(item.id)}
-                      disabled={saving}
-                      aria-label={t('profile.removeEducation')}
-                      title={t('profile.removeEducation')}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            )}
-          </li>
-        ))}
+                </ItemContainer>
+              )}
+            </li>
+          )
+        })}
       </ul>
 
       {editingId === 'new' ? (

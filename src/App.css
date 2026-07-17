@@ -1367,7 +1367,33 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  width: 100%;
   gap: 10px;
+}
+
+.profile-edu-item-view--editable {
+  padding: 10px;
+  margin: -10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.profile-edu-item-view--editable:hover {
+  border-color: color-mix(in srgb, var(--accent-cyan) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-cyan) 7%, transparent);
+}
+
+.profile-edu-item-view--editable:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
 }
 
 .profile-edu-item-copy {
@@ -1380,43 +1406,22 @@
   line-height: 1.35;
 }
 
-.profile-edu-item-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  flex: 0 0 auto;
+.profile-edu-manage-btn--active {
+  color: var(--accent-cyan);
+  border-color: color-mix(in srgb, var(--accent-cyan) 35%, transparent);
+  background: color-mix(in srgb, var(--accent-cyan) 10%, transparent);
 }
 
-.profile-edu-remove-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  margin-top: -6px;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--text-dim);
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    color 0.18s ease,
-    border-color 0.18s ease,
-    background 0.18s ease;
-}
-
-.profile-edu-remove-btn:hover:not(:disabled) {
+.profile-about-edit-actions .profile-edu-delete-action {
+  margin-right: auto;
+  border-color: color-mix(in srgb, #f87171 32%, transparent);
   color: #f87171;
-  border-color: color-mix(in srgb, #f87171 35%, transparent);
-  background: color-mix(in srgb, #f87171 10%, transparent);
 }
 
-.profile-edu-remove-btn:disabled {
-  opacity: 0.5;
-  cursor: wait;
+.profile-about-edit-actions .profile-edu-delete-action:hover:not(:disabled) {
+  border-color: color-mix(in srgb, #f87171 55%, transparent);
+  background: color-mix(in srgb, #f87171 10%, transparent);
+  color: #f87171;
 }
 
 .profile-edu-edit {
