@@ -1,9 +1,12 @@
 import {
   AsYouType,
+  formatIncompletePhoneNumber,
   getExampleNumber,
   parsePhoneNumberFromString,
-} from 'libphonenumber-js/min'
+} from 'libphonenumber-js/max'
 import examples from 'libphonenumber-js/mobile/examples'
+import metadata from 'libphonenumber-js/max/metadata'
+import { Metadata } from 'libphonenumber-js/core'
 import { findCountryByCode, findCountryByDial } from '../data/countries'
 
 function digitsOnly(value) {
@@ -15,76 +18,120 @@ function resolveCountryCode(countryCode) {
   return findCountryByCode(code)?.code || 'TR'
 }
 
+function getDial(iso) {
+  return findCountryByCode(iso)?.dial || ''
+}
+
 /**
- * As-you-type national formatting for the selected ISO country.
- * Input may contain spaces/punctuation; only digits drive the template.
+ * Max digits for the national phone field.
+ * Uses each country's MOBILE possible-length metadata (the longest valid mobile).
+ * This is correct globally: it caps TR at 10 while still allowing variable-length
+ * countries such as DE (11), AT (13), NL (11) or ID (12) to enter valid numbers.
+ * Falls back to the general possible-length max, then the mobile example length.
+ */
+export function getMaxNationalDigits(countryCode) {
+  const iso = resolveCountryCode(countryCode)
+  try {
+    const meta = new Metadata(metadata)
+    meta.selectNumberingPlan(iso)
+
+    let mobileLengths
+    try {
+      mobileLengths = meta.numberingPlan?.type?.('MOBILE')?.possibleLengths?.()
+    } catch {
+      mobileLengths = undefined
+    }
+    if (mobileLengths && mobileLengths.length) return Math.max(...mobileLengths)
+
+    const generalLengths = meta.numberingPlan?.possibleLengths?.() || []
+    if (generalLengths.length) return Math.max(...generalLengths)
+
+    const example = getExampleNumber(iso, examples)
+    const exampleLen = example?.nationalNumber?.length
+    if (exampleLen) return exampleLen
+  } catch {
+    // fall through
+  }
+  return 15
+}
+
+/**
+ * National significant digits only (no trunk 0) — dial is chosen separately in the UI.
+ */
+export function normalizeNationalDigits(countryCode, input) {
+  const iso = resolveCountryCode(countryCode)
+  let digits = digitsOnly(input)
+  // Drop trunk prefixes such as TR/DE/FR leading 0; country code is already selected.
+  if (digits.startsWith('0')) digits = digits.replace(/^0+/, '')
+  const max = getMaxNationalDigits(iso)
+  if (max > 0 && digits.length > max) digits = digits.slice(0, max)
+  return digits
+}
+
+function formatInternationalIncomplete(iso, nationalDigits) {
+  const dial = getDial(iso)
+  if (!dial || !nationalDigits) return ''
+  // Prefer country-aware AsYouType so shared dials (+1) keep the selected ISO.
+  const typed = new AsYouType(iso).input(`${dial}${nationalDigits}`)
+  if (typed) return typed
+  return formatIncompletePhoneNumber(`${dial}${nationalDigits}`) || `${dial}${nationalDigits}`
+}
+
+function nationalFromInternational(iso, international) {
+  const dial = getDial(iso)
+  if (!dial || !international) return ''
+  if (international.startsWith(dial)) return international.slice(dial.length).trim()
+  // Fallback: strip "+<callingCode>" with flexible spacing.
+  const calling = dial.replace(/^\+/, '')
+  return international.replace(new RegExp(`^\\+?${calling}\\s*`), '').trim()
+}
+
+/**
+ * As-you-type national formatting using each country's libphonenumber rules.
  */
 export function formatNationalAsYouType(countryCode, input) {
   const iso = resolveCountryCode(countryCode)
-  const raw = String(input || '')
-  // Allow the user to clear the field completely.
-  if (!raw.trim()) return ''
-
-  const type = new AsYouType(iso)
-  // Feed digits only so country templates stay stable while typing.
-  const formatted = type.input(digitsOnly(raw))
-  return formatted || digitsOnly(raw)
+  const digits = normalizeNationalDigits(iso, input)
+  if (!digits) return ''
+  return nationalFromInternational(iso, formatInternationalIncomplete(iso, digits)) || digits
 }
 
 /**
- * Build the stored phone string in international display form
- * (e.g. "+90 552 054 40 86"). Empty national → "".
+ * Stored / preview / PDF value in international form (e.g. "+49 1512 3456789").
  */
 export function buildInternationalPhone(countryCode, nationalInput) {
   const iso = resolveCountryCode(countryCode)
-  const digits = digitsOnly(nationalInput)
+  const digits = normalizeNationalDigits(iso, nationalInput)
   if (!digits) return ''
 
   const parsed = parsePhoneNumberFromString(digits, iso)
-  if (parsed) {
-    return parsed.formatInternational()
-  }
+  if (parsed) return parsed.formatInternational()
 
-  // Incomplete numbers: keep dial + as-you-type national grouping.
-  const country = findCountryByCode(iso)
-  const dial = country?.dial || '+90'
-  const national = formatNationalAsYouType(iso, digits)
-  return `${dial} ${national}`.trim()
+  return formatInternationalIncomplete(iso, digits)
 }
 
-/**
- * Reformat an existing phone when the dial-country changes.
- * Keeps national digits, applies the new country's template.
- */
 export function reformatPhoneForCountry(phone, nextCountryCode) {
   const iso = resolveCountryCode(nextCountryCode)
   const digits = extractNationalDigits(phone, iso)
   return buildInternationalPhone(iso, digits)
 }
 
-/**
- * Extract national significant digits from a stored / pasted value.
- */
 export function extractNationalDigits(phone, countryCodeHint) {
   const raw = String(phone || '').trim()
   if (!raw) return ''
 
   const hint = resolveCountryCode(countryCodeHint)
   const parsed = parsePhoneNumberFromString(raw, hint)
-  if (parsed) return parsed.nationalNumber
+  if (parsed) return normalizeNationalDigits(parsed.country || hint, parsed.nationalNumber)
 
-  // Strip known dial if present, else take all digits.
   const withPlus = raw.startsWith('+') ? raw : `+${raw}`
   const byDial = findCountryByDial(withPlus)
   if (byDial && withPlus.startsWith(byDial.dial)) {
-    return digitsOnly(withPlus.slice(byDial.dial.length))
+    return normalizeNationalDigits(byDial.code, withPlus.slice(byDial.dial.length))
   }
-  return digitsOnly(raw)
+  return normalizeNationalDigits(hint, raw)
 }
 
-/**
- * Split a stored phone for the PhoneInput UI.
- */
 export function parsePhoneForInput(phone, preferredCountryCode) {
   const preferred = resolveCountryCode(preferredCountryCode || 'TR')
   const raw = String(phone || '').trim()
@@ -104,35 +151,29 @@ export function parsePhoneForInput(phone, preferredCountryCode) {
     return {
       dial: country?.dial || `+${parsed.countryCallingCode}`,
       countryCode: country?.code || iso,
-      national: new AsYouType(iso).input(parsed.nationalNumber),
+      national: formatNationalAsYouType(iso, parsed.nationalNumber),
     }
   }
 
-  const withPlus = raw.startsWith('+') ? raw : null
-  if (withPlus) {
-    const byDial = findCountryByDial(withPlus)
+  if (raw.startsWith('+')) {
+    const byDial = findCountryByDial(raw)
     if (byDial) {
-      const nationalDigits = digitsOnly(withPlus.slice(byDial.dial.length))
       return {
         dial: byDial.dial,
         countryCode: byDial.code,
-        national: formatNationalAsYouType(byDial.code, nationalDigits),
+        national: formatNationalAsYouType(byDial.code, raw.slice(byDial.dial.length)),
       }
     }
   }
 
   const country = findCountryByCode(preferred)
-  const nationalDigits = digitsOnly(raw)
   return {
     dial: country?.dial || '+90',
     countryCode: preferred,
-    national: formatNationalAsYouType(preferred, nationalDigits),
+    national: formatNationalAsYouType(preferred, raw),
   }
 }
 
-/**
- * International display for preview / PDF. Safe for incomplete drafts.
- */
 export function formatPhoneForDisplay(phone, countryCodeHint) {
   const raw = String(phone || '').trim()
   if (!raw) return ''
@@ -141,29 +182,31 @@ export function formatPhoneForDisplay(phone, countryCodeHint) {
   const parsed = parsePhoneNumberFromString(raw, hint)
   if (parsed) return parsed.formatInternational()
 
-  // Already looks international — keep as-is after light cleanup.
   if (raw.startsWith('+')) {
     const byDial = findCountryByDial(raw)
     if (byDial) {
-      const nationalDigits = digitsOnly(raw.slice(byDial.dial.length))
+      const nationalDigits = extractNationalDigits(raw, byDial.code)
       if (!nationalDigits) return ''
       return buildInternationalPhone(byDial.code, nationalDigits) || raw
     }
-    return raw
+    return formatIncompletePhoneNumber(raw) || raw
   }
 
   if (hint) return buildInternationalPhone(hint, raw) || raw
   return raw
 }
 
-/** Country-aware placeholder from libphonenumber example numbers. */
+/** National placeholder without trunk 0 (dial shown separately). */
 export function getPhoneNationalPlaceholder(countryCode) {
   const iso = resolveCountryCode(countryCode)
+    if (iso === 'TR') return '555 444 33 22'
   try {
     const example = getExampleNumber(iso, examples)
-    if (example) return example.formatNational()
+    if (example?.nationalNumber) {
+      return formatNationalAsYouType(iso, example.nationalNumber)
+    }
   } catch {
-    // ignore — fall through
+    // ignore
   }
   return formatNationalAsYouType(iso, '5555555555') || '555 555 5555'
 }
