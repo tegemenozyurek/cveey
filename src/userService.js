@@ -16,7 +16,7 @@ import {
 } from 'firebase/firestore'
 import { resolveAuthMethod } from './authUtils'
 import { db } from './firebase'
-import { normalizeEmailKey, removePasswordAccountIndex, syncPasswordAccountIndex } from './passwordAccountService'
+import { normalizeEmailKey } from './passwordAccountService'
 import { deleteUserStorageFiles } from './storageService'
 
 const USERS_SEARCH_LIMIT = 8
@@ -398,23 +398,19 @@ export async function syncUserToFirestore(user) {
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
       })
-      await syncPasswordAccountIndex(user)
       return
     }
 
     await updateDoc(userRef, {
       lastLoginAt: serverTimestamp(),
     })
-    await syncPasswordAccountIndex(user)
   })
 }
 
 export async function deleteUserAccount(user) {
-  const email = user.email || user.providerData?.find((p) => p.email)?.email || ''
   await deleteUserStorageFiles(user.uid)
   await deleteAllEducationDocs(user.uid)
   await deleteDoc(doc(db, 'users', user.uid))
-  if (email) await removePasswordAccountIndex(email)
   await deleteUser(user)
 }
 

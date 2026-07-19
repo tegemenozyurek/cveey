@@ -8,7 +8,6 @@ import {
 import { auth } from './firebase'
 import { signInWithOAuthPopup } from './authOAuthService'
 import { sendPasswordResetForEmail, sendVerificationEmail } from './authEmailService'
-import { syncPasswordAccountIndex } from './passwordAccountService'
 import { useLanguage } from './context/LanguageContext'
 
 const googleProvider = new GoogleAuthProvider()
@@ -157,11 +156,9 @@ export default function LoginModal({ onClose }) {
     try {
       if (isSignUp) {
         const credential = await createUserWithEmailAndPassword(auth, email, password)
-        await syncPasswordAccountIndex(credential.user)
         await sendVerificationEmail(credential.user)
       } else {
-        const credential = await signInWithEmailAndPassword(auth, email, password)
-        await syncPasswordAccountIndex(credential.user)
+        await signInWithEmailAndPassword(auth, email, password)
       }
       onClose()
     } catch (err) {
