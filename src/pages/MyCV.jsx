@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CvCard from '../components/CvCard'
+import LockIcon from '../components/LockIcon'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useResume } from '../context/ResumeContext'
@@ -102,11 +103,8 @@ export default function MyCV() {
     return (
       <main className="main">
         <div className="empty-state">
-          <div className="empty-state-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <path d="M12 15v2M6 21h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M10 7V5a2 2 0 012-2h0a2 2 0 012 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+          <div className="empty-state-icon" aria-hidden="true">
+            <LockIcon />
           </div>
           <h2 className="empty-state-title">{t('myCv.signInRequired')}</h2>
           <p className="empty-state-text">{t('myCv.signInText')}</p>

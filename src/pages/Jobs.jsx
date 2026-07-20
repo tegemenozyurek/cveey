@@ -1,4 +1,5 @@
 import UnderConstruction from '../components/UnderConstruction'
+import LockIcon from '../components/LockIcon'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 
@@ -19,7 +20,7 @@ export default function Jobs() {
       <main className="main">
         <div className="empty-state">
           <div className="empty-state-icon" aria-hidden="true">
-            <i className="fa-solid fa-lock" />
+            <LockIcon />
           </div>
           <h2 className="empty-state-title">{t('jobs.signInRequired')}</h2>
           <p className="empty-state-text">{t('jobs.signInText')}</p>

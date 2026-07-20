@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import LockIcon from '../components/LockIcon'
 import UserAvatar from '../components/UserAvatar'
 import { searchUsersByUsername } from '../userService'
 
@@ -189,7 +190,7 @@ export default function Network() {
       <main className="main">
         <div className="empty-state">
           <div className="empty-state-icon" aria-hidden="true">
-            <i className="fa-solid fa-users" />
+            <LockIcon />
           </div>
           <h2 className="empty-state-title">{t('network.signInRequired')}</h2>
           <p className="empty-state-text">{t('network.signInText')}</p>
