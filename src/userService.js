@@ -14,7 +14,7 @@ import {
   where,
   writeBatch,
 } from 'firebase/firestore'
-import { resolveAuthMethod } from './authUtils'
+import { AUTH_METHOD_EMAIL_PASSWORD, resolveAuthMethod } from './authUtils'
 import { db } from './firebase'
 import { normalizeEmailKey } from './passwordAccountService'
 import { deleteUserStorageFiles } from './storageService'
@@ -427,27 +427,18 @@ export async function syncUserToFirestore(user) {
     const patch = { lastLoginAt: serverTimestamp() }
 
     if (prevEmail && nextEmail && prevEmail !== nextEmail) {
-      patch.email = nextEmail
-    }
-
-    await updateDoc(userRef, patch)
-
-    if (prevEmail && nextEmail && prevEmail !== nextEmail) {
-      try {
-        await removePasswordAccountIndex(prevEmail)
-      } catch (err) {
-        if (err?.code !== 'not-found') console.warn('Old email index cleanup failed:', err)
+      // Firestore rules only allow email sync for email-password accounts.
+      if (resolveAuthMethod(user) === AUTH_METHOD_EMAIL_PASSWORD) {
+        patch.email = nextEmail
       }
     }
 
-    await syncPasswordAccountIndex(user)
+    await updateDoc(userRef, patch)
   })
 }
 
 export async function deleteUserAccount(user) {
-  const email = user.email || user.providerData?.find((p) => p.email)?.email || ''
-
-  // Storage + files subcollection first, then education, then user doc, then auth index, then Auth.
+  // Storage + files subcollection first, then education, then user doc, then Auth.
   await deleteUserStorageFiles(user.uid)
   await deleteAllEducationDocs(user.uid)
 
@@ -455,14 +446,6 @@ export async function deleteUserAccount(user) {
     await deleteDoc(doc(db, 'users', user.uid))
   } catch (err) {
     if (err?.code !== 'not-found') throw err
-  }
-
-  if (email) {
-    try {
-      await removePasswordAccountIndex(email)
-    } catch (err) {
-      if (err?.code !== 'not-found') throw err
-    }
   }
 
   await deleteUser(user)

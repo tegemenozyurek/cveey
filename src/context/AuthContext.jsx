@@ -33,14 +33,19 @@ export function AuthProvider({ children }) {
 
       if (nextUser) {
         void syncUserToFirestore(nextUser)
-          .then(async () => {
-            const needed = await needsLocationSetup(nextUser.uid)
-            setLocationSetupPending(needed)
-            setUserSyncReady(true)
-          })
           .catch((err) => {
             console.error('User sync failed:', err)
-            setUserSyncReady(true)
+          })
+          .then(async () => {
+            try {
+              const needed = await needsLocationSetup(nextUser.uid)
+              setLocationSetupPending(needed)
+            } catch (err) {
+              console.error('Location setup check failed:', err)
+              setLocationSetupPending(true)
+            } finally {
+              setUserSyncReady(true)
+            }
           })
       } else {
         setUserSyncReady(false)
