@@ -2950,7 +2950,7 @@
 .home-main {
   align-items: center;
   justify-content: center;
-  gap: 40px;
+  gap: 20px;
   padding-top: 36px;
   padding-bottom: 56px;
 }
@@ -3107,7 +3107,7 @@
   gap: 0;
   width: 100%;
   max-width: 1080px;
-  margin-top: 8px;
+  margin-top: 0;
   animation: home-split-in 0.55s ease both;
   animation-delay: 0.06s;
 }
@@ -3115,6 +3115,7 @@
 .home-create-divider {
   display: flex;
   align-items: center;
+  gap: 16px;
   width: 100%;
   margin-bottom: 28px;
   color: var(--text-dim);
@@ -3134,8 +3135,6 @@
 
 .home-create-divider span {
   flex-shrink: 0;
-  padding: 0 18px;
-  background: var(--bg-base);
 }
 
 .home-create-text {
@@ -3174,9 +3173,28 @@
     align-items: flex-start;
   }
 
+  .home-copy-title {
+    font-size: clamp(22px, 6.5vw, 28px);
+    letter-spacing: -0.5px;
+  }
+
+  .home-copy-lead {
+    font-size: 14.5px;
+  }
+
   .home-copy-slider {
     width: 100%;
     max-width: 520px;
+    margin-top: 14px;
+  }
+
+  .home-copy-slides {
+    min-height: 5.4em;
+  }
+
+  .home-copy-slide {
+    font-size: 14.5px;
+    line-height: 1.65;
   }
 
   .home-copy-dots {
