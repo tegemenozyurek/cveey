@@ -113,6 +113,9 @@ export const translations = {
     'jobs.subtitle': 'Browse open positions and find your next opportunity.',
     'jobs.emptyTitle': 'No jobs yet',
     'jobs.emptyText': 'Job listings will appear here soon. Check back later.',
+    'jobs.loading': 'Loading…',
+    'jobs.signInRequired': 'Sign in required',
+    'jobs.signInText': 'Sign in to browse open positions.',
 
     'network.title': 'Search Network',
     'network.searchPlaceholder': 'Search people by username…',
@@ -130,6 +133,9 @@ export const translations = {
     'network.searching': 'Searching…',
     'network.searchError': 'Could not search people. Please try again.',
     'network.signInToSearch': 'Sign in to search people by username.',
+    'network.loading': 'Loading…',
+    'network.signInRequired': 'Sign in required',
+    'network.signInText': 'Sign in to search and connect with people.',
 
     'underConstruction.title': 'We\'re still building this',
     'underConstruction.text': 'Don\'t forget to drop your CV.',
@@ -622,6 +628,9 @@ export const translations = {
     'jobs.subtitle': 'Açık pozisyonlara göz atın ve yeni fırsatınızı bulun.',
     'jobs.emptyTitle': 'Henüz ilan yok',
     'jobs.emptyText': 'İş ilanları yakında burada görünecek.',
+    'jobs.loading': 'Yükleniyor…',
+    'jobs.signInRequired': 'Giriş gerekli',
+    'jobs.signInText': 'Açık pozisyonlara göz atmak için giriş yapın.',
 
     'network.title': 'Ağda Ara',
     'network.searchPlaceholder': 'Kullanıcı adı ile kişi ara…',
@@ -639,6 +648,9 @@ export const translations = {
     'network.searching': 'Aranıyor…',
     'network.searchError': 'Kişi araması başarısız oldu. Tekrar deneyin.',
     'network.signInToSearch': 'Kullanıcı adı ile aramak için giriş yapın.',
+    'network.loading': 'Yükleniyor…',
+    'network.signInRequired': 'Giriş gerekli',
+    'network.signInText': 'Kişi aramak ve bağlantı kurmak için giriş yapın.',
 
     'underConstruction.title': 'Geliştirmelerimiz devam ediyor',
     'underConstruction.text': 'CV\'nizi bırakmayı unutmayın.',

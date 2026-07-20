@@ -125,7 +125,7 @@ function PersonRow({ person, actionLabel, iconOnly = false, variant = 'default' 
 
 export default function Network() {
   const { t } = useLanguage()
-  const { user, openLogin } = useAuth()
+  const { user, openLogin, authLoading } = useAuth()
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [results, setResults] = useState([])
@@ -143,14 +143,7 @@ export default function Network() {
   const isSearching = !showMyNetwork && debouncedQuery.length >= 3
 
   useEffect(() => {
-    if (!isSearching) {
-      setResults([])
-      setSearching(false)
-      setSearchError('')
-      return
-    }
-
-    if (!user) {
+    if (!isSearching || !user) {
       setResults([])
       setSearching(false)
       setSearchError('')
@@ -182,6 +175,31 @@ export default function Network() {
   }, [debouncedQuery, isSearching, user, t])
 
   const myNetwork = useMemo(() => MOCK_MY_NETWORK, [])
+
+  if (authLoading) {
+    return (
+      <main className="main">
+        <p className="page-loading">{t('network.loading')}</p>
+      </main>
+    )
+  }
+
+  if (!user) {
+    return (
+      <main className="main">
+        <div className="empty-state">
+          <div className="empty-state-icon" aria-hidden="true">
+            <i className="fa-solid fa-users" />
+          </div>
+          <h2 className="empty-state-title">{t('network.signInRequired')}</h2>
+          <p className="empty-state-text">{t('network.signInText')}</p>
+          <button type="button" className="btn-gradient-wrap" onClick={openLogin}>
+            <span className="btn-gradient-inner">{t('nav.signIn')}</span>
+          </button>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="main">
@@ -248,14 +266,7 @@ export default function Network() {
                   </h2>
                 </div>
 
-                {!user ? (
-                  <div className="network-empty network-empty--action">
-                    <p>{t('network.signInToSearch')}</p>
-                    <button type="button" className="btn-gradient-wrap" onClick={openLogin}>
-                      <span className="btn-gradient-inner">{t('nav.signIn')}</span>
-                    </button>
-                  </div>
-                ) : searching ? (
+                {searching ? (
                   <p className="network-empty">{t('network.searching')}</p>
                 ) : searchError ? (
                   <p className="network-empty">{searchError}</p>
