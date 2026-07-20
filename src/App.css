@@ -1007,6 +1007,54 @@
   overflow-wrap: anywhere;
 }
 
+.prefs-identity-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.prefs-identity-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prefs-identity-input,
+.prefs-identity-city {
+  width: 100%;
+  max-width: 360px;
+}
+
+.prefs-identity-city .create-cv-country-select,
+.prefs-identity-city .create-cv-country-select-trigger {
+  width: 100%;
+}
+
+.prefs-identity-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.prefs-identity-status {
+  min-height: 18px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-dim);
+}
+
+.prefs-identity-status--error {
+  color: #f87171;
+}
+
+.prefs-identity-status--ok {
+  color: color-mix(in srgb, var(--accent-cyan) 55%, #4ade80);
+}
+
 .prefs-auth-badge {
   flex-shrink: 0;
   display: inline-flex;
@@ -1180,10 +1228,13 @@
   flex-shrink: 0;
 }
 
+.profile-page-actions--public {
+  gap: 8px;
+}
+
 .profile-connect-btn {
   height: 36px;
   padding: 0 14px;
-  margin-right: 4px;
   border-radius: 9999px;
   border: 1px solid color-mix(in srgb, var(--accent-cyan) 45%, var(--glass-border));
   background: color-mix(in srgb, var(--accent-cyan) 14%, transparent);
