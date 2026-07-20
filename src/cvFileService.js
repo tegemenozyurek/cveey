@@ -239,6 +239,14 @@ export async function getActiveFileId(uid) {
   const legacyPath = data.activeCvPath ? normalizeStoragePath(data.activeCvPath) : null
   if (!legacyPath) return null
 
+  // Prefer deriving the file id from the default path so non-owners don't need list.
+  const defaultPrefix = `users/${uid}/`
+  if (legacyPath.startsWith(defaultPrefix) && legacyPath.toLowerCase().endsWith('.pdf')) {
+    const storageName = legacyPath.slice(defaultPrefix.length)
+    const fileId = storageName.replace(/\.pdf$/i, '')
+    if (fileId && !storageName.includes('/')) return fileId
+  }
+
   try {
     const files = await listCvFileRecords(uid)
     return files.find((file) => file.filePath === legacyPath)?.id ?? null
