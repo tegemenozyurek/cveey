@@ -69,12 +69,8 @@ export function AuthProvider({ children }) {
       await deleteUserAccount(user)
       setShowDeleteConfirm(false)
     } catch (err) {
-      setShowDeleteConfirm(false)
-      if (err.code === 'auth/requires-recent-login') {
-        window.alert('For security, please sign out, sign in again, then delete your account.')
-      } else {
-        window.alert('Could not delete account. Please try again.')
-      }
+      console.error('Account delete failed:', err)
+      throw err
     } finally {
       setDeleting(false)
     }
@@ -122,8 +118,9 @@ export function AuthProvider({ children }) {
           onCancel={() => setShowLogoutConfirm(false)}
         />
       )}
-      {showDeleteConfirm && (
+      {showDeleteConfirm && user && (
         <ConfirmDeleteModal
+          user={user}
           onConfirm={handleDeleteAccount}
           onCancel={() => setShowDeleteConfirm(false)}
           loading={deleting}

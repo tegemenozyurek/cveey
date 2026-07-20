@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import UserAvatar from '../components/UserAvatar'
-import { searchUsersByEmail } from '../userService'
+import { searchUsersByUsername } from '../userService'
 
 const MOCK_SUGGESTED = [
   {
@@ -120,16 +120,34 @@ function MessageIcon() {
   )
 }
 
-function PersonRow({ person, actionLabel, iconOnly = false }) {
+function PersonRow({ person, actionLabel, iconOnly = false, variant = 'default' }) {
+  const username = person.username || person.displayName || ''
+  const bachelorNames = Array.isArray(person.bachelorNames) ? person.bachelorNames : []
+  const isResult = variant === 'result'
+
   return (
-    <li className="network-person">
+    <li className={`network-person${isResult ? ' network-person--result' : ''}`}>
       <UserAvatar user={person} className="network-person-avatar" />
       <div className="network-person-info">
-        <p className="network-person-name">{person.displayName || person.email}</p>
-        {person.headline ? <p className="network-person-headline">{person.headline}</p> : null}
-        {person.location || person.homeCity ? (
-          <p className="network-person-location">{person.location || person.homeCity}</p>
-        ) : null}
+        {isResult ? (
+          <p className="network-person-name">
+            <span className="network-person-username">{username}</span>
+            {bachelorNames.length > 0 ? (
+              <>
+                <span className="network-person-sep"> · </span>
+                <span className="network-person-bachelors">{bachelorNames.join(', ')}</span>
+              </>
+            ) : null}
+          </p>
+        ) : (
+          <>
+            <p className="network-person-name">{person.displayName || person.username}</p>
+            {person.headline ? <p className="network-person-headline">{person.headline}</p> : null}
+            {person.location || person.homeCity ? (
+              <p className="network-person-location">{person.location || person.homeCity}</p>
+            ) : null}
+          </>
+        )}
       </div>
       <button
         type="button"
@@ -160,7 +178,7 @@ export default function Network() {
     return () => window.clearTimeout(id)
   }, [query])
 
-  const isSearching = !showMyNetwork && debouncedQuery.length >= 2
+  const isSearching = !showMyNetwork && debouncedQuery.length >= 3
 
   useEffect(() => {
     if (!isSearching) {
@@ -181,7 +199,7 @@ export default function Network() {
     setSearching(true)
     setSearchError('')
 
-    searchUsersByEmail(debouncedQuery, { excludeUid: user.uid })
+    searchUsersByUsername(debouncedQuery, { excludeUid: user.uid })
       .then((people) => {
         if (!cancelled) {
           setResults(people)
@@ -267,7 +285,6 @@ export default function Network() {
                   <h2 id="network-results-heading" className="network-section-title">
                     {t('network.results')}
                   </h2>
-                  <p className="network-section-hint">{t('network.resultsHint')}</p>
                 </div>
 
                 {!user ? (
@@ -286,7 +303,12 @@ export default function Network() {
                 ) : (
                   <ul className="network-people-list">
                     {results.map((person) => (
-                      <PersonRow key={person.id} person={person} actionLabel={t('network.connect')} />
+                      <PersonRow
+                        key={person.id}
+                        person={person}
+                        actionLabel={t('network.connect')}
+                        variant="result"
+                      />
                     ))}
                   </ul>
                 )}

@@ -6,8 +6,11 @@ import { useResume } from '../context/ResumeContext'
 import UserAvatar from '../components/UserAvatar'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
-import { resolveAuthMethod } from '../authUtils'
+import ChangePasswordModal from '../components/ChangePasswordModal'
+import ChangeEmailModal from '../components/ChangeEmailModal'
+import { resolveAuthMethod, AUTH_METHOD_EMAIL_PASSWORD } from '../authUtils'
 import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserProfileField } from '../userService'
+import { clearCachedProfile, readCachedProfile, writeCachedProfile } from '../profileCache'
 import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
 import { downloadCvFile } from '../storageService'
 
@@ -95,6 +98,135 @@ function CloseIcon() {
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function PrefsAuthIcon({ method }) {
+  if (method === 'github') {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.52 2.87 8.35 6.84 9.71.5.1.68-.22.68-.48 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.27 2.75 1.05A9.3 9.3 0 0 1 12 6.84c.85 0 1.71.12 2.51.34 1.91-1.32 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.48-.01 2.81 0 .27.18.59.69.48A10.04 10.04 0 0 0 22 12.26C22 6.58 17.52 2 12 2Z" />
+      </svg>
+    )
+  }
+  if (method === 'google') {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M21.35 11.1h-9.17v2.98h5.27c-.23 1.24-1.4 3.63-5.27 3.63-3.17 0-5.76-2.62-5.76-5.85s2.59-5.85 5.76-5.85c1.81 0 3.02.77 3.71 1.43l2.53-2.44C16.84 3.7 14.84 2.8 12.18 2.8 6.98 2.8 2.8 7.02 2.8 12.2s4.18 9.4 9.38 9.4c5.41 0 8.99-3.8 8.99-9.16 0-.62-.07-1.08-.17-1.54Z"
+        />
+      </svg>
+    )
+  }
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect
+        x="4"
+        y="11"
+        width="16"
+        height="10"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+      <path
+        d="M8 11V8a4 4 0 1 1 8 0v3"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function PrefsLanguageIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M3 12h18M12 3c2.5 2.7 3.75 5.7 3.75 9S14.5 18.3 12 21c-2.5-2.7-3.75-5.7-3.75-9S9.5 5.7 12 3Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+    </svg>
+  )
+}
+
+function PrefsThemeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 3v1.5M12 19.5V21M4.93 4.93l1.06 1.06M17.999 18.001l1.06 1.06M3 12h1.5M19.5 12H21M4.93 19.07l1.06-1.06M18 6l1.06-1.06"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.75" />
+    </svg>
+  )
+}
+
+function PrefsLogoutIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16 17l5-5-5-5M21 12H9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function PrefsPasswordIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="11" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M8 11V8a4 4 0 1 1 8 0v3"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function PrefsEmailIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M3 7l9 6 9-6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function PrefsDeleteIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   )
@@ -921,7 +1053,6 @@ function ProfileAboutSection({
   educations,
   summary,
   preferredWorkCities,
-  loading,
   onSaveEducations,
   onSaveSummary,
 }) {
@@ -931,62 +1062,44 @@ function ProfileAboutSection({
     <section className="profile-about" aria-label={t('profile.sectionAbout')}>
       <div
         className={`profile-about-side${
-          !loading && educations.length === 0 && workCities.length === 0
-            ? ' profile-about-side--empty'
-            : ''
+          educations.length === 0 && workCities.length === 0 ? ' profile-about-side--empty' : ''
         }`}
       >
         <div
           className={`profile-about-degree${
-            !loading && educations.length === 0 ? ' profile-about-degree--empty' : ''
+            educations.length === 0 ? ' profile-about-degree--empty' : ''
           }`}
         >
-          {loading ? (
-            <p className="profile-about-loc-empty">…</p>
-          ) : (
-            <EducationList t={t} educations={educations} onSaveEducations={onSaveEducations} />
-          )}
+          <EducationList t={t} educations={educations} onSaveEducations={onSaveEducations} />
         </div>
 
-        {workCities.length > 0 || loading ? (
+        {workCities.length > 0 ? (
           <div className="profile-about-work">
             <p className="profile-about-kicker">{t('profile.workCities')}</p>
-            {loading ? (
-              <p className="profile-about-loc-empty">…</p>
-            ) : (
-              <ul className="profile-about-city-list">
-                {workCities.map((city) => (
-                  <li key={city}>
-                    <span className="profile-about-city-dot" aria-hidden="true" />
-                    <span>{city}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ul className="profile-about-city-list">
+              {workCities.map((city) => (
+                <li key={city}>
+                  <span className="profile-about-city-dot" aria-hidden="true" />
+                  <span>{city}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
       </div>
 
-      <div
-        className={`profile-about-main${
-          !loading && !summary.trim() ? ' profile-about-main--empty' : ''
-        }`}
-      >
-        {loading ? (
-          <p className="profile-about-loc-empty">…</p>
-        ) : (
-          <EditableProfileField
-            t={t}
-            label={t('profile.summary')}
-            value={summary}
-            addLabel={t('profile.addSummary')}
-            multiline
-            maxLength={500}
-            allowEmpty
-            valueClassName="profile-about-bio"
-            onSave={onSaveSummary}
-          />
-        )}
+      <div className={`profile-about-main${!summary.trim() ? ' profile-about-main--empty' : ''}`}>
+        <EditableProfileField
+          t={t}
+          label={t('profile.summary')}
+          value={summary}
+          addLabel={t('profile.addSummary')}
+          multiline
+          maxLength={500}
+          allowEmpty
+          valueClassName="profile-about-bio"
+          onSave={onSaveSummary}
+        />
       </div>
     </section>
   )
@@ -1019,7 +1132,10 @@ function ActiveCvPanel({ t }) {
   const paperName = stripPdfExtension(activeCv?.displayName) || t('profile.activeCv')
 
   return (
-    <section className="profile-cv-post" aria-labelledby="profile-active-cv-heading">
+    <section
+      className={`profile-cv-post${!activeCv && !loading ? ' profile-cv-post--empty' : ''}`}
+      aria-labelledby="profile-active-cv-heading"
+    >
       <div className="profile-cv-post-media">
         <div className={`profile-cv-sheet${cvHidden ? ' profile-cv-sheet--hidden' : ''}`}>
           {loading ? (
@@ -1031,8 +1147,25 @@ function ActiveCvPanel({ t }) {
               <p>{t('profile.cvHidden')}</p>
             </div>
           ) : !activeCv ? (
-            <div className="profile-cv-sheet-status">
-              <p>{t('profile.cvEmptyHint')}</p>
+            <div className="profile-cv-sheet-status profile-cv-sheet-status--empty">
+              <span className="profile-cv-empty-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M14 2v6h6M12 18v-6M9 15h6"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
             </div>
           ) : (
             <button
@@ -1071,19 +1204,27 @@ function ActiveCvPanel({ t }) {
         </div>
       </div>
 
-      <div className="profile-cv-post-body">
+      <div className={`profile-cv-post-body${!activeCv && !loading ? ' profile-cv-post-body--empty' : ''}`}>
         <div className="profile-cv-post-content">
           <span className="profile-cv-label">{t('profile.activeCv')}</span>
-          <h2 id="profile-active-cv-heading" className="profile-cv-heading">
+          <h2
+            id="profile-active-cv-heading"
+            className={`profile-cv-heading${!activeCv && !loading ? ' profile-cv-heading--wrap' : ''}`}
+          >
             {activeCv ? stripPdfExtension(activeCv.displayName) : t('profile.cvEmpty')}
           </h2>
-          <p className="profile-cv-caption">{t('profile.activeCvIntro')}</p>
-          {!activeCv && !loading ? (
-            <Link to="/my-cv" className="profile-cv-inline-link">
+          <p className="profile-cv-caption">
+            {activeCv || loading ? t('profile.activeCvIntro') : t('profile.cvEmptyIntro')}
+          </p>
+        </div>
+
+        {!activeCv && !loading ? (
+          <div className="profile-cv-actions profile-cv-actions--cta" role="group" aria-label={t('profile.activeCv')}>
+            <Link to="/my-cv" className="profile-cv-cta">
               {t('profile.goToMyCv')}
             </Link>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
 
         {activeCv ? (
           <div className="profile-cv-actions" role="group" aria-label={t('profile.activeCv')}>
@@ -1121,15 +1262,30 @@ function ActiveCvPanel({ t }) {
 }
 
 export default function Profile() {
-  const { user, authLoading, setShowLogoutConfirm } = useAuth()
+  const { user, authLoading, setShowLogoutConfirm, setShowDeleteConfirm } = useAuth()
   const { t } = useLanguage()
+  const { files, activeFileId } = useResume()
   const [panel, setPanel] = useState(null)
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [showChangeEmail, setShowChangeEmail] = useState(false)
   const [username, setUsername] = useState('')
   const [homeCity, setHomeCity] = useState('')
   const [preferredWorkCities, setPreferredWorkCities] = useState([])
   const [educations, setEducations] = useState([])
   const [summary, setSummary] = useState('')
   const [profileDataLoading, setProfileDataLoading] = useState(true)
+
+  const cachedProfile = user?.uid ? readCachedProfile(user.uid) : null
+  const profileView =
+    profileDataLoading && cachedProfile
+      ? cachedProfile
+      : {
+          username,
+          homeCity,
+          preferredWorkCities,
+          educations,
+          summary,
+        }
 
   useEffect(() => {
     if (!user?.uid) {
@@ -1153,6 +1309,7 @@ export default function Profile() {
         setPreferredWorkCities(data.preferredWorkCities)
         setEducations(data.educations)
         setSummary(data.summary)
+        writeCachedProfile(user.uid, data)
       })
       .catch((err) => {
         console.error('Profile load failed:', err)
@@ -1162,6 +1319,7 @@ export default function Profile() {
           setPreferredWorkCities([])
           setEducations([])
           setSummary('')
+          clearCachedProfile(user.uid)
         }
       })
       .finally(() => {
@@ -1179,12 +1337,28 @@ export default function Profile() {
 
   async function updateProfileField(field, value) {
     await saveUserProfileField(user.uid, field, value)
-    if (field === 'summary') setSummary(value)
+    if (field === 'summary') {
+      setSummary(value)
+      writeCachedProfile(user.uid, {
+        username,
+        homeCity,
+        preferredWorkCities,
+        educations,
+        summary: value,
+      })
+    }
   }
 
   async function updateEducations(nextEducations) {
     const saved = await saveUserEducations(user.uid, nextEducations)
     setEducations(saved)
+    writeCachedProfile(user.uid, {
+      username,
+      homeCity,
+      preferredWorkCities,
+      educations: saved,
+      summary,
+    })
     return saved
   }
 
@@ -1200,7 +1374,8 @@ export default function Profile() {
     return <Navigate to="/" replace />
   }
 
-  const profileUsername = username || user.email?.split('@')[0] || t('profile.untitled')
+  const profileUsername =
+    profileView.username || user.email?.split('@')[0] || t('profile.untitled')
 
   return (
     <main className="main profile-page">
@@ -1215,14 +1390,14 @@ export default function Profile() {
               <p className="profile-hero-name">@{profileUsername}</p>
             </div>
             <p
-              className={`profile-hero-city${!homeCity && !profileDataLoading ? ' profile-hero-city--muted' : ''}`}
+              className={`profile-hero-city${!profileView.homeCity ? ' profile-hero-city--muted' : ''}`}
               aria-label={t('profile.homeCity')}
             >
               <span className="profile-hero-city-icon">
                 <PinIcon />
               </span>
               <span className="profile-hero-city-label">
-                {profileDataLoading ? '…' : homeCity || t('profile.locationEmpty')}
+                {profileView.homeCity || t('profile.locationEmpty')}
               </span>
             </p>
             <div className="profile-page-actions">
@@ -1277,9 +1452,12 @@ export default function Profile() {
           ) : null}
 
           {panel === 'settings' ? (
-            <div className="profile-page-panel">
+            <div className="profile-page-panel prefs-panel">
               <div className="profile-page-panel-head">
-                <p className="profile-page-panel-title">{t('nav.preferences')}</p>
+                <div className="prefs-panel-heading">
+                  <p className="profile-page-panel-title">{t('prefs.title')}</p>
+                  <p className="prefs-panel-subtitle">{t('prefs.subtitle')}</p>
+                </div>
                 <button
                   type="button"
                   className="profile-page-icon-btn profile-page-panel-close"
@@ -1290,53 +1468,153 @@ export default function Profile() {
                   <CloseIcon />
                 </button>
               </div>
-              <div className="prefs-row">
-                <div className="prefs-row-info">
-                  <p className="prefs-row-label">{t('profile.signInMethod')}</p>
-                  <p className="prefs-row-hint">{authMethodLabel(resolveAuthMethod(user), t)}</p>
-                </div>
-              </div>
-              <div className="prefs-divider" />
-              <div className="prefs-row">
-                <div className="prefs-row-info">
-                  <p className="prefs-row-label">{t('prefs.language')}</p>
-                  <p className="prefs-row-hint">{t('prefs.languageHint')}</p>
-                </div>
-                <LanguageSwitcher />
-              </div>
-              <div className="prefs-divider" />
-              <div className="prefs-row">
-                <div className="prefs-row-info">
-                  <p className="prefs-row-label">{t('prefs.theme')}</p>
-                  <p className="prefs-row-hint">{t('prefs.themeHint')}</p>
-                </div>
-                <ThemeSwitcher />
-              </div>
-              <div className="prefs-divider" />
-              <div className="prefs-row">
-                <div className="prefs-row-info">
-                  <p className="prefs-row-label">{t('prefs.logout')}</p>
-                  <p className="prefs-row-hint">{t('prefs.logoutHint')}</p>
-                </div>
-                <button
-                  type="button"
-                  className="prefs-logout-btn"
-                  onClick={() => setShowLogoutConfirm(true)}
-                >
-                  {t('nav.logout')}
-                </button>
+
+              <div className="prefs-body">
+                <section className="prefs-section" aria-label={t('profile.signInMethod')}>
+                  <div className="prefs-row prefs-row--static">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon" aria-hidden="true">
+                        <PrefsAuthIcon method={resolveAuthMethod(user)} />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('profile.signInMethod')}</p>
+                        <p className="prefs-row-hint">{t('prefs.signInHint')}</p>
+                      </div>
+                    </div>
+                    <span className="prefs-auth-badge">
+                      {authMethodLabel(resolveAuthMethod(user), t)}
+                    </span>
+                  </div>
+                </section>
+
+                <section className="prefs-section" aria-label={t('prefs.title')}>
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon" aria-hidden="true">
+                        <PrefsLanguageIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.language')}</p>
+                        <p className="prefs-row-hint">{t('prefs.languageHint')}</p>
+                      </div>
+                    </div>
+                    <LanguageSwitcher />
+                  </div>
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon" aria-hidden="true">
+                        <PrefsThemeIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.theme')}</p>
+                        <p className="prefs-row-hint">{t('prefs.themeHint')}</p>
+                      </div>
+                    </div>
+                    <ThemeSwitcher />
+                  </div>
+                </section>
+
+                <section className="prefs-section" aria-label={t('prefs.account')}>
+                  {resolveAuthMethod(user) === AUTH_METHOD_EMAIL_PASSWORD ? (
+                    <div className="prefs-row">
+                      <div className="prefs-row-leading">
+                        <span className="prefs-row-icon" aria-hidden="true">
+                          <PrefsEmailIcon />
+                        </span>
+                        <div className="prefs-row-info">
+                          <p className="prefs-row-label">{t('prefs.changeEmail')}</p>
+                          <p className="prefs-row-hint">{t('prefs.changeEmailHint')}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="prefs-action-btn"
+                        onClick={() => setShowChangeEmail(true)}
+                      >
+                        {t('prefs.changeEmailAction')}
+                      </button>
+                    </div>
+                  ) : null}
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon" aria-hidden="true">
+                        <PrefsPasswordIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.changePassword')}</p>
+                        <p className="prefs-row-hint">{t('prefs.changePasswordHint')}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="prefs-action-btn"
+                      onClick={() => setShowChangePassword(true)}
+                    >
+                      {t('prefs.changePasswordAction')}
+                    </button>
+                  </div>
+                </section>
+
+                <section className="prefs-section prefs-section--warn" aria-label={t('prefs.deleteAccount')}>
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon prefs-row-icon--warn" aria-hidden="true">
+                        <PrefsDeleteIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.deleteAccount')}</p>
+                        <p className="prefs-row-hint">{t('prefs.deleteAccountHint')}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="prefs-warn-btn"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    >
+                      {t('prefs.deleteAccountAction')}
+                    </button>
+                  </div>
+                </section>
+
+                <section className="prefs-section prefs-section--danger" aria-label={t('prefs.logout')}>
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon prefs-row-icon--danger" aria-hidden="true">
+                        <PrefsLogoutIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.logout')}</p>
+                        <p className="prefs-row-hint">{t('prefs.logoutHint')}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="prefs-logout-btn"
+                      onClick={() => setShowLogoutConfirm(true)}
+                    >
+                      {t('nav.logout')}
+                    </button>
+                  </div>
+                </section>
               </div>
             </div>
           ) : null}
         </header>
 
+        {showChangeEmail && user ? (
+          <ChangeEmailModal user={user} onClose={() => setShowChangeEmail(false)} />
+        ) : null}
+
+        {showChangePassword && user ? (
+          <ChangePasswordModal user={user} onClose={() => setShowChangePassword(false)} />
+        ) : null}
+
         <div className="profile-page-main">
           <ProfileAboutSection
             t={t}
-            educations={educations}
-            summary={summary}
-            preferredWorkCities={preferredWorkCities}
-            loading={profileDataLoading}
+            educations={profileView.educations}
+            summary={profileView.summary}
+            preferredWorkCities={profileView.preferredWorkCities}
             onSaveEducations={updateEducations}
             onSaveSummary={(value) => updateProfileField('summary', value)}
           />

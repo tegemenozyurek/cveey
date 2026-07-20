@@ -62,6 +62,12 @@ service cloud.firestore {
         request.resource.data.authMethod == resource.data.authMethod;
     }
 
+    function userIdentityFieldsMatch() {
+      return request.resource.data.uid == resource.data.uid &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.authMethod == resource.data.authMethod;
+    }
+
     function isValidCityName(city) {
       return city is string &&
         city.size() > 0 &&
@@ -262,6 +268,25 @@ service cloud.firestore {
         request.resource.data.authMethod == resource.data.authMethod;
     }
 
+    // After Auth email is verified/changed, sync the new email onto the user doc.
+    function isValidEmailSyncUpdate() {
+      let diff = request.resource.data.diff(resource.data).affectedKeys();
+      return userIdentityFieldsMatch() &&
+        (
+          diff.hasOnly(['email']) ||
+          diff.hasOnly(['email', 'lastLoginAt'])
+        ) &&
+        resource.data.authMethod == 'email-password' &&
+        request.resource.data.authMethod == 'email-password' &&
+        isValidEmail(request.resource.data.email) &&
+        request.auth.token.email is string &&
+        request.resource.data.email == request.auth.token.email.lower() &&
+        (
+          !diff.hasAny(['lastLoginAt']) ||
+          request.resource.data.lastLoginAt is timestamp
+        );
+    }
+
     function canCompleteLocationSetup() {
       return !('locationSetupComplete' in resource.data) ||
         resource.data.locationSetupComplete == false;
@@ -368,6 +393,7 @@ service cloud.firestore {
       allow create: if isOwner(userId) && isValidUserCreate(request.resource.data);
       allow update: if isOwner(userId) && (
         isValidEducationCleanupUpdate() ||
+        isValidEmailSyncUpdate() ||
         isValidUserLoginUpdate() ||
         isValidLocationSetupUpdate() ||
         isValidActiveFileIdUpdate() ||
