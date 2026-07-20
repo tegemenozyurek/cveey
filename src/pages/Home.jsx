@@ -110,53 +110,50 @@ export default function Home() {
         </section>
 
         <section className="home-split-panel home-split-action">
-          <button
-            type="button"
-            className={`cv-empty-card cv-empty-card--upload${dragging ? ' cv-empty-card--dragging' : ''}`}
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={handleDragOver}
-            onDragEnter={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            <span className="cv-empty-card-icon cv-empty-card-icon--upload" aria-hidden="true">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-                <path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.49" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
-            <h2 className="cv-empty-card-title">{t('myCv.emptyUploadTitle')}</h2>
-            <p className="cv-empty-card-text">{t('myCv.uploadHint')}</p>
-            <span className="cv-dropzone-formats">{t('myCv.emptyUploadText')}</span>
-          </button>
+          <div className="home-action-stack">
+            <button
+              type="button"
+              className={`cv-empty-card cv-empty-card--upload${dragging ? ' cv-empty-card--dragging' : ''}`}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <span className="cv-empty-card-icon cv-empty-card-icon--upload" aria-hidden="true">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                  <path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.49" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              <h2 className="cv-empty-card-title">{t('myCv.emptyUploadTitle')}</h2>
+              <p className="cv-empty-card-text">{t('myCv.uploadHint')}</p>
+              <span className="cv-dropzone-formats">{t('myCv.emptyUploadText')}</span>
+            </button>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf,.pdf"
-            hidden
-            onChange={(e) => {
-              handleFile(e.target.files?.[0])
-              e.target.value = ''
-            }}
-          />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf,.pdf"
+              hidden
+              onChange={(e) => {
+                handleFile(e.target.files?.[0])
+                e.target.value = ''
+              }}
+            />
 
-          {fileError ? <p className="home-upload-error">{fileError}</p> : null}
+            {fileError ? <p className="home-upload-error">{fileError}</p> : null}
+
+            <div className="cv-empty-or">
+              <span>{t('myCv.emptyOr')}</span>
+            </div>
+
+            <Link to="/create-cv" className="btn-gradient-wrap cv-empty-create-link">
+              <span className="btn-gradient-inner cv-empty-cta-inner">
+                {t('myCv.guideAtsCreate')}
+              </span>
+            </Link>
+          </div>
         </section>
-      </div>
-
-      <div className="home-create">
-        <div className="home-create-divider" aria-hidden="true">
-          <span>{t('myCv.emptyOr')}</span>
-        </div>
-        <p className="home-create-text">{t('home.copyBonus')}</p>
-        <Link to="/create-cv" className="btn-gradient-wrap home-create-btn">
-          <span className="btn-gradient-inner cv-empty-cta-inner">
-            {t('myCv.guideAtsCreate')}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M5 12h14m0 0l-6-6m6 6l-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </span>
-        </Link>
       </div>
     </main>
   )
