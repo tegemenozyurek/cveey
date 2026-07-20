@@ -4,44 +4,6 @@ import { useLanguage } from '../context/LanguageContext'
 import UserAvatar from '../components/UserAvatar'
 import { searchUsersByUsername } from '../userService'
 
-const MOCK_SUGGESTED = [
-  {
-    id: '1',
-    displayName: 'Elif Yılmaz',
-    headline: 'Product Designer · Figma',
-    location: 'Istanbul, TR',
-    photoURL: null,
-  },
-  {
-    id: '2',
-    displayName: 'Can Demir',
-    headline: 'Frontend Engineer · React',
-    location: 'Ankara, TR',
-    photoURL: null,
-  },
-  {
-    id: '3',
-    displayName: 'Maya Chen',
-    headline: 'Data Analyst · SQL · Python',
-    location: 'Berlin, DE',
-    photoURL: null,
-  },
-  {
-    id: '4',
-    displayName: 'Omar Hassan',
-    headline: 'DevOps Engineer · AWS',
-    location: 'London, UK',
-    photoURL: null,
-  },
-  {
-    id: '5',
-    displayName: 'Sofia Rossi',
-    headline: 'HR Business Partner',
-    location: 'Milan, IT',
-    photoURL: null,
-  },
-]
-
 const MOCK_MY_NETWORK = [
   {
     id: 'n1',
@@ -219,7 +181,6 @@ export default function Network() {
     }
   }, [debouncedQuery, isSearching, user, t])
 
-  const suggested = useMemo(() => MOCK_SUGGESTED, [])
   const myNetwork = useMemo(() => MOCK_MY_NETWORK, [])
 
   return (
@@ -322,11 +283,7 @@ export default function Network() {
                   <p className="network-section-hint">{t('network.suggestedHint')}</p>
                 </div>
 
-                <ul className="network-people-list">
-                  {suggested.map((person) => (
-                    <PersonRow key={person.id} person={person} actionLabel={t('network.connect')} />
-                  ))}
-                </ul>
+                <p className="network-empty">{t('network.noSuggested')}</p>
               </section>
             )}
           </>
