@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -9,10 +10,11 @@ import ThemeSwitcher from '../components/ThemeSwitcher'
 import ChangePasswordModal from '../components/ChangePasswordModal'
 import ChangeEmailModal from '../components/ChangeEmailModal'
 import { resolveAuthMethod, AUTH_METHOD_EMAIL_PASSWORD } from '../authUtils'
-import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserProfileField } from '../userService'
+import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserIdentity, saveUserProfileField } from '../userService'
 import { clearCachedProfile, readCachedProfile, writeCachedProfile } from '../profileCache'
 import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
 import { downloadCvFile } from '../storageService'
+import TurkishCitySelect from '../components/createCv/shared/TurkishCitySelect'
 
 const MOCK_MY_NETWORK = [
   {
@@ -138,6 +140,35 @@ function PrefsAuthIcon({ method }) {
         strokeWidth="1.75"
         strokeLinecap="round"
       />
+    </svg>
+  )
+}
+
+function PrefsUsernameIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M20 21a8 8 0 10-16 0M12 11a4 4 0 100-8 4 4 0 000 8z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function PrefsCityIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 22s7-7.2 7-12.2A7 7 0 1 0 5 9.8C5 14.8 12 22 12 22Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="9.5" r="2.25" stroke="currentColor" strokeWidth="1.75" />
     </svg>
   )
 }
@@ -1270,6 +1301,11 @@ export default function Profile() {
   const [showChangeEmail, setShowChangeEmail] = useState(false)
   const [username, setUsername] = useState('')
   const [homeCity, setHomeCity] = useState('')
+  const [editUsername, setEditUsername] = useState('')
+  const [editHomeCity, setEditHomeCity] = useState('')
+  const [identitySaving, setIdentitySaving] = useState(false)
+  const [identityError, setIdentityError] = useState('')
+  const [identityNotice, setIdentityNotice] = useState(null)
   const [preferredWorkCities, setPreferredWorkCities] = useState([])
   const [educations, setEducations] = useState([])
   const [summary, setSummary] = useState('')
@@ -1306,6 +1342,8 @@ export default function Profile() {
         if (cancelled) return
         setUsername(data.username)
         setHomeCity(data.homeCity)
+        setEditUsername(data.username || '')
+        setEditHomeCity(data.homeCity || '')
         setPreferredWorkCities(data.preferredWorkCities)
         setEducations(data.educations)
         setSummary(data.summary)
@@ -1333,6 +1371,66 @@ export default function Profile() {
 
   function togglePanel(next) {
     setPanel((current) => (current === next ? null : next))
+  }
+
+  useEffect(() => {
+    if (panel !== 'settings') return
+    setEditUsername(username || '')
+    setEditHomeCity(homeCity || '')
+    setIdentityError('')
+  }, [panel, username, homeCity])
+
+  useEffect(() => {
+    if (!identityNotice) return undefined
+    const timer = window.setTimeout(() => setIdentityNotice(null), 5000)
+    return () => window.clearTimeout(timer)
+  }, [identityNotice])
+
+  async function handleSaveIdentity(event) {
+    event.preventDefault()
+    if (!user?.uid || identitySaving) return
+
+    setIdentitySaving(true)
+    setIdentityError('')
+    setIdentityNotice(null)
+    try {
+      const saved = await saveUserIdentity(user.uid, {
+        username: editUsername,
+        homeCity: editHomeCity,
+      })
+      setUsername(saved.username)
+      setHomeCity(saved.homeCity)
+      setEditUsername(saved.username)
+      setEditHomeCity(saved.homeCity)
+      writeCachedProfile(user.uid, {
+        username: saved.username,
+        homeCity: saved.homeCity,
+        preferredWorkCities,
+        educations,
+        summary,
+      })
+      setIdentityNotice({
+        type: 'success',
+        title: t('prefs.identitySavedTitle'),
+        message: t('prefs.identitySavedMessage'),
+      })
+    } catch (err) {
+      console.error('Identity update failed:', err)
+      if (err?.code === 'INVALID_USERNAME') {
+        setIdentityError(t('locationSetup.usernameInvalid'))
+      } else if (err?.code === 'INVALID_CITY') {
+        setIdentityError(t('locationSetup.homeCityRequired'))
+      } else {
+        setIdentityError(t('prefs.identityError'))
+      }
+      setIdentityNotice({
+        type: 'error',
+        title: t('prefs.identityErrorTitle'),
+        message: t('prefs.identityError'),
+      })
+    } finally {
+      setIdentitySaving(false)
+    }
   }
 
   async function updateProfileField(field, value) {
@@ -1487,6 +1585,79 @@ export default function Profile() {
                   </div>
                 </section>
 
+                <section className="prefs-section" aria-label={t('prefs.profile')}>
+                  <form className="prefs-identity-form" onSubmit={handleSaveIdentity}>
+                    <div className="prefs-identity-field">
+                      <div className="prefs-row-leading">
+                        <span className="prefs-row-icon" aria-hidden="true">
+                          <PrefsUsernameIcon />
+                        </span>
+                        <div className="prefs-row-info">
+                          <label className="prefs-row-label" htmlFor="prefs-username">
+                            {t('prefs.username')}
+                          </label>
+                          <p className="prefs-row-hint">{t('prefs.usernameHint')}</p>
+                        </div>
+                      </div>
+                      <input
+                        id="prefs-username"
+                        className="form-input prefs-identity-input"
+                        type="text"
+                        value={editUsername}
+                        onChange={(e) => {
+                          setEditUsername(e.target.value)
+                        }}
+                        autoComplete="username"
+                        maxLength={30}
+                        spellCheck={false}
+                        disabled={identitySaving}
+                      />
+                    </div>
+
+                    <div className="prefs-identity-field">
+                      <div className="prefs-row-leading">
+                        <span className="prefs-row-icon" aria-hidden="true">
+                          <PrefsCityIcon />
+                        </span>
+                        <div className="prefs-row-info">
+                          <label className="prefs-row-label" htmlFor="prefs-home-city">
+                            {t('prefs.city')}
+                          </label>
+                          <p className="prefs-row-hint">{t('prefs.cityHint')}</p>
+                        </div>
+                      </div>
+                      <div className="prefs-identity-city">
+                        <TurkishCitySelect
+                          id="prefs-home-city"
+                          value={editHomeCity}
+                          onChange={(city) => {
+                            setEditHomeCity(city)
+                          }}
+                          placeholder={t('locationSetup.homeCityPlaceholder')}
+                          t={t}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="prefs-identity-actions">
+                      {identityError ? (
+                        <p className="prefs-identity-status prefs-identity-status--error" role="alert">
+                          {identityError}
+                        </p>
+                      ) : (
+                        <span className="prefs-identity-status" />
+                      )}
+                      <button
+                        type="submit"
+                        className="prefs-action-btn"
+                        disabled={identitySaving}
+                      >
+                        {identitySaving ? t('prefs.identitySaving') : t('prefs.saveProfile')}
+                      </button>
+                    </div>
+                  </form>
+                </section>
+
                 <section className="prefs-section" aria-label={t('prefs.title')}>
                   <div className="prefs-row">
                     <div className="prefs-row-leading">
@@ -1621,6 +1792,33 @@ export default function Profile() {
           <ActiveCvPanel t={t} />
         </div>
       </div>
+
+      {identityNotice
+        ? createPortal(
+            <div
+              className={`create-cv-toast create-cv-toast--${identityNotice.type}`}
+              role="status"
+              aria-live="polite"
+            >
+              <span className="create-cv-toast-icon" aria-hidden="true">
+                {identityNotice.type === 'success' ? '✓' : '!'}
+              </span>
+              <div className="create-cv-toast-copy">
+                <strong className="create-cv-toast-title">{identityNotice.title}</strong>
+                <p className="create-cv-toast-text">{identityNotice.message}</p>
+              </div>
+              <button
+                type="button"
+                className="create-cv-toast-close"
+                aria-label={t('prefs.dismissNotice')}
+                onClick={() => setIdentityNotice(null)}
+              >
+                ×
+              </button>
+            </div>,
+            document.body,
+          )
+        : null}
     </main>
   )
 }

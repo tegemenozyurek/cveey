@@ -82,6 +82,32 @@ export async function saveUserOnboarding(userId, payload) {
   })
 }
 
+const USERNAME_RE = /^[a-zA-Z0-9._]+$/
+
+/** Update username and/or city from Preferences after onboarding. */
+export async function saveUserIdentity(userId, { username, homeCity }) {
+  const nextUsername = normalizeUsernameKey(asTrimmedString(username, 30))
+  const nextCity = asTrimmedString(homeCity, 80)
+
+  if (!nextUsername || nextUsername.length < 3 || !USERNAME_RE.test(nextUsername)) {
+    const err = new Error('INVALID_USERNAME')
+    err.code = 'INVALID_USERNAME'
+    throw err
+  }
+  if (!nextCity) {
+    const err = new Error('INVALID_CITY')
+    err.code = 'INVALID_CITY'
+    throw err
+  }
+
+  await updateDoc(doc(db, 'users', userId), {
+    username: nextUsername,
+    homeCity: nextCity,
+  })
+
+  return { username: nextUsername, homeCity: nextCity }
+}
+
 /** @deprecated Use saveUserOnboarding */
 export async function saveUserLocation(userId, { homeCity, preferredWorkCities }) {
   await updateDoc(doc(db, 'users', userId), {
@@ -123,12 +149,14 @@ export async function getUserProfile(userId) {
   const snap = await getDoc(doc(db, 'users', userId))
   if (!snap.exists()) {
     return {
+      exists: false,
       username: '',
       homeCity: '',
       preferredWorkCities: [],
       bachelor: '',
       educations: [],
       summary: '',
+      photoURL: '',
     }
   }
 
@@ -138,6 +166,7 @@ export async function getUserProfile(userId) {
     fromSubcollection.length > 0 ? fromSubcollection : normalizeLegacyEducations(data)
 
   return {
+    exists: true,
     username: typeof data.username === 'string' ? data.username : '',
     homeCity: typeof data.homeCity === 'string' ? data.homeCity : '',
     preferredWorkCities: Array.isArray(data.preferredWorkCities)
@@ -148,6 +177,7 @@ export async function getUserProfile(userId) {
       '',
     educations,
     summary: typeof data.summary === 'string' ? data.summary : '',
+    photoURL: typeof data.photoURL === 'string' ? data.photoURL : '',
   }
 }
 
@@ -405,6 +435,7 @@ export async function syncUserToFirestore(user) {
     const userRef = doc(db, 'users', user.uid)
     const snap = await getDoc(userRef)
     const email = resolveUserEmail(user)
+    const photoURL = typeof user.photoURL === 'string' ? user.photoURL.trim() : ''
 
     if (!email) {
       throw new Error('USER_EMAIL_MISSING')
@@ -415,6 +446,7 @@ export async function syncUserToFirestore(user) {
         uid: user.uid,
         email: normalizeEmailKey(email),
         authMethod: resolveAuthMethod(user),
+        photoURL,
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
       })
@@ -424,6 +456,7 @@ export async function syncUserToFirestore(user) {
     const data = snap.data()
     const nextEmail = normalizeEmailKey(email)
     const prevEmail = typeof data.email === 'string' ? normalizeEmailKey(data.email) : ''
+    const prevPhotoURL = typeof data.photoURL === 'string' ? data.photoURL : ''
     const patch = { lastLoginAt: serverTimestamp() }
 
     if (prevEmail && nextEmail && prevEmail !== nextEmail) {
@@ -431,6 +464,10 @@ export async function syncUserToFirestore(user) {
       if (resolveAuthMethod(user) === AUTH_METHOD_EMAIL_PASSWORD) {
         patch.email = nextEmail
       }
+    }
+
+    if (photoURL !== prevPhotoURL) {
+      patch.photoURL = photoURL
     }
 
     await updateDoc(userRef, patch)
@@ -487,7 +524,7 @@ export async function searchUsersByUsername(usernameQuery, { excludeUid } = {}) 
         homeCity: data.homeCity || '',
         displayName: username || docSnap.id,
         location: data.homeCity || '',
-        photoURL: null,
+        photoURL: typeof data.photoURL === 'string' ? data.photoURL : '',
       }
     }),
   )

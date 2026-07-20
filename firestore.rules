@@ -6,7 +6,7 @@ rules_version = '2';
 //
 // users/{userId}
 //   uid, email, createdAt, lastLoginAt, authMethod, activeFileId?,
-//   username?, homeCity?, preferredWorkCities?, locationSetupComplete?,
+//   photoURL?, username?, homeCity?, preferredWorkCities?, locationSetupComplete?,
 //   bachelorStatus?, bachelorName?, bachelorUniversity?,
 //   moreEducationStatus?, moreEducationDegree?, moreEducationOther?,
 //   summary?
@@ -173,9 +173,16 @@ service cloud.firestore {
         isValidProfileText(data.educationProgram, 120);
     }
 
+    function isValidPhotoURL(url) {
+      return url is string &&
+        url.size() <= 2048 &&
+        (url.size() == 0 || url.matches('^https://.+'));
+    }
+
     function isValidUser(data) {
       return data.keys().hasOnly([
           'uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod', 'activeFileId',
+          'photoURL',
           'username', 'homeCity', 'preferredWorkCities', 'locationSetupComplete',
           'bachelor', 'bachelorStatus', 'bachelorName', 'bachelorUniversity',
           'moreEducationStatus', 'moreEducationDegree', 'moreEducationOther',
@@ -198,6 +205,7 @@ service cloud.firestore {
           data.activeFileId.size() > 0 &&
           data.activeFileId.size() <= 128
         )) &&
+        (!('photoURL' in data) || isValidPhotoURL(data.photoURL)) &&
         (!('username' in data) || isValidUsername(data.username)) &&
         (!('homeCity' in data) || isValidCityName(data.homeCity)) &&
         (!('preferredWorkCities' in data) || isValidPreferredWorkCities(data.preferredWorkCities)) &&
@@ -260,8 +268,20 @@ service cloud.firestore {
     }
 
     function isValidUserLoginUpdate() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastLoginAt']) &&
-        request.resource.data.lastLoginAt is timestamp &&
+      let diff = request.resource.data.diff(resource.data).affectedKeys();
+      return (
+          diff.hasOnly(['lastLoginAt']) ||
+          diff.hasOnly(['photoURL']) ||
+          diff.hasOnly(['lastLoginAt', 'photoURL'])
+        ) &&
+        (
+          !diff.hasAny(['lastLoginAt']) ||
+          request.resource.data.lastLoginAt is timestamp
+        ) &&
+        (
+          !diff.hasAny(['photoURL']) ||
+          isValidPhotoURL(request.resource.data.photoURL)
+        ) &&
         request.resource.data.uid == resource.data.uid &&
         request.resource.data.email == resource.data.email &&
         request.resource.data.createdAt == resource.data.createdAt &&
@@ -274,7 +294,9 @@ service cloud.firestore {
       return userIdentityFieldsMatch() &&
         (
           diff.hasOnly(['email']) ||
-          diff.hasOnly(['email', 'lastLoginAt'])
+          diff.hasOnly(['email', 'lastLoginAt']) ||
+          diff.hasOnly(['email', 'photoURL']) ||
+          diff.hasOnly(['email', 'lastLoginAt', 'photoURL'])
         ) &&
         resource.data.authMethod == 'email-password' &&
         request.resource.data.authMethod == 'email-password' &&
@@ -284,6 +306,10 @@ service cloud.firestore {
         (
           !diff.hasAny(['lastLoginAt']) ||
           request.resource.data.lastLoginAt is timestamp
+        ) &&
+        (
+          !diff.hasAny(['photoURL']) ||
+          isValidPhotoURL(request.resource.data.photoURL)
         );
     }
 
@@ -300,6 +326,25 @@ service cloud.firestore {
         request.resource.data.locationSetupComplete == true &&
         isValidUsername(request.resource.data.username) &&
         isValidCityName(request.resource.data.homeCity);
+    }
+
+    // Allow editing username / city later from Preferences.
+    function isValidIdentityProfileUpdate() {
+      let diff = request.resource.data.diff(resource.data).affectedKeys();
+      return userCoreFieldsMatch() &&
+        (
+          diff.hasOnly(['username']) ||
+          diff.hasOnly(['homeCity']) ||
+          diff.hasOnly(['username', 'homeCity'])
+        ) &&
+        (
+          !diff.hasAny(['username']) ||
+          isValidUsername(request.resource.data.username)
+        ) &&
+        (
+          !diff.hasAny(['homeCity']) ||
+          isValidCityName(request.resource.data.homeCity)
+        );
     }
 
     // Clears legacy education fields (including bachelor) from the user document
@@ -396,6 +441,7 @@ service cloud.firestore {
         isValidEmailSyncUpdate() ||
         isValidUserLoginUpdate() ||
         isValidLocationSetupUpdate() ||
+        isValidIdentityProfileUpdate() ||
         isValidActiveFileIdUpdate() ||
         isValidActiveFileIdClear() ||
         isValidLegacyUserCleanup() ||
@@ -404,7 +450,10 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
 
       match /files/{fileId} {
-        allow read: if isOwner(userId);
+        // Temporary: any signed-in user can read CV metadata (view/download).
+        // Later: restrict to connections / HR via visibility settings.
+        allow get: if isAuthenticated();
+        allow list: if isOwner(userId);
         allow create: if isOwner(userId) && isValidCvFileCreate(request.resource.data);
         allow update: if isOwner(userId) && (
           isValidCvFileUpdate(request.resource.data) ||
@@ -419,6 +468,23 @@ service cloud.firestore {
         allow create: if isOwner(userId) && isValidEducationDoc(request.resource.data);
         allow update: if isOwner(userId) && isValidEducationDoc(request.resource.data);
         allow delete: if isOwner(userId);
+      }
+
+      // Outgoing connection requests land on the recipient's user doc.
+      match /connectionRequests/{fromUid} {
+        allow read: if isAuthenticated() && (
+          request.auth.uid == userId || request.auth.uid == fromUid
+        );
+        allow create: if isAuthenticated() &&
+          request.auth.uid == fromUid &&
+          request.auth.uid != userId &&
+          request.resource.data.keys().hasOnly(['fromUid', 'status', 'createdAt']) &&
+          request.resource.data.fromUid == request.auth.uid &&
+          request.resource.data.status == 'pending' &&
+          request.resource.data.createdAt is timestamp;
+        allow delete: if isAuthenticated() && (
+          request.auth.uid == fromUid || request.auth.uid == userId
+        );
       }
     }
 

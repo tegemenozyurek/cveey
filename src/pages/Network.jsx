@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import LockIcon from '../components/LockIcon'
@@ -83,7 +84,7 @@ function MessageIcon() {
   )
 }
 
-function PersonRow({ person, actionLabel, iconOnly = false, variant = 'default' }) {
+function PersonRow({ person, actionLabel, iconOnly = false, variant = 'default', onAction }) {
   const username = person.username || person.displayName || ''
   const bachelorNames = Array.isArray(person.bachelorNames) ? person.bachelorNames : []
   const isResult = variant === 'result'
@@ -117,6 +118,8 @@ function PersonRow({ person, actionLabel, iconOnly = false, variant = 'default' 
         className={`network-connect-btn${iconOnly ? ' network-connect-btn--icon' : ''}`}
         aria-label={actionLabel}
         title={actionLabel}
+        onClick={onAction}
+        disabled={!onAction}
       >
         {iconOnly ? <MessageIcon /> : actionLabel}
       </button>
@@ -127,6 +130,8 @@ function PersonRow({ person, actionLabel, iconOnly = false, variant = 'default' 
 export default function Network() {
   const { t } = useLanguage()
   const { user, openLogin, authLoading } = useAuth()
+  const { user, openLogin } = useAuth()
+  const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [results, setResults] = useState([])
@@ -281,6 +286,11 @@ export default function Network() {
                         person={person}
                         actionLabel={t('network.connect')}
                         variant="result"
+                        onAction={
+                          person.uid
+                            ? () => navigate(`/profile/${person.uid}`)
+                            : undefined
+                        }
                       />
                     ))}
                   </ul>

@@ -1038,6 +1038,54 @@
   overflow-wrap: anywhere;
 }
 
+.prefs-identity-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.prefs-identity-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prefs-identity-input,
+.prefs-identity-city {
+  width: 100%;
+  max-width: 360px;
+}
+
+.prefs-identity-city .create-cv-country-select,
+.prefs-identity-city .create-cv-country-select-trigger {
+  width: 100%;
+}
+
+.prefs-identity-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.prefs-identity-status {
+  min-height: 18px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-dim);
+}
+
+.prefs-identity-status--error {
+  color: #f87171;
+}
+
+.prefs-identity-status--ok {
+  color: color-mix(in srgb, var(--accent-cyan) 55%, #4ade80);
+}
+
 .prefs-auth-badge {
   flex-shrink: 0;
   display: inline-flex;
@@ -1209,6 +1257,48 @@
   gap: 4px;
   margin-left: auto;
   flex-shrink: 0;
+}
+
+.profile-page-actions--public {
+  gap: 8px;
+}
+
+.profile-connect-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--accent-cyan) 45%, var(--glass-border));
+  background: color-mix(in srgb, var(--accent-cyan) 14%, transparent);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.profile-connect-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-cyan) 22%, transparent);
+  border-color: color-mix(in srgb, var(--accent-cyan) 70%, var(--glass-border));
+}
+
+.profile-connect-btn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.profile-connect-btn--requested {
+  background: transparent;
+  border-color: var(--glass-border);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.profile-connect-btn--requested:hover:not(:disabled) {
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+  border-color: color-mix(in srgb, #ef4444 40%, var(--glass-border));
+  color: color-mix(in srgb, #ef4444 80%, var(--text));
 }
 
 .profile-hero-city {
@@ -1623,6 +1713,17 @@
   letter-spacing: -0.03em;
   line-height: 1.25;
   color: var(--text);
+}
+
+.profile-about-empty {
+  margin: 0;
+  max-width: 28ch;
+  font-size: 13px;
+  font-weight: 450;
+  letter-spacing: 0.01em;
+  line-height: 1.55;
+  color: var(--text-dim);
+  font-style: normal;
 }
 
 .profile-about-edu-uni,
