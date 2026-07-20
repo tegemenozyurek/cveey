@@ -8146,43 +8146,68 @@
   grid-column: 1 / -1;
 }
 
-/* Personal info: phone then email on their own rows; tighter spacing to avoid inner scroll */
+/* Personal info: denser layout so LinkedIn/Website/GitHub fit without panel scroll */
 .create-cv-section--personal .create-cv-section-head {
-  margin-bottom: 8px;
-  gap: 10px;
+  margin-bottom: 6px;
+  gap: 8px;
 }
 
 .create-cv-section--personal .create-cv-section-title {
   margin-bottom: 2px;
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .create-cv-section--personal .create-cv-section-desc {
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .create-cv-grid--personal {
-  gap: 10px 12px;
+  gap: 6px 8px;
+}
+
+.create-cv-personal-links,
+.create-cv-personal-meta {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 8px;
+}
+
+.create-cv-personal-links > .form-field {
+  grid-column: 1 / -1;
+}
+
+.create-cv-personal-links-secondary {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 8px;
 }
 
 .create-cv-section--personal .form-field {
-  gap: 4px;
+  gap: 2px;
 }
 
 .create-cv-section--personal .form-label {
-  font-size: 12px;
+  font-size: 11px;
+}
+
+.create-cv-section--personal .create-cv-optional-tag,
+.create-cv-section--personal .create-cv-required-tag {
+  font-size: 10px;
 }
 
 .create-cv-section--personal .form-input,
 .create-cv-section--personal .create-cv-phone-dial,
 .create-cv-section--personal .create-cv-phone-number {
-  min-height: 40px;
-  padding-block: 8px;
+  min-height: 34px;
+  padding-block: 5px;
+  font-size: 13px;
 }
 
 .create-cv-section--personal .create-cv-location-grid {
-  gap: 10px 12px;
+  gap: 6px 8px;
 }
 
 .create-cv-optional-tag {
@@ -9502,6 +9527,9 @@
   .create-cv-rated-skill-row,
   .create-cv-language-row,
   .create-cv-location-grid,
+  .create-cv-personal-links,
+  .create-cv-personal-links-secondary,
+  .create-cv-personal-meta,
   .create-cv-month-year,
   .create-cv-phone {
     grid-template-columns: 1fr;

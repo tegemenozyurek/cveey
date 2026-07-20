@@ -10,6 +10,7 @@ import {
 import {
   buildInternationalPhone,
   formatPhoneForDisplay,
+  getMaxNationalDigits,
   getPhoneNationalPlaceholder,
   parsePhoneForInput,
   reformatPhoneForCountry,
@@ -169,6 +170,7 @@ export default function PhoneInput({
   const nationalPlaceholder = placeholder
     || getPhoneNationalPlaceholder(countryCode)
     || t('createCv.phoneNationalPlaceholder')
+  const maxNationalDigits = getMaxNationalDigits(countryCode)
 
   const menu = open && menuStyle && createPortal(
     <div
@@ -248,6 +250,7 @@ export default function PhoneInput({
         disabled={disabled}
         required={required}
         placeholder={nationalPlaceholder}
+        maxLength={Math.max(24, maxNationalDigits + 8)}
         title={value ? formatPhoneForDisplay(value, countryCode) : undefined}
         onChange={(e) => setNational(e.target.value)}
       />

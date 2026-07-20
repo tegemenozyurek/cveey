@@ -16,7 +16,7 @@ import {
 } from 'firebase/firestore'
 import { resolveAuthMethod } from './authUtils'
 import { db } from './firebase'
-import { normalizeEmailKey, removePasswordAccountIndex, syncPasswordAccountIndex } from './passwordAccountService'
+import { normalizeEmailKey } from './passwordAccountService'
 import { deleteUserStorageFiles } from './storageService'
 
 const USERS_SEARCH_LIMIT = 8
@@ -418,7 +418,6 @@ export async function syncUserToFirestore(user) {
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
       })
-      await syncPasswordAccountIndex(user)
       return
     }
 

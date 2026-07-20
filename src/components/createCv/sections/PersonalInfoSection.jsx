@@ -11,7 +11,7 @@ const PERSONAL_FIELD_META = {
   email: { type: 'email', placeholder: 'you@example.com', autoComplete: 'email', full: true },
   linkedin: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'linkedin.com/in/username' },
   github: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'github.com/username' },
-  portfolio: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'yourportfolio.com', full: true },
+  portfolio: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'yourwebsite.com' },
   behance: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'behance.net/username' },
   dribbble: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'dribbble.com/username' },
   stackoverflow: { type: 'text', inputMode: 'url', autoComplete: 'url', placeholder: 'stackoverflow.com/users/...' },
@@ -41,10 +41,14 @@ const PERSONAL_FIELD_META = {
   adobeSkills: { type: 'text', placeholderKey: 'createCv.adobeSkillsPlaceholder', full: true },
 }
 
+const PRIMARY_LINK_FIELDS = ['linkedin']
+const SECONDARY_LINK_FIELDS = ['portfolio', 'github']
+
 const FIELD_ORDER = [
   'fullName', 'jobTitle', 'location', 'phone', 'email',
-  'linkedin', 'github', 'stackoverflow', 'portfolio', 'behance', 'dribbble',
-  'dateOfBirth', 'drivingLicense', 'licenseClass', 'adrCertificate', 'drivingExperience',
+  'links',
+  'stackoverflow', 'behance', 'dribbble',
+  'drivingLicense', 'licenseClass', 'adrCertificate', 'drivingExperience',
   'medicalLicense', 'specialty', 'residency',
   'teachingSubjects', 'teachingCertificate',
   'accountingSoftware', 'taxExperience',
@@ -67,6 +71,7 @@ export default function PersonalInfoSection({
   }
 
   const showMilitary = isVisible(fieldVisibility.militaryStatus)
+  const showDateOfBirth = isVisible(fieldVisibility.dateOfBirth)
 
   return (
     <div className="create-cv-section create-cv-section--personal">
@@ -78,6 +83,50 @@ export default function PersonalInfoSection({
 
       <div className="create-cv-grid create-cv-grid--personal">
         {FIELD_ORDER.map((field) => {
+          if (field === 'links') {
+            const renderLinkField = (linkField) => {
+              const linkMeta = PERSONAL_FIELD_META[linkField]
+              const linkVisibility = fieldVisibility[linkField]
+              if (!isVisible(linkVisibility)) return null
+              return (
+                <div key={linkField} className="form-field">
+                  <FieldLabel
+                    htmlFor={`cv-${linkField}`}
+                    label={t(`createCv.${linkField}`)}
+                    visibility={linkVisibility}
+                    t={t}
+                  />
+                  <input
+                    id={`cv-${linkField}`}
+                    className="form-input"
+                    type={linkMeta.type}
+                    inputMode={linkMeta.inputMode}
+                    value={personal[linkField] || ''}
+                    onChange={(e) => set(linkField, e.target.value)}
+                    placeholder={linkMeta.placeholder}
+                    autoComplete={linkMeta.autoComplete}
+                    required={fieldIsRequired(linkVisibility)}
+                  />
+                </div>
+              )
+            }
+
+            const primary = PRIMARY_LINK_FIELDS.map(renderLinkField).filter(Boolean)
+            const secondary = SECONDARY_LINK_FIELDS.map(renderLinkField).filter(Boolean)
+            if (!primary.length && !secondary.length) return null
+
+            return (
+              <div key={field} className="create-cv-personal-links">
+                {primary}
+                {secondary.length > 0 ? (
+                  <div className="create-cv-personal-links-secondary">
+                    {secondary}
+                  </div>
+                ) : null}
+              </div>
+            )
+          }
+
           const visibility = fieldVisibility[field]
           if (!isVisible(visibility)) return null
 
@@ -114,28 +163,8 @@ export default function PersonalInfoSection({
             )
           }
 
-          if (field === 'dateOfBirth') {
-            return (
-              <div key={field} className="form-field">
-                <FieldLabel
-                  htmlFor="cv-dateOfBirth"
-                  label={t('createCv.dateOfBirth')}
-                  visibility={visibility}
-                  t={t}
-                />
-                <MaterialDatePicker
-                  id="cv-dateOfBirth"
-                  value={personal.dateOfBirth || ''}
-                  onChange={(next) => set('dateOfBirth', next)}
-                  precision="day"
-                  required={fieldIsRequired(visibility)}
-                  t={t}
-                />
-              </div>
-            )
-          }
-
           const meta = PERSONAL_FIELD_META[field]
+          if (!meta) return null
           const labelKey = `createCv.${field}`
           const placeholder = meta.placeholderKey ? t(meta.placeholderKey) : meta.placeholder
 
@@ -162,28 +191,49 @@ export default function PersonalInfoSection({
           )
         })}
 
-        {showMilitary && (
-          <div className="form-field create-cv-field--full">
-            <FieldLabel
-              htmlFor="cv-military"
-              label={t('createCv.militaryStatus')}
-              visibility={fieldVisibility.militaryStatus}
-              t={t}
-            />
-            <select
-              id="cv-military"
-              className="form-input form-select"
-              value={personal.militaryStatus}
-              onChange={(e) => set('militaryStatus', e.target.value)}
-              required={fieldIsRequired(fieldVisibility.militaryStatus)}
-            >
-              {MILITARY_STATUS_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {t(`createCv.military.${option}`)}
-                </option>
-              ))}
-            </select>
-            <p className="create-cv-field-hint">{t('createCv.militaryHint')}</p>
+        {(showDateOfBirth || showMilitary) && (
+          <div className="create-cv-personal-meta">
+            {showDateOfBirth && (
+              <div className="form-field">
+                <FieldLabel
+                  htmlFor="cv-dateOfBirth"
+                  label={t('createCv.dateOfBirth')}
+                  visibility={fieldVisibility.dateOfBirth}
+                  t={t}
+                />
+                <MaterialDatePicker
+                  id="cv-dateOfBirth"
+                  value={personal.dateOfBirth || ''}
+                  onChange={(next) => set('dateOfBirth', next)}
+                  precision="day"
+                  required={fieldIsRequired(fieldVisibility.dateOfBirth)}
+                  t={t}
+                />
+              </div>
+            )}
+            {showMilitary && (
+              <div className="form-field">
+                <FieldLabel
+                  htmlFor="cv-military"
+                  label={t('createCv.militaryStatus')}
+                  visibility={fieldVisibility.militaryStatus}
+                  t={t}
+                />
+                <select
+                  id="cv-military"
+                  className="form-input form-select"
+                  value={personal.militaryStatus}
+                  onChange={(e) => set('militaryStatus', e.target.value)}
+                  required={fieldIsRequired(fieldVisibility.militaryStatus)}
+                >
+                  {MILITARY_STATUS_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {t(`createCv.military.${option}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -386,8 +386,10 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Authenticated network search (by username) needs to read other profiles.
-      allow read: if isAuthenticated();
+      // Authenticated clients can read profiles (network search).
+      // Unauthenticated password-reset looks up authMethod by email with limit(1).
+      allow get: if isAuthenticated();
+      allow list: if isAuthenticated() || request.query.limit <= 1;
       allow create: if isOwner(userId) && isValidUserCreate(request.resource.data);
       allow update: if isOwner(userId) && (
         isValidEducationCleanupUpdate() ||
@@ -420,13 +422,5 @@ service cloud.firestore {
       }
     }
 
-    match /accountAuth/{emailKey} {
-      allow read: if true;
-      allow create, update: if isAuthenticated() &&
-        request.resource.data.uid == request.auth.uid &&
-        isValidAuthMethod(request.resource.data.authMethod) &&
-        request.resource.data.keys().hasOnly(['uid', 'authMethod']);
-      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
-    }
   }
 }
