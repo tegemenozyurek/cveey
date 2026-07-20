@@ -1239,16 +1239,7 @@ function ActiveCvPanel({ t }) {
         {!activeCv && !loading ? (
           <div className="profile-cv-actions profile-cv-actions--cta" role="group" aria-label={t('profile.activeCv')}>
             <Link to="/my-cv" className="profile-cv-cta">
-              <span>{t('profile.goToMyCv')}</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M5 12h14M13 6l6 6-6 6"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              {t('profile.goToMyCv')}
             </Link>
           </div>
         ) : null}
