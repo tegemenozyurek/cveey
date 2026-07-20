@@ -7,6 +7,8 @@ import { hasPendingCvFile, setPendingCvFile } from '../pendingCvUpload'
 
 const MAX_SIZE = 5 * 1024 * 1024
 
+const BODY_KEYS = ['home.copyBody1', 'home.copyBody2', 'home.copyBody3']
+
 export default function Home() {
   const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
@@ -65,14 +67,25 @@ export default function Home() {
   }
 
   return (
-    <main className="main">
-      <div className="cv-empty">
-        <div className="cv-empty-hero">
-          <h2 className="cv-empty-title">{t('myCv.emptyTitle')}</h2>
-          <p className="cv-empty-text">{t('myCv.emptyText')}</p>
-        </div>
+    <main className="main home-main">
+      <div className="home-split">
+        <section className="home-split-panel home-split-copy">
+          <p className="home-copy-brand">
+            cve<span>ey</span>
+          </p>
+          <h1 className="home-copy-title">{t('home.copyHeadline')}</h1>
+          <p className="home-copy-lead">{t('home.copyLead')}</p>
 
-        <div className="cv-empty-actions">
+          <ul className="home-copy-points">
+            {BODY_KEYS.map((key) => (
+              <li key={key}>{t(key)}</li>
+            ))}
+          </ul>
+        </section>
+
+        <div className="home-split-divider" aria-hidden="true" />
+
+        <section className="home-split-panel home-split-action">
           <button
             type="button"
             className={`cv-empty-card cv-empty-card--upload${dragging ? ' cv-empty-card--dragging' : ''}`}
@@ -87,7 +100,7 @@ export default function Home() {
                 <path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.49" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
-            <h3 className="cv-empty-card-title">{t('myCv.emptyUploadTitle')}</h3>
+            <h2 className="cv-empty-card-title">{t('myCv.emptyUploadTitle')}</h2>
             <p className="cv-empty-card-text">{t('myCv.uploadHint')}</p>
             <span className="cv-dropzone-formats">{t('myCv.emptyUploadText')}</span>
           </button>
@@ -104,20 +117,22 @@ export default function Home() {
           />
 
           {fileError ? <p className="home-upload-error">{fileError}</p> : null}
+        </section>
+      </div>
 
-          <div className="cv-empty-or">
-            <span>{t('myCv.emptyOr')}</span>
-          </div>
-
-          <Link to="/create-cv" className="btn-gradient-wrap cv-empty-create-link">
-            <span className="btn-gradient-inner cv-empty-cta-inner">
-              {t('myCv.guideAtsCreate')}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M5 12h14m0 0l-6-6m6 6l-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
-          </Link>
+      <div className="home-create">
+        <div className="home-create-divider" aria-hidden="true">
+          <span>{t('myCv.emptyOr')}</span>
         </div>
+        <p className="home-create-text">{t('home.copyBonus')}</p>
+        <Link to="/create-cv" className="btn-gradient-wrap home-create-btn">
+          <span className="btn-gradient-inner cv-empty-cta-inner">
+            {t('myCv.guideAtsCreate')}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 12h14m0 0l-6-6m6 6l-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+        </Link>
       </div>
     </main>
   )

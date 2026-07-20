@@ -140,6 +140,13 @@ export const translations = {
     'underConstruction.title': 'We\'re still building this',
     'underConstruction.text': 'Don\'t forget to drop your CV.',
 
+    'home.copyHeadline': 'The Easiest Way to Get Recruited',
+    'home.copyLead': 'Simply upload your CV and wait for HR firms to contact you.',
+    'home.copyBody1': 'Your active CV is displayed to every HR firm in our network, including those working with a wide range of companies actively looking to hire.',
+    'home.copyBody2': 'You no longer need to chase down opportunities across dozens of websites or manually send your CV to every employer.',
+    'home.copyBody3': 'Just upload your profile and let the opportunities come to you—patience is the key!',
+    'home.copyBonus': 'You can also build a professional-grade CV using our comprehensive CV maker tool.',
+
     'myCv.title': 'My CVs',
     'myCv.subtitle': 'Manage your CVs and stay visible in the talent pool.',
     'myCv.create': 'Create',
@@ -654,6 +661,13 @@ export const translations = {
 
     'underConstruction.title': 'Geliştirmelerimiz devam ediyor',
     'underConstruction.text': 'CV\'nizi bırakmayı unutmayın.',
+
+    'home.copyHeadline': 'İşe Alınmanın En Kolay Yolu',
+    'home.copyLead': 'CV\'nizi yükleyin ve İK firmalarının sizinle iletişime geçmesini bekleyin.',
+    'home.copyBody1': 'Aktif CV\'niz, ağımızdaki tüm İK firmalarına gösterilir; bunlar arasında aktif olarak işe alım yapan birçok şirketle çalışanlar da vardır.',
+    'home.copyBody2': 'Artık onlarca siteyi taramanıza veya CV\'nizi tek tek her işverene göndermenize gerek yok.',
+    'home.copyBody3': 'Profilinizi yükleyin ve fırsatların size gelmesine izin verin—sabır anahtardır!',
+    'home.copyBonus': 'Kapsamlı CV oluşturma aracımızla profesyonel düzeyde bir CV de hazırlayabilirsiniz.',
 
     'myCv.title': 'CVlerim',
     'myCv.subtitle': 'CV\'lerinizi yönetin ve yetenek havuzunda görünür kalın.',

@@ -2941,10 +2941,246 @@
 }
 
 .home-upload-error {
-  margin: 0;
+  margin: 8px 0 0;
   font-size: 13px;
   color: var(--accent-rose);
   text-align: center;
+}
+
+.home-main {
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding-top: 36px;
+  padding-bottom: 56px;
+}
+
+.home-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) auto minmax(0, 0.95fr);
+  align-items: stretch;
+  width: 100%;
+  max-width: 1080px;
+  min-height: min(480px, calc(100vh - 280px));
+  animation: home-split-in 0.5s ease both;
+}
+
+@keyframes home-split-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home-split-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  height: 100%;
+}
+
+.home-split-divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 8px 36px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--accent-cyan) 45%, transparent) 18%,
+    color-mix(in srgb, var(--accent-pink) 55%, transparent) 50%,
+    color-mix(in srgb, var(--accent-amber) 45%, transparent) 82%,
+    transparent 100%
+  );
+}
+
+.home-split-copy {
+  justify-content: center;
+  gap: 16px;
+  text-align: left;
+}
+
+.home-copy-brand {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text);
+  line-height: 1;
+}
+
+.home-copy-brand span {
+  background: var(--gradient-border);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.home-copy-title {
+  margin: 0;
+  font-size: clamp(28px, 3.4vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.9px;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.home-copy-lead {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--accent-cyan);
+  line-height: 1.5;
+}
+
+.home-copy-points {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.home-copy-points li {
+  position: relative;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+.home-copy-points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gradient-border);
+}
+
+.home-split-action {
+  justify-content: center;
+  align-items: stretch;
+}
+
+.home-split-action .cv-empty-card--upload {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+}
+
+.home-create {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  max-width: 1080px;
+  margin-top: 8px;
+  animation: home-split-in 0.55s ease both;
+  animation-delay: 0.06s;
+}
+
+.home-create-divider {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 28px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: lowercase;
+  line-height: 1;
+}
+
+.home-create-divider::before,
+.home-create-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border);
+}
+
+.home-create-divider span {
+  flex-shrink: 0;
+  padding: 0 18px;
+  background: var(--bg-base);
+}
+
+.home-create-text {
+  margin: 0 0 16px;
+  max-width: 420px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.home-create-btn {
+  flex-shrink: 0;
+}
+
+.home-create-btn .btn-gradient-inner {
+  justify-content: center;
+  min-width: 160px;
+}
+
+@media (max-width: 900px) {
+  .home-split {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 28px;
+  }
+
+  .home-split-divider {
+    width: 100%;
+    height: 1px;
+    margin: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--accent-cyan) 45%, transparent) 18%,
+      color-mix(in srgb, var(--accent-pink) 55%, transparent) 50%,
+      color-mix(in srgb, var(--accent-amber) 45%, transparent) 82%,
+      transparent 100%
+    );
+  }
+
+  .home-split-copy,
+  .home-split-action {
+    min-height: 0;
+    height: auto;
+  }
+
+  .home-split-copy {
+    text-align: center;
+    align-items: center;
+  }
+
+  .home-copy-points {
+    text-align: left;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .home-split-action .cv-empty-card--upload {
+    min-height: 240px;
+    height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-split,
+  .home-create {
+    animation: none;
+  }
 }
 
 /* ── Upload Card ─────────────────────────────────── */
