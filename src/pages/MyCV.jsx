@@ -5,6 +5,7 @@ import LockIcon from '../components/LockIcon'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useResume } from '../context/ResumeContext'
+import { takePendingCvFile } from '../pendingCvUpload'
 import { MAX_CV_COUNT } from '../storageService'
 
 const MAX_SIZE = 5 * 1024 * 1024
@@ -89,6 +90,15 @@ export default function MyCV() {
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
+
+  useEffect(() => {
+    if (authLoading || !user || uploading) return
+    const pending = takePendingCvFile()
+    if (!pending) return
+    void handleFile(pending)
+    // Only consume pending upload once the user is ready.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional one-shot after auth
+  }, [authLoading, user])
 
 
   if (authLoading) {

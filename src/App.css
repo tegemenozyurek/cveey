@@ -2940,6 +2940,13 @@
   line-height: 1.6;
 }
 
+.home-upload-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--accent-rose);
+  text-align: center;
+}
+
 /* ── Upload Card ─────────────────────────────────── */
 .upload-card {
   width: 100%;
