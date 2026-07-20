@@ -6,7 +6,7 @@ import {
   ref,
   uploadBytesResumable,
 } from 'firebase/storage'
-import { collection, doc } from 'firebase/firestore'
+import { collection, doc, getDoc } from 'firebase/firestore'
 import { auth, db, storage } from './firebase'
 import {
   buildCvStoragePath,
@@ -20,8 +20,10 @@ import {
   normalizeStoragePath,
   pruneLegacyUserFields,
   readLegacyMigrationData,
+  resolveFilePath,
   resolveLegacyDisplayName,
   setActiveFileId,
+  storageNameFromPath,
   updateCvFileDisplayName,
 } from './cvFileService'
 import { extractTextFromPdf } from './cvTextService'
@@ -260,6 +262,42 @@ export async function renameCv(uid, fileId, newName) {
 
 export async function getCvDownloadUrl(filePath) {
   return fetchStorageUrl(filePath)
+}
+
+/**
+ * Read-only active CV for another user's public profile.
+ * Does not list all files, compact docs, or mutate activeFileId.
+ */
+export async function getPublicActiveCv(uid) {
+  await ensureAuth()
+  if (!uid) return null
+
+  const activeFileId = await getActiveFileId(uid)
+  if (!activeFileId) return null
+
+  const snap = await getDoc(doc(db, 'users', uid, 'files', activeFileId))
+  if (!snap.exists()) return null
+
+  const data = snap.data()
+  const filePath = resolveFilePath(uid, activeFileId, data)
+  const displayName =
+    (typeof data.displayName === 'string' && data.displayName) ||
+    storageNameFromPath(filePath)
+
+  let url = ''
+  try {
+    url = await fetchStorageUrl(filePath)
+  } catch (err) {
+    console.warn('Public active CV URL failed:', err)
+  }
+
+  return {
+    id: activeFileId,
+    fullPath: filePath,
+    filePath,
+    displayName,
+    url,
+  }
 }
 
 function sanitizeDownloadFileName(displayName) {
