@@ -520,7 +520,17 @@ export default function PublicProfile() {
                 {homeCity || t('profile.locationEmpty')}
               </span>
             </p>
-            <div className="profile-page-actions">
+            <div className="profile-page-actions profile-page-actions--public">
+              <button
+                type="button"
+                className={`profile-page-icon-btn${panel === 'network' ? ' profile-page-icon-btn--active' : ''}`}
+                onClick={() => setPanel((current) => (current === 'network' ? null : 'network'))}
+                aria-pressed={panel === 'network'}
+                aria-label={t('network.theirNetworks')}
+                title={t('network.theirNetworks')}
+              >
+                <PeopleIcon />
+              </button>
               <button
                 type="button"
                 className={`profile-connect-btn${
@@ -531,16 +541,6 @@ export default function PublicProfile() {
                 aria-pressed={requestStatus === 'pending'}
               >
                 {connectLabel}
-              </button>
-              <button
-                type="button"
-                className={`profile-page-icon-btn${panel === 'network' ? ' profile-page-icon-btn--active' : ''}`}
-                onClick={() => setPanel((current) => (current === 'network' ? null : 'network'))}
-                aria-pressed={panel === 'network'}
-                aria-label={t('network.theirNetworks')}
-                title={t('network.theirNetworks')}
-              >
-                <PeopleIcon />
               </button>
             </div>
           </div>

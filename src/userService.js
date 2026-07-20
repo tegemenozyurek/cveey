@@ -82,6 +82,32 @@ export async function saveUserOnboarding(userId, payload) {
   })
 }
 
+const USERNAME_RE = /^[a-zA-Z0-9._]+$/
+
+/** Update username and/or city from Preferences after onboarding. */
+export async function saveUserIdentity(userId, { username, homeCity }) {
+  const nextUsername = normalizeUsernameKey(asTrimmedString(username, 30))
+  const nextCity = asTrimmedString(homeCity, 80)
+
+  if (!nextUsername || nextUsername.length < 3 || !USERNAME_RE.test(nextUsername)) {
+    const err = new Error('INVALID_USERNAME')
+    err.code = 'INVALID_USERNAME'
+    throw err
+  }
+  if (!nextCity) {
+    const err = new Error('INVALID_CITY')
+    err.code = 'INVALID_CITY'
+    throw err
+  }
+
+  await updateDoc(doc(db, 'users', userId), {
+    username: nextUsername,
+    homeCity: nextCity,
+  })
+
+  return { username: nextUsername, homeCity: nextCity }
+}
+
 /** @deprecated Use saveUserOnboarding */
 export async function saveUserLocation(userId, { homeCity, preferredWorkCities }) {
   await updateDoc(doc(db, 'users', userId), {
