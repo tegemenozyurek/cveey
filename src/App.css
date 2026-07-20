@@ -2957,8 +2957,9 @@
 
 .home-split {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) auto minmax(0, 0.95fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   align-items: stretch;
+  gap: 48px;
   width: 100%;
   max-width: 1080px;
   min-height: min(480px, calc(100vh - 280px));
@@ -2983,40 +2984,10 @@
   height: 100%;
 }
 
-.home-split-divider {
-  width: 1px;
-  align-self: stretch;
-  margin: 8px 36px;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    color-mix(in srgb, var(--accent-cyan) 45%, transparent) 18%,
-    color-mix(in srgb, var(--accent-pink) 55%, transparent) 50%,
-    color-mix(in srgb, var(--accent-amber) 45%, transparent) 82%,
-    transparent 100%
-  );
-}
-
 .home-split-copy {
   justify-content: center;
   gap: 16px;
   text-align: left;
-}
-
-.home-copy-brand {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.4px;
-  color: var(--text);
-  line-height: 1;
-}
-
-.home-copy-brand span {
-  background: var(--gradient-border);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .home-copy-title {
@@ -3036,44 +3007,97 @@
   line-height: 1.5;
 }
 
-.home-copy-points {
-  list-style: none;
-  margin: 4px 0 0;
-  padding: 0;
+.home-copy-slider {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+  width: 100%;
+  margin-top: 20px;
 }
 
-.home-copy-points li {
+.home-copy-slides {
   position: relative;
-  margin: 0;
-  padding-left: 18px;
-  font-size: 14px;
-  color: var(--text-muted);
-  line-height: 1.65;
+  min-height: 6.8em;
 }
 
-.home-copy-points li::before {
-  content: '';
+.home-copy-slide {
+  margin: 0;
+  font-size: 17.5px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.45s ease, transform 0.45s ease, visibility 0.45s;
+  pointer-events: none;
+}
+
+.home-copy-slide--active {
+  position: relative;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.home-copy-slide:not(.home-copy-slide--active) {
   position: absolute;
-  left: 0;
-  top: 0.55em;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--gradient-border);
+  inset: 0;
+}
+
+.home-copy-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-copy-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--text) 22%, transparent);
+  cursor: pointer;
+  transition: width 0.2s ease, background 0.2s ease;
+}
+
+.home-copy-dot--active {
+  width: 18px;
+  background: var(--accent-cyan);
+}
+
+.home-copy-dot:hover:not(.home-copy-dot--active) {
+  background: color-mix(in srgb, var(--text) 40%, transparent);
 }
 
 .home-split-action {
   justify-content: center;
-  align-items: stretch;
+  align-items: center;
 }
 
 .home-split-action .cv-empty-card--upload {
   width: 100%;
-  height: 100%;
-  min-height: 280px;
+  max-width: 380px;
+  height: auto;
+  min-height: 290px;
+  padding: 36px 24px;
+  gap: 10px;
+}
+
+.home-split-action .cv-empty-card--upload .cv-empty-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+}
+
+.home-split-action .cv-empty-card--upload .cv-empty-card-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.home-split-action .cv-empty-card-title {
+  font-size: 16px;
 }
 
 .home-create {
@@ -3139,20 +3163,6 @@
     gap: 28px;
   }
 
-  .home-split-divider {
-    width: 100%;
-    height: 1px;
-    margin: 0;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      color-mix(in srgb, var(--accent-cyan) 45%, transparent) 18%,
-      color-mix(in srgb, var(--accent-pink) 55%, transparent) 50%,
-      color-mix(in srgb, var(--accent-amber) 45%, transparent) 82%,
-      transparent 100%
-    );
-  }
-
   .home-split-copy,
   .home-split-action {
     min-height: 0;
@@ -3160,19 +3170,22 @@
   }
 
   .home-split-copy {
-    text-align: center;
-    align-items: center;
+    text-align: left;
+    align-items: flex-start;
   }
 
-  .home-copy-points {
-    text-align: left;
+  .home-copy-slider {
     width: 100%;
     max-width: 520px;
   }
 
+  .home-copy-dots {
+    justify-content: flex-start;
+  }
+
   .home-split-action .cv-empty-card--upload {
-    min-height: 240px;
-    height: auto;
+    max-width: 360px;
+    min-height: 250px;
   }
 }
 
@@ -3180,6 +3193,10 @@
   .home-split,
   .home-create {
     animation: none;
+  }
+
+  .home-copy-slide {
+    transition: none;
   }
 }
 

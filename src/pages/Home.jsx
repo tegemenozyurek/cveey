@@ -16,12 +16,20 @@ export default function Home() {
   const fileInputRef = useRef(null)
   const [dragging, setDragging] = useState(false)
   const [fileError, setFileError] = useState('')
+  const [slideIndex, setSlideIndex] = useState(0)
 
   useEffect(() => {
     if (user && hasPendingCvFile()) {
       navigate('/my-cv', { replace: true })
     }
   }, [user, navigate])
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setSlideIndex((i) => (i + 1) % BODY_KEYS.length)
+    }, 5500)
+    return () => window.clearTimeout(id)
+  }, [slideIndex])
 
   if (authLoading) {
     return (
@@ -70,20 +78,36 @@ export default function Home() {
     <main className="main home-main">
       <div className="home-split">
         <section className="home-split-panel home-split-copy">
-          <p className="home-copy-brand">
-            cve<span>ey</span>
-          </p>
           <h1 className="home-copy-title">{t('home.copyHeadline')}</h1>
           <p className="home-copy-lead">{t('home.copyLead')}</p>
 
-          <ul className="home-copy-points">
-            {BODY_KEYS.map((key) => (
-              <li key={key}>{t(key)}</li>
-            ))}
-          </ul>
+          <div className="home-copy-slider" aria-live="polite">
+            <div className="home-copy-slides">
+              {BODY_KEYS.map((key, index) => (
+                <p
+                  key={key}
+                  className={`home-copy-slide${index === slideIndex ? ' home-copy-slide--active' : ''}`}
+                  aria-hidden={index !== slideIndex}
+                >
+                  {t(key)}
+                </p>
+              ))}
+            </div>
+            <div className="home-copy-dots" role="tablist" aria-label={t('home.copyHeadline')}>
+              {BODY_KEYS.map((key, index) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  className={`home-copy-dot${index === slideIndex ? ' home-copy-dot--active' : ''}`}
+                  aria-selected={index === slideIndex}
+                  aria-label={`${index + 1} / ${BODY_KEYS.length}`}
+                  onClick={() => setSlideIndex(index)}
+                />
+              ))}
+            </div>
+          </div>
         </section>
-
-        <div className="home-split-divider" aria-hidden="true" />
 
         <section className="home-split-panel home-split-action">
           <button
