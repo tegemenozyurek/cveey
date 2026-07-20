@@ -1323,6 +1323,9 @@
   background: var(--glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  isolation: isolate;
+  contain: paint;
 }
 
 .profile-about-side--empty {
@@ -1366,6 +1369,8 @@
 .profile-about-degree--empty {
   display: flex;
   align-items: center;
+  border-left: none;
+  padding-left: 0;
 }
 
 .profile-about-degree--empty > * {
@@ -1821,6 +1826,7 @@
   -webkit-backdrop-filter: blur(16px);
   overflow: hidden;
   isolation: isolate;
+  contain: paint;
 }
 
 .profile-cv-post--empty {
@@ -1938,12 +1944,11 @@
   align-items: stretch;
   overflow: hidden;
   background: transparent;
-  border-left: 1px solid color-mix(in srgb, var(--accent-cyan) 22%, var(--glass-border));
+  border-left: 1px solid var(--glass-border);
 }
 
 .profile-cv-cta {
   position: relative;
-  z-index: 0;
   display: inline-flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -1957,6 +1962,8 @@
   border-radius: 0;
   border: none;
   overflow: hidden;
+  isolation: isolate;
+  contain: paint;
   white-space: nowrap;
   background:
     radial-gradient(
@@ -1982,37 +1989,26 @@
   text-align: center;
   text-decoration: none;
   line-height: 1.25;
-  transition: transform 0.15s ease;
-}
-
-.profile-cv-cta::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: color-mix(in srgb, var(--accent-cyan) 18%, transparent);
-  opacity: 0.22;
-  animation: profile-cv-cta-pulse 2.8s ease-in-out infinite;
-}
-
-@keyframes profile-cv-cta-pulse {
-  0%,
-  100% {
-    opacity: 0.14;
-  }
-  50% {
-    opacity: 0.38;
-  }
+  transition: background 0.18s ease, transform 0.15s ease;
 }
 
 .profile-cv-cta:hover {
-  transform: none;
-}
-
-.profile-cv-cta:hover::after {
-  animation-play-state: paused;
-  opacity: 0.42;
+  background:
+    radial-gradient(
+      120% 140% at 20% 0%,
+      color-mix(in srgb, var(--accent-cyan) 32%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      110% 120% at 100% 100%,
+      color-mix(in srgb, var(--accent-pink) 18%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--accent-cyan) 18%, var(--glass-strong)),
+      color-mix(in srgb, var(--glass-strong) 88%, #0b1220)
+    );
 }
 
 .profile-cv-cta:active {
@@ -2022,13 +2018,6 @@
 .profile-cv-cta:focus-visible {
   outline: 2px solid var(--accent-cyan);
   outline-offset: -2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .profile-cv-cta::after {
-    animation: none;
-    opacity: 0.24;
-  }
 }
 
 .profile-cv-action {
@@ -2292,7 +2281,7 @@
 
   .profile-cv-post--empty .profile-cv-sheet,
   .profile-cv-post--empty .profile-cv-sheet-status {
-    min-height: 88px;
+    min-height: 128px;
   }
 
   .profile-cv-post-body {
@@ -2324,7 +2313,7 @@
   .profile-cv-actions--cta {
     width: 100%;
     min-width: 0;
-    min-height: 44px;
+    min-height: 64px;
     border-left: none;
     border-top: 1px solid var(--glass-border);
   }
@@ -2335,9 +2324,9 @@
   }
 
   .profile-cv-cta {
-    min-height: 44px;
-    padding: 10px 16px;
-    font-size: 15px;
+    min-height: 64px;
+    padding: 14px 18px;
+    font-size: 16px;
   }
 
   .profile-cv-heading {
