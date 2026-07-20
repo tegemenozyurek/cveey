@@ -62,11 +62,16 @@ function asTrimmedString(value, maxLength) {
   return trimmed
 }
 
+function normalizeUsernameKey(value) {
+  if (typeof value !== 'string') return ''
+  return value.trim().toLowerCase()
+}
+
 export async function saveUserOnboarding(userId, payload) {
-  const username = asTrimmedString(payload.username, 30)
+  const username = normalizeUsernameKey(asTrimmedString(payload.username, 30))
   const homeCity = asTrimmedString(payload.homeCity, 80)
 
-  if (!username || !homeCity) {
+  if (!username || username.length < 3 || !homeCity) {
     throw new Error('INVALID_ONBOARDING')
   }
 
@@ -89,6 +94,21 @@ export async function saveUserLocation(userId, { homeCity, preferredWorkCities }
 const EDUCATION_DEGREE_TYPES = new Set(['associate', 'bachelor', 'master', 'doctorate', 'other'])
 const EDUCATION_STATUSES = new Set(['studying', 'graduated'])
 export const MAX_EDUCATIONS = 3
+
+function getBachelorProgramNames(educations) {
+  if (!Array.isArray(educations)) return []
+
+  return educations
+    .filter((item) => item?.degreeType === 'bachelor' && item?.program?.trim())
+    .map((item) => item.program.trim())
+}
+
+function resolveUserEducations(userId, userData = {}) {
+  return listEducationDocs(userId).then((fromSubcollection) => {
+    if (fromSubcollection.length > 0) return fromSubcollection
+    return normalizeLegacyEducations(userData)
+  })
+}
 
 async function listEducationDocs(userId) {
   const snap = await getDocs(educationCollection(userId))
@@ -449,16 +469,16 @@ export async function deleteUserAccount(user) {
   await deleteUser(user)
 }
 
-export async function searchUsersByEmail(emailQuery, { excludeUid } = {}) {
-  const q = normalizeEmailKey(emailQuery)
-  if (q.length < 2) return []
+export async function searchUsersByUsername(usernameQuery, { excludeUid } = {}) {
+  const q = normalizeUsernameKey(usernameQuery)
+  if (q.length < 3) return []
 
   const end = `${q}\uf8ff`
   const snap = await getDocs(
     query(
       collection(db, 'users'),
-      where('email', '>=', q),
-      where('email', '<=', end),
+      where('username', '>=', q),
+      where('username', '<=', end),
       limit(USERS_SEARCH_LIMIT),
     ),
   )
@@ -467,29 +487,28 @@ export async function searchUsersByEmail(emailQuery, { excludeUid } = {}) {
     snap.docs.map(async (docSnap) => {
       const data = docSnap.data()
       const uid = data.uid || docSnap.id
-      let headline = data.email || ''
+      const username = typeof data.username === 'string' ? data.username : ''
+      let bachelorNames = []
 
       try {
-        const educations = await listEducationDocs(uid)
-        if (educations[0]?.program) {
-          headline = educations[0].program
-        }
+        const educations = await resolveUserEducations(uid, data)
+        bachelorNames = getBachelorProgramNames(educations)
       } catch {
-        // Keep email fallback when education is unreadable.
+        // Keep empty bachelor list when education is unreadable.
       }
 
       return {
         id: docSnap.id,
         uid,
-        email: data.email || '',
+        username,
+        bachelorNames,
         homeCity: data.homeCity || '',
-        displayName: data.username || data.email || docSnap.id,
-        headline,
+        displayName: username || docSnap.id,
         location: data.homeCity || '',
         photoURL: null,
       }
     }),
   )
 
-  return people.filter((person) => person.uid !== excludeUid && person.email)
+  return people.filter((person) => person.uid !== excludeUid && person.username)
 }

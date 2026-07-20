@@ -9796,6 +9796,26 @@
   white-space: nowrap;
 }
 
+.network-person--result .network-person-name {
+  margin: 0;
+  font-weight: 500;
+}
+
+.network-person-username {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.network-person-sep {
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.network-person-bachelors {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .network-person-headline {
   margin: 0 0 2px;
   font-size: 13px;

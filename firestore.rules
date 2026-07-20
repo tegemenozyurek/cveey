@@ -386,7 +386,7 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Authenticated network search (by email) needs to read other profiles.
+      // Authenticated network search (by username) needs to read other profiles.
       allow read: if isAuthenticated();
       allow create: if isOwner(userId) && isValidUserCreate(request.resource.data);
       allow update: if isOwner(userId) && (

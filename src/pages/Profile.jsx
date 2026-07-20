@@ -10,6 +10,7 @@ import ChangePasswordModal from '../components/ChangePasswordModal'
 import ChangeEmailModal from '../components/ChangeEmailModal'
 import { resolveAuthMethod, AUTH_METHOD_EMAIL_PASSWORD } from '../authUtils'
 import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserProfileField } from '../userService'
+import { clearCachedProfile, readCachedProfile, writeCachedProfile } from '../profileCache'
 import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
 import { downloadCvFile } from '../storageService'
 
@@ -1052,7 +1053,6 @@ function ProfileAboutSection({
   educations,
   summary,
   preferredWorkCities,
-  loading,
   onSaveEducations,
   onSaveSummary,
 }) {
@@ -1062,62 +1062,44 @@ function ProfileAboutSection({
     <section className="profile-about" aria-label={t('profile.sectionAbout')}>
       <div
         className={`profile-about-side${
-          !loading && educations.length === 0 && workCities.length === 0
-            ? ' profile-about-side--empty'
-            : ''
+          educations.length === 0 && workCities.length === 0 ? ' profile-about-side--empty' : ''
         }`}
       >
         <div
           className={`profile-about-degree${
-            !loading && educations.length === 0 ? ' profile-about-degree--empty' : ''
+            educations.length === 0 ? ' profile-about-degree--empty' : ''
           }`}
         >
-          {loading ? (
-            <p className="profile-about-loc-empty">…</p>
-          ) : (
-            <EducationList t={t} educations={educations} onSaveEducations={onSaveEducations} />
-          )}
+          <EducationList t={t} educations={educations} onSaveEducations={onSaveEducations} />
         </div>
 
-        {workCities.length > 0 || loading ? (
+        {workCities.length > 0 ? (
           <div className="profile-about-work">
             <p className="profile-about-kicker">{t('profile.workCities')}</p>
-            {loading ? (
-              <p className="profile-about-loc-empty">…</p>
-            ) : (
-              <ul className="profile-about-city-list">
-                {workCities.map((city) => (
-                  <li key={city}>
-                    <span className="profile-about-city-dot" aria-hidden="true" />
-                    <span>{city}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ul className="profile-about-city-list">
+              {workCities.map((city) => (
+                <li key={city}>
+                  <span className="profile-about-city-dot" aria-hidden="true" />
+                  <span>{city}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
       </div>
 
-      <div
-        className={`profile-about-main${
-          !loading && !summary.trim() ? ' profile-about-main--empty' : ''
-        }`}
-      >
-        {loading ? (
-          <p className="profile-about-loc-empty">…</p>
-        ) : (
-          <EditableProfileField
-            t={t}
-            label={t('profile.summary')}
-            value={summary}
-            addLabel={t('profile.addSummary')}
-            multiline
-            maxLength={500}
-            allowEmpty
-            valueClassName="profile-about-bio"
-            onSave={onSaveSummary}
-          />
-        )}
+      <div className={`profile-about-main${!summary.trim() ? ' profile-about-main--empty' : ''}`}>
+        <EditableProfileField
+          t={t}
+          label={t('profile.summary')}
+          value={summary}
+          addLabel={t('profile.addSummary')}
+          multiline
+          maxLength={500}
+          allowEmpty
+          valueClassName="profile-about-bio"
+          onSave={onSaveSummary}
+        />
       </div>
     </section>
   )
@@ -1293,6 +1275,18 @@ export default function Profile() {
   const [summary, setSummary] = useState('')
   const [profileDataLoading, setProfileDataLoading] = useState(true)
 
+  const cachedProfile = user?.uid ? readCachedProfile(user.uid) : null
+  const profileView =
+    profileDataLoading && cachedProfile
+      ? cachedProfile
+      : {
+          username,
+          homeCity,
+          preferredWorkCities,
+          educations,
+          summary,
+        }
+
   useEffect(() => {
     if (!user?.uid) {
       setUsername('')
@@ -1315,6 +1309,7 @@ export default function Profile() {
         setPreferredWorkCities(data.preferredWorkCities)
         setEducations(data.educations)
         setSummary(data.summary)
+        writeCachedProfile(user.uid, data)
       })
       .catch((err) => {
         console.error('Profile load failed:', err)
@@ -1324,6 +1319,7 @@ export default function Profile() {
           setPreferredWorkCities([])
           setEducations([])
           setSummary('')
+          clearCachedProfile(user.uid)
         }
       })
       .finally(() => {
@@ -1341,12 +1337,28 @@ export default function Profile() {
 
   async function updateProfileField(field, value) {
     await saveUserProfileField(user.uid, field, value)
-    if (field === 'summary') setSummary(value)
+    if (field === 'summary') {
+      setSummary(value)
+      writeCachedProfile(user.uid, {
+        username,
+        homeCity,
+        preferredWorkCities,
+        educations,
+        summary: value,
+      })
+    }
   }
 
   async function updateEducations(nextEducations) {
     const saved = await saveUserEducations(user.uid, nextEducations)
     setEducations(saved)
+    writeCachedProfile(user.uid, {
+      username,
+      homeCity,
+      preferredWorkCities,
+      educations: saved,
+      summary,
+    })
     return saved
   }
 
@@ -1362,7 +1374,8 @@ export default function Profile() {
     return <Navigate to="/" replace />
   }
 
-  const profileUsername = username || user.email?.split('@')[0] || t('profile.untitled')
+  const profileUsername =
+    profileView.username || user.email?.split('@')[0] || t('profile.untitled')
 
   return (
     <main className="main profile-page">
@@ -1377,14 +1390,14 @@ export default function Profile() {
               <p className="profile-hero-name">@{profileUsername}</p>
             </div>
             <p
-              className={`profile-hero-city${!homeCity && !profileDataLoading ? ' profile-hero-city--muted' : ''}`}
+              className={`profile-hero-city${!profileView.homeCity ? ' profile-hero-city--muted' : ''}`}
               aria-label={t('profile.homeCity')}
             >
               <span className="profile-hero-city-icon">
                 <PinIcon />
               </span>
               <span className="profile-hero-city-label">
-                {profileDataLoading ? '…' : homeCity || t('profile.locationEmpty')}
+                {profileView.homeCity || t('profile.locationEmpty')}
               </span>
             </p>
             <div className="profile-page-actions">
@@ -1599,10 +1612,9 @@ export default function Profile() {
         <div className="profile-page-main">
           <ProfileAboutSection
             t={t}
-            educations={educations}
-            summary={summary}
-            preferredWorkCities={preferredWorkCities}
-            loading={profileDataLoading}
+            educations={profileView.educations}
+            summary={profileView.summary}
+            preferredWorkCities={profileView.preferredWorkCities}
             onSaveEducations={updateEducations}
             onSaveSummary={(value) => updateProfileField('summary', value)}
           />
