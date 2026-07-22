@@ -6,10 +6,10 @@ import NotificationsDropdown from './NotificationsDropdown'
 import UserAvatar from './UserAvatar'
 
 const NAV_ITEMS = [
-  { to: '/', key: 'nav.home', end: true },
-  { to: '/jobs', key: 'nav.jobs' },
-  { to: '/network', key: 'nav.network' },
-  { to: '/my-cv', key: 'nav.myCv' },
+  { to: '/', key: 'nav.home', end: true, icon: 'home' },
+  { to: '/jobs', key: 'nav.jobs', icon: 'jobs' },
+  { to: '/network', key: 'nav.network', icon: 'network' },
+  { to: '/my-cv', key: 'nav.myCv', icon: 'cv' },
 ]
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS
@@ -68,6 +68,72 @@ function BellIcon() {
   )
 }
 
+function NavItemIcon({ name }) {
+  const common = {
+    width: 20,
+    height: 20,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    'aria-hidden': true,
+  }
+  const stroke = {
+    stroke: 'currentColor',
+    strokeWidth: 1.75,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+  }
+
+  switch (name) {
+    case 'home':
+      return (
+        <svg {...common}>
+          <path d="M3 10.5L12 3l9 7.5" {...stroke} />
+          <path d="M5 9.5V20h14V9.5" {...stroke} />
+        </svg>
+      )
+    case 'jobs':
+      return (
+        <svg {...common}>
+          <path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" {...stroke} />
+          <rect x="3" y="7" width="18" height="14" rx="2" {...stroke} />
+          <path d="M3 13h18" {...stroke} />
+        </svg>
+      )
+    case 'network':
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="8" r="3" {...stroke} />
+          <circle cx="17" cy="9" r="2.5" {...stroke} />
+          <path d="M3 19a6 6 0 0112 0" {...stroke} />
+          <path d="M14.5 19a4.5 4.5 0 016.5-4" {...stroke} />
+        </svg>
+      )
+    case 'cv':
+      return (
+        <svg {...common}>
+          <path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z" {...stroke} />
+          <path d="M14 3v5h5M9 13h6M9 17h4" {...stroke} />
+        </svg>
+      )
+    default:
+      return null
+  }
+}
+
+function ChevronIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9 6l6 6-6 6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export default function Navbar() {
   const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
@@ -103,6 +169,11 @@ export default function Navbar() {
 
   const navLinkClass = ({ isActive }) =>
     `nav-link${isActive ? ' nav-link--active' : ''}`
+
+  const mobileNavLinkClass = ({ isActive }) =>
+    `mobile-nav-link${isActive ? ' mobile-nav-link--active' : ''}`
+
+  const profileLabel = user?.displayName?.trim() || user?.email || t('nav.profile')
 
   return (
     <header className="navbar">
@@ -195,16 +266,26 @@ export default function Navbar() {
             onClick={closeMobileNav}
           />
           <div className="mobile-nav-panel">
+            <div className="mobile-nav-brand">
+              <Link to="/" className="logo mobile-nav-logo" onClick={closeMobileNav}>
+                cve<span>ey</span>
+              </Link>
+            </div>
+
             <nav className="mobile-nav-links" aria-label={t('nav.mainNav')}>
-              {MOBILE_NAV_ITEMS.map(({ to, key, end }) => (
+              {MOBILE_NAV_ITEMS.map(({ to, key, end, icon }, index) => (
                 <NavLink
                   key={to}
                   to={to}
                   end={end}
-                  className={navLinkClass}
+                  className={mobileNavLinkClass}
                   onClick={closeMobileNav}
+                  style={{ '--nav-i': String(index) }}
                 >
-                  {t(key)}
+                  <span className="mobile-nav-link-icon">
+                    <NavItemIcon name={icon} />
+                  </span>
+                  <span className="mobile-nav-link-label">{t(key)}</span>
                 </NavLink>
               ))}
             </nav>
@@ -215,18 +296,17 @@ export default function Navbar() {
               </div>
             ) : user ? (
               <div className="mobile-nav-footer">
-                <div className="mobile-nav-footer-icons">
+                <div className="mobile-nav-quick">
                   <div className="notifications-menu" ref={mobileNotificationsRef}>
                     <button
                       type="button"
-                      className={`navbar-icon-btn${notificationsOpen ? ' navbar-icon-btn--open' : ''}`}
+                      className={`mobile-nav-quick-btn${notificationsOpen ? ' mobile-nav-quick-btn--open' : ''}`}
                       onClick={toggleNotifications}
-                      aria-label={t('nav.notifications')}
-                      title={t('nav.notifications')}
                       aria-expanded={notificationsOpen}
                       aria-haspopup="dialog"
                     >
                       <BellIcon />
+                      <span>{t('nav.notifications')}</span>
                     </button>
                     <NotificationsDropdown
                       open={notificationsOpen && mobileNavOpen}
@@ -237,22 +317,27 @@ export default function Navbar() {
                   </div>
                   <button
                     type="button"
-                    className="navbar-icon-btn"
+                    className="mobile-nav-quick-btn"
                     onClick={() => goTo('/messages')}
-                    aria-label={t('nav.messages')}
-                    title={t('nav.messages')}
                   >
                     <InboxIcon />
+                    <span>{t('nav.messages')}</span>
                   </button>
                 </div>
+
                 <button
                   type="button"
-                  className="profile-trigger"
+                  className="mobile-nav-profile"
                   onClick={() => goTo('/profile')}
-                  aria-label={t('nav.profile')}
-                  title={t('nav.profile')}
                 >
-                  <UserAvatar user={user} />
+                  <UserAvatar user={user} className="mobile-nav-profile-avatar" />
+                  <span className="mobile-nav-profile-text">
+                    <span className="mobile-nav-profile-name">{profileLabel}</span>
+                    <span className="mobile-nav-profile-hint">{t('nav.profile')}</span>
+                  </span>
+                  <span className="mobile-nav-profile-chevron" aria-hidden="true">
+                    <ChevronIcon />
+                  </span>
                 </button>
               </div>
             ) : (
