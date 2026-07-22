@@ -26,13 +26,19 @@ rules_version = '2';
 //   educationProgram: string
 //
 // users/{userId}/notifications/{notificationId}
-//   type: 'connection_request'
+//   type: 'connection_request' | 'connection_accepted'
 //   id: string
 //   fromUid: string
 //   name: string
 //   photoURL: string|null
-//   status: 'pending'
+//   status: 'pending' | 'unread'
 //   createdAt: timestamp
+//
+// users/{userId}/networks/{friendUid}
+//   uid: string (friendUid)
+//   username: string
+//   photoURL: string|null
+//   connectedAt: timestamp
 //
 // Default storage path: users/{userId}/{fileId}.pdf
 //
@@ -212,6 +218,29 @@ service cloud.firestore {
         data.createdAt is timestamp;
     }
 
+    function isValidConnectionAcceptedNotificationCreate(data) {
+      return data.keys().hasOnly([
+          'type', 'id', 'fromUid', 'name', 'photoURL', 'status', 'createdAt'
+        ]) &&
+        data.type == 'connection_accepted' &&
+        data.id is string &&
+        data.id.size() > 0 &&
+        data.id.size() <= 128 &&
+        data.fromUid is string &&
+        data.fromUid.size() > 0 &&
+        data.fromUid.size() <= 128 &&
+        data.fromUid == data.id &&
+        isValidNotificationName(data.name) &&
+        (data.photoURL == null || isValidPhotoURL(data.photoURL)) &&
+        data.status == 'unread' &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidNotificationCreate(data) {
+      return isValidConnectionRequestNotificationCreate(data) ||
+        isValidConnectionAcceptedNotificationCreate(data);
+    }
+
     function isValidConnectionRequestNotificationUpdate(data) {
       return data.keys().hasOnly([
           'type', 'id', 'fromUid', 'name', 'photoURL', 'status', 'createdAt'
@@ -228,6 +257,16 @@ service cloud.firestore {
         (data.photoURL == null || isValidPhotoURL(data.photoURL)) &&
         data.status in ['pending', 'accepted', 'rejected'] &&
         data.createdAt is timestamp;
+    }
+
+    function isValidNetworkMemberCreate(data) {
+      return data.keys().hasOnly(['uid', 'username', 'photoURL', 'connectedAt']) &&
+        data.uid is string &&
+        data.uid.size() > 0 &&
+        data.uid.size() <= 128 &&
+        isValidNotificationName(data.username) &&
+        (data.photoURL == null || isValidPhotoURL(data.photoURL)) &&
+        data.connectedAt is timestamp;
     }
 
     function isValidUser(data) {
@@ -538,10 +577,13 @@ service cloud.firestore {
         allow get: if isAuthenticated() && (
           isOwner(userId) || request.auth.uid == notificationId
         );
-        allow list: if isOwner(userId);
+        allow list: if isOwner(userId) || (
+          resource.data.keys().hasAny(['fromUid']) &&
+          resource.data.fromUid == request.auth.uid
+        );
         allow create: if isAuthenticated() &&
           request.auth.uid != userId &&
-          isValidConnectionRequestNotificationCreate(request.resource.data) &&
+          isValidNotificationCreate(request.resource.data) &&
           request.resource.data.fromUid == request.auth.uid &&
           request.resource.data.id == request.auth.uid &&
           notificationId == request.auth.uid;
@@ -554,6 +596,24 @@ service cloud.firestore {
         allow delete: if isAuthenticated() && (
           isOwner(userId) ||
           (resource.data.keys().hasAny(['fromUid']) && resource.data.fromUid == request.auth.uid)
+        );
+      }
+
+      // Mutual friends graph. On accept, accepter writes both sides.
+      match /networks/{friendUid} {
+        allow read: if isAuthenticated() && (
+          isOwner(userId) || request.auth.uid == friendUid
+        );
+        allow create: if isAuthenticated() &&
+          friendUid != userId &&
+          isValidNetworkMemberCreate(request.resource.data) &&
+          request.resource.data.uid == friendUid &&
+          (
+            (isOwner(userId) && request.auth.uid != friendUid) ||
+            (request.auth.uid == friendUid && !isOwner(userId))
+          );
+        allow delete: if isAuthenticated() && (
+          isOwner(userId) || request.auth.uid == friendUid
         );
       }
     }

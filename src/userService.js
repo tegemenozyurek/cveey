@@ -18,6 +18,7 @@ import { AUTH_METHOD_EMAIL_PASSWORD, resolveAuthMethod } from './authUtils'
 import { auth, db } from './firebase'
 import { normalizeEmailKey } from './passwordAccountService'
 import { deleteUserStorageFiles } from './storageService'
+import { purgeOutgoingConnectionNotifications, purgeUserFromAllNetworks } from './networkService'
 
 const USERS_SEARCH_LIMIT = 8
 
@@ -505,7 +506,9 @@ export async function syncUserToFirestore(user) {
 }
 
 export async function deleteUserAccount(user) {
-  // Storage + files subcollection first, then education, then user doc, then Auth.
+  // Detach from friends' networks / pending requests first, then wipe own data / Auth.
+  await purgeUserFromAllNetworks(user.uid)
+  await purgeOutgoingConnectionNotifications(user.uid)
   await deleteUserStorageFiles(user.uid)
   await deleteAllEducationDocs(user.uid)
 

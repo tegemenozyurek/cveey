@@ -11,6 +11,7 @@ export default function NotificationsDropdown({
   requests,
   onAccept,
   onReject,
+  onDismiss,
 }) {
   const { t } = useLanguage()
   const [pendingAction, setPendingAction] = useState(null)
@@ -49,8 +50,10 @@ export default function NotificationsDropdown({
     try {
       if (type === 'accept') {
         await onAccept?.(request)
-      } else {
+      } else if (type === 'reject') {
         await onReject?.(request)
+      } else if (type === 'dismiss') {
+        await onDismiss?.(request)
       }
     } catch (err) {
       console.error(`Notification ${type} failed:`, err)
@@ -74,20 +77,31 @@ export default function NotificationsDropdown({
           <p className="notifications-dropdown-empty">{t('notifications.empty')}</p>
         ) : (
           requests.map((request) => {
+            const isAcceptedType = request.type === 'connection_accepted'
             const actionType = pendingAction?.id === request.id ? pendingAction.type : null
             const isBusy = Boolean(actionType)
             const showPhoto = Boolean(request.photoURL) && !actionType
+
+            let message = t('notifications.wantToConnectSuffix')
+            if (actionType === 'accept') message = t('notifications.accepted')
+            else if (actionType === 'reject') message = t('notifications.rejected')
+            else if (actionType === 'dismiss' || isAcceptedType) {
+              message = t('notifications.acceptedYourRequest')
+            }
+
             return (
               <article
-                key={request.id}
+                key={`${request.type}-${request.id}`}
                 className={[
                   'notification-request-card',
-                  actionType === 'accept' ? 'notification-request-card--accepted' : '',
+                  actionType === 'accept' || actionType === 'dismiss'
+                    ? 'notification-request-card--accepted'
+                    : '',
                   actionType === 'reject' ? 'notification-request-card--rejected' : '',
                 ].filter(Boolean).join(' ')}
               >
                 <div className="notification-request-avatar" aria-hidden="true">
-                  {actionType === 'accept' ? (
+                  {actionType === 'accept' || actionType === 'dismiss' ? (
                     '✓'
                   ) : actionType === 'reject' ? (
                     '✕'
@@ -106,30 +120,36 @@ export default function NotificationsDropdown({
                   <p className="notification-request-text">
                     <strong className="notification-request-name">{request.name}</strong>
                     {' '}
-                    <span className="notification-request-message">
-                      {actionType === 'accept'
-                        ? t('notifications.accepted')
-                        : actionType === 'reject'
-                          ? t('notifications.rejected')
-                          : t('notifications.wantToConnectSuffix')}
-                    </span>
+                    <span className="notification-request-message">{message}</span>
                   </p>
                   {!isBusy && (
                     <div className="notification-request-actions">
-                      <button
-                        type="button"
-                        className="notification-request-btn notification-request-btn--accept"
-                        onClick={() => runAction(request, 'accept')}
-                      >
-                        {t('notifications.accept')}
-                      </button>
-                      <button
-                        type="button"
-                        className="notification-request-btn notification-request-btn--reject"
-                        onClick={() => runAction(request, 'reject')}
-                      >
-                        {t('notifications.reject')}
-                      </button>
+                      {isAcceptedType ? (
+                        <button
+                          type="button"
+                          className="notification-request-btn notification-request-btn--accept"
+                          onClick={() => runAction(request, 'dismiss')}
+                        >
+                          {t('notifications.dismiss')}
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className="notification-request-btn notification-request-btn--accept"
+                            onClick={() => runAction(request, 'accept')}
+                          >
+                            {t('notifications.accept')}
+                          </button>
+                          <button
+                            type="button"
+                            className="notification-request-btn notification-request-btn--reject"
+                            onClick={() => runAction(request, 'reject')}
+                          >
+                            {t('notifications.reject')}
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
