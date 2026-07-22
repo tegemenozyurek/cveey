@@ -33,6 +33,7 @@ export default function TurkishCitySelect({
   required = false,
   placeholder,
   t,
+  triggerClassName = '',
 }) {
   const reactId = useId()
   const listId = `${reactId}-city-list`
@@ -152,7 +153,7 @@ export default function TurkishCitySelect({
       <button
         type="button"
         id={id}
-        className="form-input create-cv-country-select-trigger"
+        className={`form-input create-cv-country-select-trigger${triggerClassName ? ` ${triggerClassName}` : ''}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? listId : undefined}

@@ -130,7 +130,6 @@ function PersonRow({ person, actionLabel, iconOnly = false, variant = 'default',
 export default function Network() {
   const { t } = useLanguage()
   const { user, openLogin, authLoading } = useAuth()
-  const { user, openLogin } = useAuth()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')

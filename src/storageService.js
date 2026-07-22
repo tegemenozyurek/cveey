@@ -30,8 +30,105 @@ import { extractTextFromPdf } from './cvTextService'
 import { getCvBlob, releasePreviewUrl } from './cvPreviewCache'
 
 export const MAX_CV_COUNT = 5
+export const MAX_PROFILE_PHOTO_BYTES = 2 * 1024 * 1024
+
+const PROFILE_PHOTO_TYPES = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+}
 
 const cvCache = new Map()
+
+export function buildProfilePhotoPath(uid, fileName) {
+  return `users/${uid}/profilePhoto/${fileName}`
+}
+
+async function clearProfilePhotoFolder(uid, keepPath = null) {
+  const folderRef = ref(storage, `users/${uid}/profilePhoto`)
+  try {
+    const listing = await listAll(folderRef)
+    await Promise.all(
+      listing.items.map(async (item) => {
+        const pathKey = normalizeStoragePath(item.fullPath)
+        if (keepPath && pathKey === normalizeStoragePath(keepPath)) return
+        try {
+          await deleteObject(item)
+        } catch (err) {
+          if (err?.code !== 'storage/object-not-found') {
+            console.warn('Profile photo cleanup skipped:', pathKey, err)
+          }
+        }
+      }),
+    )
+  } catch (err) {
+    if (err?.code !== 'storage/object-not-found') {
+      console.warn('Could not list profile photos:', err)
+    }
+  }
+}
+
+async function deleteStoragePrefix(folderRef) {
+  const listing = await listAll(folderRef)
+  await Promise.all([
+    ...listing.items.map((item) => deleteObject(item)),
+    ...listing.prefixes.map((prefix) => deleteStoragePrefix(prefix)),
+  ])
+}
+
+/**
+ * Upload avatar to users/{uid}/profilePhoto/avatar.{ext} and return download URL.
+ */
+export async function uploadProfilePhoto(uid, file, onProgress) {
+  await ensureAuth()
+  if (!uid || !file) {
+    const err = new Error('INVALID_PROFILE_PHOTO')
+    err.code = 'INVALID_PROFILE_PHOTO'
+    throw err
+  }
+
+  const ext = PROFILE_PHOTO_TYPES[file.type]
+  if (!ext) {
+    const err = new Error('INVALID_PROFILE_PHOTO_TYPE')
+    err.code = 'INVALID_PROFILE_PHOTO_TYPE'
+    throw err
+  }
+
+  if (file.size > MAX_PROFILE_PHOTO_BYTES) {
+    const err = new Error('PROFILE_PHOTO_TOO_LARGE')
+    err.code = 'PROFILE_PHOTO_TOO_LARGE'
+    throw err
+  }
+
+  const objectName = `avatar.${ext}`
+  const filePath = buildProfilePhotoPath(uid, objectName)
+
+  // Rules disallow update/overwrite — clear folder then create.
+  await clearProfilePhotoFolder(uid)
+
+  const storageRef = ref(storage, filePath)
+  await new Promise((resolve, reject) => {
+    const task = uploadBytesResumable(storageRef, file, {
+      contentType: file.type,
+      customMetadata: {
+        originalFileName: file.name || objectName,
+      },
+    })
+
+    task.on(
+      'state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        onProgress?.(progress)
+      },
+      reject,
+      resolve,
+    )
+  })
+
+  const url = await getDownloadURL(storageRef)
+  return { url, filePath }
+}
 
 export function invalidateCvCache(uid) {
   if (uid) cvCache.delete(uid)
@@ -381,8 +478,7 @@ export async function activateCv(uid, fileId) {
 export async function deleteUserStorageFiles(uid) {
   const userRef = ref(storage, `users/${uid}`)
   try {
-    const listing = await listAll(userRef)
-    await Promise.all(listing.items.map((item) => deleteObject(item)))
+    await deleteStoragePrefix(userRef)
   } catch (err) {
     // Missing folder / empty storage is fine during account wipe.
     if (err?.code !== 'storage/object-not-found') {

@@ -103,6 +103,14 @@ export function AuthProvider({ children }) {
     setLocationSetupPending(false)
   }
 
+  const refreshUser = async () => {
+    if (!auth.currentUser) return null
+    await auth.currentUser.reload()
+    const next = auth.currentUser
+    setUser(next)
+    return next
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -113,6 +121,7 @@ export function AuthProvider({ children }) {
         setShowDeleteConfirm,
         setShowLogoutConfirm,
         deleting,
+        refreshUser,
       }}
     >
       {children}
