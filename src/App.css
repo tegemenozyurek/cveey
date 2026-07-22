@@ -461,6 +461,7 @@
 
 .burger-btn {
   display: none;
+  position: relative;
   align-items: center;
   justify-content: center;
   width: 42px;
@@ -673,10 +674,18 @@
   background: rgba(15, 23, 42, 0.03);
 }
 
-.mobile-nav-quick-btn span {
+.mobile-nav-quick-btn > span:not(.mobile-nav-quick-btn-icon) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.mobile-nav-quick-btn-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .mobile-nav-quick-btn:hover,
@@ -2910,6 +2919,7 @@
 }
 
 .navbar-icon-btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2942,6 +2952,81 @@
 
 [data-theme='light'] .navbar-icon-btn--open {
   border-color: rgba(0, 0, 0, 0.1);
+}
+
+.notifications-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: var(--accent-rose);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  box-shadow: 0 0 0 2px #120c24;
+  pointer-events: none;
+}
+
+[data-theme='light'] .notifications-badge {
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
+.notifications-badge--burger {
+  top: -1px;
+  right: -1px;
+}
+
+.mobile-nav-quick-btn-icon .notifications-badge {
+  top: -6px;
+  right: -8px;
+  box-shadow: 0 0 0 2px #120c24;
+}
+
+[data-theme='light'] .mobile-nav-quick-btn-icon .notifications-badge {
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
+.notifications-trigger--alert {
+  animation: notificationWiggle 1.6s ease-in-out infinite;
+}
+
+.burger-btn--alert {
+  animation: notificationWiggle 1.6s ease-in-out infinite;
+}
+
+@keyframes notificationWiggle {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(-12deg);
+  }
+  80% {
+    transform: rotate(10deg);
+  }
+  85% {
+    transform: rotate(-8deg);
+  }
+  90% {
+    transform: rotate(6deg);
+  }
+  95% {
+    transform: rotate(-3deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notifications-trigger--alert,
+  .burger-btn--alert {
+    animation: none;
+  }
 }
 
 /* ── Notifications dropdown ─────────────────────── */

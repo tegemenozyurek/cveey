@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 
-const PLACEHOLDER_REQUESTS = [
+export const PLACEHOLDER_NOTIFICATIONS = [
   { id: '1', name: 'Alex Chen' },
   { id: '2', name: 'Jordan Lee' },
   { id: '3', name: 'Sam Rivera' },
   { id: '4', name: 'Taylor Kim' },
 ]
 
-export default function NotificationsDropdown({ open, onClose, menuRef, placement = 'bottom' }) {
+export default function NotificationsDropdown({
+  open,
+  onClose,
+  menuRef,
+  placement = 'bottom',
+  requests,
+  onRequestsChange,
+}) {
   const { t } = useLanguage()
-  const [requests, setRequests] = useState(PLACEHOLDER_REQUESTS)
   const [acceptingId, setAcceptingId] = useState(null)
 
   useEffect(() => {
@@ -40,14 +46,14 @@ export default function NotificationsDropdown({ open, onClose, menuRef, placemen
     if (acceptingId) return
     setAcceptingId(id)
     window.setTimeout(() => {
-      setRequests((prev) => prev.filter((item) => item.id !== id))
+      onRequestsChange((prev) => prev.filter((item) => item.id !== id))
       setAcceptingId(null)
     }, 420)
   }
 
   const removeRequest = (id) => {
     if (acceptingId) return
-    setRequests((prev) => prev.filter((item) => item.id !== id))
+    onRequestsChange((prev) => prev.filter((item) => item.id !== id))
   }
 
   return (

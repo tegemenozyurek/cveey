@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import NotificationsDropdown from './NotificationsDropdown'
+import NotificationsDropdown, { PLACEHOLDER_NOTIFICATIONS } from './NotificationsDropdown'
 import UserAvatar from './UserAvatar'
 
 const NAV_ITEMS = [
@@ -139,10 +139,15 @@ export default function Navbar() {
   const { t } = useLanguage()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [notificationRequests, setNotificationRequests] = useState(PLACEHOLDER_NOTIFICATIONS)
   const desktopNotificationsRef = useRef(null)
   const mobileNotificationsRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
+
+  const notificationCount = notificationRequests.length
+  const hasNotifications = notificationCount > 0
+  const badgeLabel = notificationCount > 9 ? '9+' : String(notificationCount)
 
   useEffect(() => {
     setMobileNavOpen(false)
@@ -207,7 +212,12 @@ export default function Navbar() {
                 <div className="notifications-menu" ref={desktopNotificationsRef}>
                   <button
                     type="button"
-                    className={`navbar-icon-btn${notificationsOpen ? ' navbar-icon-btn--open' : ''}`}
+                    className={[
+                      'navbar-icon-btn',
+                      'notifications-trigger',
+                      notificationsOpen ? 'navbar-icon-btn--open' : '',
+                      hasNotifications && !notificationsOpen ? 'notifications-trigger--alert' : '',
+                    ].filter(Boolean).join(' ')}
                     onClick={toggleNotifications}
                     aria-label={t('nav.notifications')}
                     title={t('nav.notifications')}
@@ -215,12 +225,19 @@ export default function Navbar() {
                     aria-haspopup="dialog"
                   >
                     <BellIcon />
+                    {hasNotifications && (
+                      <span className="notifications-badge" aria-hidden="true">
+                        {badgeLabel}
+                      </span>
+                    )}
                   </button>
                   <NotificationsDropdown
                     open={notificationsOpen && !mobileNavOpen}
                     onClose={closeNotifications}
                     menuRef={desktopNotificationsRef}
                     placement="bottom"
+                    requests={notificationRequests}
+                    onRequestsChange={setNotificationRequests}
                   />
                 </div>
                 <button
@@ -247,12 +264,21 @@ export default function Navbar() {
 
           <button
             type="button"
-            className={`burger-btn${mobileNavOpen ? ' burger-btn--open' : ''}`}
+            className={[
+              'burger-btn',
+              mobileNavOpen ? 'burger-btn--open' : '',
+              hasNotifications && !mobileNavOpen ? 'burger-btn--alert' : '',
+            ].filter(Boolean).join(' ')}
             onClick={() => setMobileNavOpen((v) => !v)}
             aria-expanded={mobileNavOpen}
             aria-label={mobileNavOpen ? t('nav.closeMenu') : t('nav.openMenu')}
           >
             <BurgerIcon open={mobileNavOpen} />
+            {hasNotifications && !mobileNavOpen && (
+              <span className="notifications-badge notifications-badge--burger" aria-hidden="true">
+                {badgeLabel}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -300,12 +326,24 @@ export default function Navbar() {
                   <div className="notifications-menu" ref={mobileNotificationsRef}>
                     <button
                       type="button"
-                      className={`mobile-nav-quick-btn${notificationsOpen ? ' mobile-nav-quick-btn--open' : ''}`}
+                      className={[
+                        'mobile-nav-quick-btn',
+                        'notifications-trigger',
+                        notificationsOpen ? 'mobile-nav-quick-btn--open' : '',
+                        hasNotifications && !notificationsOpen ? 'notifications-trigger--alert' : '',
+                      ].filter(Boolean).join(' ')}
                       onClick={toggleNotifications}
                       aria-expanded={notificationsOpen}
                       aria-haspopup="dialog"
                     >
-                      <BellIcon />
+                      <span className="mobile-nav-quick-btn-icon">
+                        <BellIcon />
+                        {hasNotifications && (
+                          <span className="notifications-badge" aria-hidden="true">
+                            {badgeLabel}
+                          </span>
+                        )}
+                      </span>
                       <span>{t('nav.notifications')}</span>
                     </button>
                     <NotificationsDropdown
@@ -313,6 +351,8 @@ export default function Navbar() {
                       onClose={closeNotifications}
                       menuRef={mobileNotificationsRef}
                       placement="top"
+                      requests={notificationRequests}
+                      onRequestsChange={setNotificationRequests}
                     />
                   </div>
                   <button
