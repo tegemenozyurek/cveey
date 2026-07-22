@@ -16,30 +16,7 @@ import { clearCachedProfile, readCachedProfile, writeCachedProfile } from '../pr
 import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
 import { downloadCvFile, uploadProfilePhoto } from '../storageService'
 import TurkishCitySelect from '../components/createCv/shared/TurkishCitySelect'
-
-const MOCK_MY_NETWORK = [
-  {
-    id: 'n1',
-    displayName: 'Ayşe Kara',
-    headline: 'Backend Engineer · Go',
-    location: 'Istanbul, TR',
-    photoURL: null,
-  },
-  {
-    id: 'n2',
-    displayName: 'James Okonkwo',
-    headline: 'Engineering Manager',
-    location: 'Amsterdam, NL',
-    photoURL: null,
-  },
-  {
-    id: 'n3',
-    displayName: 'Lina Andersson',
-    headline: 'UX Researcher',
-    location: 'Stockholm, SE',
-    photoURL: null,
-  },
-]
+import { subscribeToUserNetworks } from '../networkService'
 
 function authMethodLabel(method, t) {
   if (method === 'google') return t('profile.authGoogle')
@@ -1072,12 +1049,12 @@ function EditableProfileField({
   )
 }
 
-function PersonRow({ person, actionLabel, iconOnly = false }) {
+function PersonRow({ person, actionLabel, iconOnly = false, onAction }) {
   return (
     <li className="network-person">
       <UserAvatar user={person} className="network-person-avatar" />
       <div className="network-person-info">
-        <p className="network-person-name">{person.displayName || person.email}</p>
+        <p className="network-person-name">{person.displayName || person.username || person.email}</p>
         {person.headline ? <p className="network-person-headline">{person.headline}</p> : null}
         {person.location || person.homeCity ? (
           <p className="network-person-location">{person.location || person.homeCity}</p>
@@ -1088,6 +1065,8 @@ function PersonRow({ person, actionLabel, iconOnly = false }) {
         className={`network-connect-btn${iconOnly ? ' network-connect-btn--icon' : ''}`}
         aria-label={actionLabel}
         title={actionLabel}
+        onClick={onAction}
+        disabled={!onAction}
       >
         {iconOnly ? <MessageIcon /> : actionLabel}
       </button>
@@ -1311,6 +1290,7 @@ function ActiveCvPanel({ t }) {
 export default function Profile() {
   const { user, authLoading, setShowLogoutConfirm, setShowDeleteConfirm, refreshUser } = useAuth()
   const { t } = useLanguage()
+  const navigate = useNavigate()
   const { files, activeFileId } = useResume()
   const photoInputRef = useRef(null)
   const [panel, setPanel] = useState(null)
@@ -1329,6 +1309,8 @@ export default function Profile() {
   const [educations, setEducations] = useState([])
   const [summary, setSummary] = useState('')
   const [profileDataLoading, setProfileDataLoading] = useState(true)
+  const [myNetwork, setMyNetwork] = useState([])
+  const [myNetworkLoading, setMyNetworkLoading] = useState(true)
 
   const cachedProfile = user?.uid ? readCachedProfile(user.uid) : null
   const profileView =
@@ -1386,6 +1368,27 @@ export default function Profile() {
     return () => {
       cancelled = true
     }
+  }, [user?.uid])
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setMyNetwork([])
+      setMyNetworkLoading(false)
+      return undefined
+    }
+
+    setMyNetworkLoading(true)
+    return subscribeToUserNetworks(
+      user.uid,
+      (people) => {
+        setMyNetwork(people)
+        setMyNetworkLoading(false)
+      },
+      () => {
+        setMyNetwork([])
+        setMyNetworkLoading(false)
+      },
+    )
   }, [user?.uid])
 
   function togglePanel(next) {
@@ -1621,14 +1624,20 @@ export default function Profile() {
                 </button>
               </div>
               <ul className="network-people-list">
-                {MOCK_MY_NETWORK.map((person) => (
-                  <PersonRow
-                    key={person.id}
-                    person={person}
-                    actionLabel={t('network.message')}
-                    iconOnly
-                  />
-                ))}
+                {myNetworkLoading ? (
+                  <li className="network-empty">{t('network.loading')}</li>
+                ) : myNetwork.length === 0 ? (
+                  <li className="network-empty">{t('network.noConnections')}</li>
+                ) : (
+                  myNetwork.map((person) => (
+                    <PersonRow
+                      key={person.id}
+                      person={person}
+                      actionLabel={t('network.connect')}
+                      onAction={() => navigate(`/profile/${person.uid}`)}
+                    />
+                  ))
+                )}
               </ul>
             </div>
           ) : null}

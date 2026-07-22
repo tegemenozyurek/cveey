@@ -1,34 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import LockIcon from '../components/LockIcon'
 import UserAvatar from '../components/UserAvatar'
+import { subscribeToUserNetworks } from '../networkService'
 import { searchUsersByUsername } from '../userService'
-
-const MOCK_MY_NETWORK = [
-  {
-    id: 'n1',
-    displayName: 'Ayşe Kara',
-    headline: 'Backend Engineer · Go',
-    location: 'Istanbul, TR',
-    photoURL: null,
-  },
-  {
-    id: 'n2',
-    displayName: 'James Okonkwo',
-    headline: 'Engineering Manager',
-    location: 'Amsterdam, NL',
-    photoURL: null,
-  },
-  {
-    id: 'n3',
-    displayName: 'Lina Andersson',
-    headline: 'UX Researcher',
-    location: 'Stockholm, SE',
-    photoURL: null,
-  },
-]
 
 const SEARCH_DEBOUNCE_MS = 300
 
@@ -137,6 +114,8 @@ export default function Network() {
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState('')
   const [showMyNetwork, setShowMyNetwork] = useState(false)
+  const [myNetwork, setMyNetwork] = useState([])
+  const [myNetworkLoading, setMyNetworkLoading] = useState(true)
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -144,6 +123,27 @@ export default function Network() {
     }, SEARCH_DEBOUNCE_MS)
     return () => window.clearTimeout(id)
   }, [query])
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setMyNetwork([])
+      setMyNetworkLoading(false)
+      return undefined
+    }
+
+    setMyNetworkLoading(true)
+    return subscribeToUserNetworks(
+      user.uid,
+      (people) => {
+        setMyNetwork(people)
+        setMyNetworkLoading(false)
+      },
+      () => {
+        setMyNetwork([])
+        setMyNetworkLoading(false)
+      },
+    )
+  }, [user?.uid])
 
   const isSearching = !showMyNetwork && debouncedQuery.length >= 3
 
@@ -178,8 +178,6 @@ export default function Network() {
       cancelled = true
     }
   }, [debouncedQuery, isSearching, user, t])
-
-  const myNetwork = useMemo(() => MOCK_MY_NETWORK, [])
 
   if (authLoading) {
     return (
@@ -236,14 +234,20 @@ export default function Network() {
             </div>
 
             <ul className="network-people-list">
-              {myNetwork.map((person) => (
-                <PersonRow
-                  key={person.id}
-                  person={person}
-                  actionLabel={t('network.message')}
-                  iconOnly
-                />
-              ))}
+              {myNetworkLoading ? (
+                <li className="network-empty">{t('network.loading')}</li>
+              ) : myNetwork.length === 0 ? (
+                <li className="network-empty">{t('network.noConnections')}</li>
+              ) : (
+                myNetwork.map((person) => (
+                  <PersonRow
+                    key={person.id}
+                    person={person}
+                    actionLabel={t('network.connect')}
+                    onAction={() => navigate(`/profile/${person.uid}`)}
+                  />
+                ))
+              )}
             </ul>
           </section>
         ) : (

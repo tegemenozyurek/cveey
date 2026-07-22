@@ -542,7 +542,10 @@ service cloud.firestore {
         allow get: if isAuthenticated() && (
           isOwner(userId) || request.auth.uid == notificationId
         );
-        allow list: if isOwner(userId);
+        allow list: if isOwner(userId) || (
+          resource.data.keys().hasAny(['fromUid']) &&
+          resource.data.fromUid == request.auth.uid
+        );
         allow create: if isAuthenticated() &&
           request.auth.uid != userId &&
           isValidConnectionRequestNotificationCreate(request.resource.data) &&

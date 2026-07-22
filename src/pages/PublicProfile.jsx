@@ -10,6 +10,7 @@ import {
   getOutgoingConnectionRequest,
   sendConnectionRequest,
 } from '../connectionService'
+import { areUsersConnected, removeNetworkConnection } from '../networkService'
 import { downloadCvFile, getPublicActiveCv } from '../storageService'
 
 function stripPdfExtension(name) {
@@ -334,9 +335,10 @@ export default function PublicProfile() {
   const [summary, setSummary] = useState('')
   const [photoURL, setPhotoURL] = useState('')
   const [panel, setPanel] = useState(null)
-  const [requestStatus, setRequestStatus] = useState('idle') // idle | pending | loading
+  const [requestStatus, setRequestStatus] = useState('idle') // idle | pending | connected | loading
   const [requestBusy, setRequestBusy] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [activeCv, setActiveCv] = useState(null)
   const [cvLoading, setCvLoading] = useState(true)
 
@@ -402,13 +404,20 @@ export default function PublicProfile() {
     let cancelled = false
     setRequestStatus('loading')
 
-    getOutgoingConnectionRequest(user.uid, uid)
-      .then((request) => {
+    Promise.all([
+      areUsersConnected(user.uid, uid),
+      getOutgoingConnectionRequest(user.uid, uid),
+    ])
+      .then(([connected, request]) => {
         if (cancelled) return
+        if (connected) {
+          setRequestStatus('connected')
+          return
+        }
         setRequestStatus(request?.status === 'pending' ? 'pending' : 'idle')
       })
       .catch((err) => {
-        console.error('Connection request lookup failed:', err)
+        console.error('Connection status lookup failed:', err)
         if (!cancelled) setRequestStatus('idle')
       })
 
@@ -419,6 +428,11 @@ export default function PublicProfile() {
 
   async function handleConnectClick() {
     if (!user?.uid || !uid || requestBusy || requestStatus === 'loading') return
+
+    if (requestStatus === 'connected') {
+      setShowRemoveConfirm(true)
+      return
+    }
 
     if (requestStatus === 'pending') {
       setShowCancelConfirm(true)
@@ -446,6 +460,21 @@ export default function PublicProfile() {
       setShowCancelConfirm(false)
     } catch (err) {
       console.error('Cancel connection request failed:', err)
+    } finally {
+      setRequestBusy(false)
+    }
+  }
+
+  async function handleConfirmRemove() {
+    if (!user?.uid || !uid || requestBusy) return
+
+    setRequestBusy(true)
+    try {
+      await removeNetworkConnection(user.uid, uid)
+      setRequestStatus('idle')
+      setShowRemoveConfirm(false)
+    } catch (err) {
+      console.error('Remove network connection failed:', err)
     } finally {
       setRequestBusy(false)
     }
@@ -492,7 +521,11 @@ export default function PublicProfile() {
   const summaryText = summary.trim()
   const displayName = username || t('profile.untitled')
   const connectLabel =
-    requestStatus === 'pending' ? t('profile.requested') : t('profile.connect')
+    requestStatus === 'connected'
+      ? t('profile.connected')
+      : requestStatus === 'pending'
+        ? t('profile.requested')
+        : t('profile.connect')
 
   return (
     <main className="main profile-page">
@@ -533,12 +566,14 @@ export default function PublicProfile() {
               </button>
               <button
                 type="button"
-                className={`profile-connect-btn${
-                  requestStatus === 'pending' ? ' profile-connect-btn--requested' : ''
-                }`}
+                className={[
+                  'profile-connect-btn',
+                  requestStatus === 'pending' ? 'profile-connect-btn--requested' : '',
+                  requestStatus === 'connected' ? 'profile-connect-btn--connected' : '',
+                ].filter(Boolean).join(' ')}
                 onClick={handleConnectClick}
                 disabled={requestBusy || requestStatus === 'loading'}
-                aria-pressed={requestStatus === 'pending'}
+                aria-pressed={requestStatus === 'pending' || requestStatus === 'connected'}
               >
                 {connectLabel}
               </button>
@@ -626,6 +661,19 @@ export default function PublicProfile() {
           busy={requestBusy}
           onCancel={() => setShowCancelConfirm(false)}
           onConfirm={handleConfirmCancel}
+        />
+      ) : null}
+
+      {showRemoveConfirm ? (
+        <ConfirmCancelRequestModal
+          busy={requestBusy}
+          danger
+          title={t('profile.removeNetworkTitle')}
+          text={t('profile.removeNetworkText')}
+          confirmLabel={t('profile.removeNetworkConfirm')}
+          keepLabel={t('profile.removeNetworkKeep')}
+          onCancel={() => setShowRemoveConfirm(false)}
+          onConfirm={handleConfirmRemove}
         />
       ) : null}
     </main>
