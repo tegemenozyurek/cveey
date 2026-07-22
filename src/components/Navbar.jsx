@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import NotificationsDropdown from './NotificationsDropdown'
 import UserAvatar from './UserAvatar'
 
 const NAV_ITEMS = [
@@ -71,11 +72,15 @@ export default function Navbar() {
   const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const desktopNotificationsRef = useRef(null)
+  const mobileNotificationsRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
 
   useEffect(() => {
     setMobileNavOpen(false)
+    setNotificationsOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
@@ -84,9 +89,15 @@ export default function Navbar() {
   }, [mobileNavOpen])
 
   const closeMobileNav = () => setMobileNavOpen(false)
+  const closeNotifications = useCallback(() => setNotificationsOpen(false), [])
+
+  const toggleNotifications = () => {
+    setNotificationsOpen((open) => !open)
+  }
 
   const goTo = (path) => {
     closeMobileNav()
+    setNotificationsOpen(false)
     navigate(path)
   }
 
@@ -122,15 +133,25 @@ export default function Navbar() {
           ) : (
             <div className="navbar-user-actions">
               <div className="navbar-icon-group">
-                <button
-                  type="button"
-                  className="navbar-icon-btn"
-                  onClick={() => goTo('/notifications')}
-                  aria-label={t('nav.notifications')}
-                  title={t('nav.notifications')}
-                >
-                  <BellIcon />
-                </button>
+                <div className="notifications-menu" ref={desktopNotificationsRef}>
+                  <button
+                    type="button"
+                    className={`navbar-icon-btn${notificationsOpen ? ' navbar-icon-btn--open' : ''}`}
+                    onClick={toggleNotifications}
+                    aria-label={t('nav.notifications')}
+                    title={t('nav.notifications')}
+                    aria-expanded={notificationsOpen}
+                    aria-haspopup="dialog"
+                  >
+                    <BellIcon />
+                  </button>
+                  <NotificationsDropdown
+                    open={notificationsOpen && !mobileNavOpen}
+                    onClose={closeNotifications}
+                    menuRef={desktopNotificationsRef}
+                    placement="bottom"
+                  />
+                </div>
                 <button
                   type="button"
                   className="navbar-icon-btn"
@@ -195,15 +216,25 @@ export default function Navbar() {
             ) : user ? (
               <div className="mobile-nav-footer">
                 <div className="mobile-nav-footer-icons">
-                  <button
-                    type="button"
-                    className="navbar-icon-btn"
-                    onClick={() => goTo('/notifications')}
-                    aria-label={t('nav.notifications')}
-                    title={t('nav.notifications')}
-                  >
-                    <BellIcon />
-                  </button>
+                  <div className="notifications-menu" ref={mobileNotificationsRef}>
+                    <button
+                      type="button"
+                      className={`navbar-icon-btn${notificationsOpen ? ' navbar-icon-btn--open' : ''}`}
+                      onClick={toggleNotifications}
+                      aria-label={t('nav.notifications')}
+                      title={t('nav.notifications')}
+                      aria-expanded={notificationsOpen}
+                      aria-haspopup="dialog"
+                    >
+                      <BellIcon />
+                    </button>
+                    <NotificationsDropdown
+                      open={notificationsOpen && mobileNavOpen}
+                      onClose={closeNotifications}
+                      menuRef={mobileNotificationsRef}
+                      placement="top"
+                    />
+                  </div>
                   <button
                     type="button"
                     className="navbar-icon-btn"

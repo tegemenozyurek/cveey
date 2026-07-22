@@ -19,6 +19,10 @@ export const translations = {
     'nav.messages': 'Messages',
     'nav.inbox': 'Inbox',
     'nav.notifications': 'Notifications',
+    'notifications.wantToConnect': '{name} wants to connect!',
+    'notifications.accept': 'Accept',
+    'notifications.reject': 'Reject',
+    'notifications.empty': 'No new notifications.',
 
     'logout.title': 'Log out?',
     'logout.text': 'Are you sure you want to log out of your account?',
@@ -573,6 +577,10 @@ export const translations = {
     'nav.messages': 'Mesajlar',
     'nav.inbox': 'Gelen kutusu',
     'nav.notifications': 'Bildirimler',
+    'notifications.wantToConnect': '{name} bağlanmak istiyor!',
+    'notifications.accept': 'Kabul et',
+    'notifications.reject': 'Reddet',
+    'notifications.empty': 'Yeni bildirim yok.',
 
     'logout.title': 'Çıkış yapılsın mı?',
     'logout.text': 'Hesabınızdan çıkış yapmak istediğinize emin misiniz?',
