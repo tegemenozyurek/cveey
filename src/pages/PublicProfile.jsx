@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { Download, Search } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import UserAvatar from '../components/UserAvatar'
@@ -302,19 +303,23 @@ function PublicActiveCvPanel({ t, activeCv, loading }) {
           <div className="profile-cv-actions" role="group" aria-label={t('profile.activeCv')}>
             <button
               type="button"
-              className="profile-cv-action"
+              className="profile-cv-icon-btn profile-cv-icon-btn--preview"
               onClick={handlePreview}
               disabled={!previewUrl}
+              aria-label={t('profile.cvPreview')}
+              title={t('profile.cvPreview')}
             >
-              {t('profile.cvPreview')}
+              <Search size={18} strokeWidth={1.9} aria-hidden="true" />
             </button>
             <button
               type="button"
-              className="profile-cv-action"
+              className="profile-cv-icon-btn profile-cv-icon-btn--download"
               onClick={() => void handleDownload()}
               disabled={!activeCv.fullPath || downloading}
+              aria-label={downloading ? t('profile.cvDownloading') : t('profile.cvDownload')}
+              title={downloading ? t('profile.cvDownloading') : t('profile.cvDownload')}
             >
-              {downloading ? t('profile.cvDownloading') : t('profile.cvDownload')}
+              <Download size={18} strokeWidth={1.9} aria-hidden="true" />
             </button>
           </div>
         ) : null}

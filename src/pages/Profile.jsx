@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { createPortal } from 'react-dom'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { updateProfile } from 'firebase/auth'
+import { Download, Eye, EyeOff, Pencil, Search } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useResume } from '../context/ResumeContext'
@@ -1280,29 +1281,46 @@ function ActiveCvPanel({ t }) {
           <div className="profile-cv-actions" role="group" aria-label={t('profile.activeCv')}>
             <button
               type="button"
-              className="profile-cv-action"
+              className="profile-cv-icon-btn profile-cv-icon-btn--preview"
               onClick={handlePreview}
-              disabled={cvHidden || !activePreviewUrl}
+              disabled={!activePreviewUrl}
+              aria-label={t('profile.cvPreview')}
+              title={t('profile.cvPreview')}
             >
-              {t('profile.cvPreview')}
+              <Search size={18} strokeWidth={1.9} aria-hidden="true" />
             </button>
             <button
               type="button"
-              className="profile-cv-action"
+              className="profile-cv-icon-btn profile-cv-icon-btn--download"
               onClick={() => void handleDownload()}
-              disabled={cvHidden || !activeCv.fullPath || downloading}
+              disabled={!activeCv.fullPath || downloading}
+              aria-label={downloading ? t('profile.cvDownloading') : t('profile.cvDownload')}
+              title={downloading ? t('profile.cvDownloading') : t('profile.cvDownload')}
             >
-              {downloading ? t('profile.cvDownloading') : t('profile.cvDownload')}
-            </button>
-            <button type="button" className="profile-cv-action" onClick={() => navigate('/my-cv')}>
-              {t('profile.cvChange')}
+              <Download size={18} strokeWidth={1.9} aria-hidden="true" />
             </button>
             <button
               type="button"
-              className={`profile-cv-action${cvHidden ? ' profile-cv-action--on' : ''}`}
-              onClick={() => setCvHidden((v) => !v)}
+              className="profile-cv-icon-btn profile-cv-icon-btn--edit"
+              onClick={() => navigate('/my-cv')}
+              aria-label={t('profile.cvChange')}
+              title={t('profile.cvChange')}
             >
-              {cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
+              <Pencil size={18} strokeWidth={1.9} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className={`profile-cv-icon-btn profile-cv-icon-btn--hide${cvHidden ? ' profile-cv-icon-btn--active' : ''}`}
+              onClick={() => setCvHidden((v) => !v)}
+              aria-label={cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
+              title={cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
+              aria-pressed={cvHidden}
+            >
+              {cvHidden ? (
+                <Eye size={18} strokeWidth={1.9} aria-hidden="true" />
+              ) : (
+                <EyeOff size={18} strokeWidth={1.9} aria-hidden="true" />
+              )}
             </button>
           </div>
         ) : null}
