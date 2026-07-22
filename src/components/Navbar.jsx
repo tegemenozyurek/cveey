@@ -1,14 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import NotificationsDropdown from './NotificationsDropdown'
 import UserAvatar from './UserAvatar'
+import {
+  acceptConnectionNotification,
+  rejectConnectionNotification,
+  subscribeToConnectionNotifications,
+} from '../notificationService'
 
 const NAV_ITEMS = [
-  { to: '/', key: 'nav.home', end: true },
-  { to: '/jobs', key: 'nav.jobs' },
-  { to: '/network', key: 'nav.network' },
-  { to: '/my-cv', key: 'nav.myCv' },
+  { to: '/', key: 'nav.home', end: true, icon: 'home' },
+  { to: '/jobs', key: 'nav.jobs', icon: 'jobs' },
+  { to: '/network', key: 'nav.network', icon: 'network' },
+  { to: '/my-cv', key: 'nav.myCv', icon: 'cv' },
 ]
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS
@@ -67,15 +73,90 @@ function BellIcon() {
   )
 }
 
+function NavItemIcon({ name }) {
+  const common = {
+    width: 20,
+    height: 20,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    'aria-hidden': true,
+  }
+  const stroke = {
+    stroke: 'currentColor',
+    strokeWidth: 1.75,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+  }
+
+  switch (name) {
+    case 'home':
+      return (
+        <svg {...common}>
+          <path d="M3 10.5L12 3l9 7.5" {...stroke} />
+          <path d="M5 9.5V20h14V9.5" {...stroke} />
+        </svg>
+      )
+    case 'jobs':
+      return (
+        <svg {...common}>
+          <path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" {...stroke} />
+          <rect x="3" y="7" width="18" height="14" rx="2" {...stroke} />
+          <path d="M3 13h18" {...stroke} />
+        </svg>
+      )
+    case 'network':
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="8" r="3" {...stroke} />
+          <circle cx="17" cy="9" r="2.5" {...stroke} />
+          <path d="M3 19a6 6 0 0112 0" {...stroke} />
+          <path d="M14.5 19a4.5 4.5 0 016.5-4" {...stroke} />
+        </svg>
+      )
+    case 'cv':
+      return (
+        <svg {...common}>
+          <path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z" {...stroke} />
+          <path d="M14 3v5h5M9 13h6M9 17h4" {...stroke} />
+        </svg>
+      )
+    default:
+      return null
+  }
+}
+
+function ChevronIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9 6l6 6-6 6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export default function Navbar() {
   const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [notificationRequests, setNotificationRequests] = useState([])
+  const desktopNotificationsRef = useRef(null)
+  const mobileNotificationsRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
 
+  const notificationCount = notificationRequests.length
+  const hasNotifications = notificationCount > 0
+  const badgeLabel = notificationCount > 9 ? '9+' : String(notificationCount)
+
   useEffect(() => {
     setMobileNavOpen(false)
+    setNotificationsOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
@@ -83,15 +164,45 @@ export default function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [mobileNavOpen])
 
+  useEffect(() => {
+    if (!user?.uid) {
+      setNotificationRequests([])
+      return undefined
+    }
+
+    return subscribeToConnectionNotifications(user.uid, setNotificationRequests)
+  }, [user?.uid])
+
   const closeMobileNav = () => setMobileNavOpen(false)
+  const closeNotifications = useCallback(() => setNotificationsOpen(false), [])
+
+  const handleAcceptNotification = useCallback(async (request) => {
+    if (!user?.uid || !request?.fromUid) return
+    await acceptConnectionNotification(user.uid, request.fromUid)
+  }, [user?.uid])
+
+  const handleRejectNotification = useCallback(async (request) => {
+    if (!user?.uid || !request?.fromUid) return
+    await rejectConnectionNotification(user.uid, request.fromUid)
+  }, [user?.uid])
+
+  const toggleNotifications = () => {
+    setNotificationsOpen((open) => !open)
+  }
 
   const goTo = (path) => {
     closeMobileNav()
+    setNotificationsOpen(false)
     navigate(path)
   }
 
   const navLinkClass = ({ isActive }) =>
     `nav-link${isActive ? ' nav-link--active' : ''}`
+
+  const mobileNavLinkClass = ({ isActive }) =>
+    `mobile-nav-link${isActive ? ' mobile-nav-link--active' : ''}`
+
+  const profileLabel = user?.displayName?.trim() || user?.email || t('nav.profile')
 
   return (
     <header className="navbar">
@@ -122,15 +233,38 @@ export default function Navbar() {
           ) : (
             <div className="navbar-user-actions">
               <div className="navbar-icon-group">
-                <button
-                  type="button"
-                  className="navbar-icon-btn"
-                  onClick={() => goTo('/notifications')}
-                  aria-label={t('nav.notifications')}
-                  title={t('nav.notifications')}
-                >
-                  <BellIcon />
-                </button>
+                <div className="notifications-menu" ref={desktopNotificationsRef}>
+                  <button
+                    type="button"
+                    className={[
+                      'navbar-icon-btn',
+                      'notifications-trigger',
+                      notificationsOpen ? 'navbar-icon-btn--open' : '',
+                      hasNotifications && !notificationsOpen ? 'notifications-trigger--alert' : '',
+                    ].filter(Boolean).join(' ')}
+                    onClick={toggleNotifications}
+                    aria-label={t('nav.notifications')}
+                    title={t('nav.notifications')}
+                    aria-expanded={notificationsOpen}
+                    aria-haspopup="dialog"
+                  >
+                    <BellIcon />
+                    {hasNotifications && (
+                      <span className="notifications-badge" aria-hidden="true">
+                        {badgeLabel}
+                      </span>
+                    )}
+                  </button>
+                  <NotificationsDropdown
+                    open={notificationsOpen && !mobileNavOpen}
+                    onClose={closeNotifications}
+                    menuRef={desktopNotificationsRef}
+                    placement="bottom"
+                    requests={notificationRequests}
+                    onAccept={handleAcceptNotification}
+                    onReject={handleRejectNotification}
+                  />
+                </div>
                 <button
                   type="button"
                   className="navbar-icon-btn"
@@ -155,12 +289,21 @@ export default function Navbar() {
 
           <button
             type="button"
-            className={`burger-btn${mobileNavOpen ? ' burger-btn--open' : ''}`}
+            className={[
+              'burger-btn',
+              mobileNavOpen ? 'burger-btn--open' : '',
+              hasNotifications && !mobileNavOpen ? 'burger-btn--alert' : '',
+            ].filter(Boolean).join(' ')}
             onClick={() => setMobileNavOpen((v) => !v)}
             aria-expanded={mobileNavOpen}
             aria-label={mobileNavOpen ? t('nav.closeMenu') : t('nav.openMenu')}
           >
             <BurgerIcon open={mobileNavOpen} />
+            {hasNotifications && !mobileNavOpen && (
+              <span className="notifications-badge notifications-badge--burger" aria-hidden="true">
+                {badgeLabel}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -174,16 +317,26 @@ export default function Navbar() {
             onClick={closeMobileNav}
           />
           <div className="mobile-nav-panel">
+            <div className="mobile-nav-brand">
+              <Link to="/" className="logo mobile-nav-logo" onClick={closeMobileNav}>
+                cve<span>ey</span>
+              </Link>
+            </div>
+
             <nav className="mobile-nav-links" aria-label={t('nav.mainNav')}>
-              {MOBILE_NAV_ITEMS.map(({ to, key, end }) => (
+              {MOBILE_NAV_ITEMS.map(({ to, key, end, icon }, index) => (
                 <NavLink
                   key={to}
                   to={to}
                   end={end}
-                  className={navLinkClass}
+                  className={mobileNavLinkClass}
                   onClick={closeMobileNav}
+                  style={{ '--nav-i': String(index) }}
                 >
-                  {t(key)}
+                  <span className="mobile-nav-link-icon">
+                    <NavItemIcon name={icon} />
+                  </span>
+                  <span className="mobile-nav-link-label">{t(key)}</span>
                 </NavLink>
               ))}
             </nav>
@@ -194,34 +347,63 @@ export default function Navbar() {
               </div>
             ) : user ? (
               <div className="mobile-nav-footer">
-                <div className="mobile-nav-footer-icons">
+                <div className="mobile-nav-quick">
+                  <div className="notifications-menu" ref={mobileNotificationsRef}>
+                    <button
+                      type="button"
+                      className={[
+                        'mobile-nav-quick-btn',
+                        'notifications-trigger',
+                        notificationsOpen ? 'mobile-nav-quick-btn--open' : '',
+                        hasNotifications && !notificationsOpen ? 'notifications-trigger--alert' : '',
+                      ].filter(Boolean).join(' ')}
+                      onClick={toggleNotifications}
+                      aria-expanded={notificationsOpen}
+                      aria-haspopup="dialog"
+                    >
+                      <span className="mobile-nav-quick-btn-icon">
+                        <BellIcon />
+                        {hasNotifications && (
+                          <span className="notifications-badge" aria-hidden="true">
+                            {badgeLabel}
+                          </span>
+                        )}
+                      </span>
+                      <span>{t('nav.notifications')}</span>
+                    </button>
+                    <NotificationsDropdown
+                      open={notificationsOpen && mobileNavOpen}
+                      onClose={closeNotifications}
+                      menuRef={mobileNotificationsRef}
+                      placement="top"
+                      requests={notificationRequests}
+                      onAccept={handleAcceptNotification}
+                      onReject={handleRejectNotification}
+                    />
+                  </div>
                   <button
                     type="button"
-                    className="navbar-icon-btn"
-                    onClick={() => goTo('/notifications')}
-                    aria-label={t('nav.notifications')}
-                    title={t('nav.notifications')}
-                  >
-                    <BellIcon />
-                  </button>
-                  <button
-                    type="button"
-                    className="navbar-icon-btn"
+                    className="mobile-nav-quick-btn"
                     onClick={() => goTo('/messages')}
-                    aria-label={t('nav.messages')}
-                    title={t('nav.messages')}
                   >
                     <InboxIcon />
+                    <span>{t('nav.messages')}</span>
                   </button>
                 </div>
+
                 <button
                   type="button"
-                  className="profile-trigger"
+                  className="mobile-nav-profile"
                   onClick={() => goTo('/profile')}
-                  aria-label={t('nav.profile')}
-                  title={t('nav.profile')}
                 >
-                  <UserAvatar user={user} />
+                  <UserAvatar user={user} className="mobile-nav-profile-avatar" />
+                  <span className="mobile-nav-profile-text">
+                    <span className="mobile-nav-profile-name">{profileLabel}</span>
+                    <span className="mobile-nav-profile-hint">{t('nav.profile')}</span>
+                  </span>
+                  <span className="mobile-nav-profile-chevron" aria-hidden="true">
+                    <ChevronIcon />
+                  </span>
                 </button>
               </div>
             ) : (
