@@ -60,7 +60,11 @@ export default function NotificationsDropdown({ open, onClose, menuRef, placemen
               </div>
               <div className="notification-request-content">
                 <p className="notification-request-text">
-                  {t('notifications.wantToConnect', { name: request.name })}
+                  <strong className="notification-request-name">{request.name}</strong>
+                  {' '}
+                  <span className="notification-request-message">
+                    {t('notifications.wantToConnectSuffix')}
+                  </span>
                 </p>
                 <div className="notification-request-actions">
                   <button
