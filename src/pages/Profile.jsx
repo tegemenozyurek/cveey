@@ -18,30 +18,7 @@ import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversit
 import { downloadCvFile, uploadProfilePhoto } from '../storageService'
 import TurkishCitySelect from '../components/createCv/shared/TurkishCitySelect'
 import ProfileHeroEmail from '../components/ProfileHeroEmail'
-
-const MOCK_MY_NETWORK = [
-  {
-    id: 'n1',
-    displayName: 'Ayşe Kara',
-    headline: 'Backend Engineer · Go',
-    location: 'Istanbul, TR',
-    photoURL: null,
-  },
-  {
-    id: 'n2',
-    displayName: 'James Okonkwo',
-    headline: 'Engineering Manager',
-    location: 'Amsterdam, NL',
-    photoURL: null,
-  },
-  {
-    id: 'n3',
-    displayName: 'Lina Andersson',
-    headline: 'UX Researcher',
-    location: 'Stockholm, SE',
-    photoURL: null,
-  },
-]
+import { subscribeToUserNetworks } from '../networkService'
 
 function authMethodLabel(method, t) {
   if (method === 'google') return t('profile.authGoogle')
