@@ -17,7 +17,7 @@ export default function NotificationsDropdown({
   onRequestsChange,
 }) {
   const { t } = useLanguage()
-  const [acceptingId, setAcceptingId] = useState(null)
+  const [pendingAction, setPendingAction] = useState(null)
 
   useEffect(() => {
     if (!open) return undefined
@@ -42,18 +42,13 @@ export default function NotificationsDropdown({
 
   if (!open) return null
 
-  const acceptRequest = (id) => {
-    if (acceptingId) return
-    setAcceptingId(id)
+  const runAction = (id, type) => {
+    if (pendingAction) return
+    setPendingAction({ id, type })
     window.setTimeout(() => {
       onRequestsChange((prev) => prev.filter((item) => item.id !== id))
-      setAcceptingId(null)
+      setPendingAction(null)
     }, 420)
-  }
-
-  const removeRequest = (id) => {
-    if (acceptingId) return
-    onRequestsChange((prev) => prev.filter((item) => item.id !== id))
   }
 
   return (
@@ -71,38 +66,45 @@ export default function NotificationsDropdown({
           <p className="notifications-dropdown-empty">{t('notifications.empty')}</p>
         ) : (
           requests.map((request) => {
-            const isAccepting = acceptingId === request.id
+            const actionType = pendingAction?.id === request.id ? pendingAction.type : null
+            const isBusy = Boolean(actionType)
             return (
               <article
                 key={request.id}
-                className={`notification-request-card${isAccepting ? ' notification-request-card--accepted' : ''}`}
+                className={[
+                  'notification-request-card',
+                  actionType === 'accept' ? 'notification-request-card--accepted' : '',
+                  actionType === 'reject' ? 'notification-request-card--rejected' : '',
+                ].filter(Boolean).join(' ')}
               >
                 <div className="notification-request-avatar" aria-hidden="true">
-                  {isAccepting ? '✓' : request.name.charAt(0)}
+                  {actionType === 'accept' ? '✓' : actionType === 'reject' ? '✕' : request.name.charAt(0)}
                 </div>
                 <div className="notification-request-content">
                   <p className="notification-request-text">
                     <strong className="notification-request-name">{request.name}</strong>
                     {' '}
                     <span className="notification-request-message">
-                      {isAccepting
+                      {actionType === 'accept'
                         ? t('notifications.accepted')
-                        : t('notifications.wantToConnectSuffix')}
+                        : actionType === 'reject'
+                          ? t('notifications.rejected')
+                          : t('notifications.wantToConnectSuffix')}
                     </span>
                   </p>
-                  {!isAccepting && (
+                  {!isBusy && (
                     <div className="notification-request-actions">
                       <button
                         type="button"
                         className="notification-request-btn notification-request-btn--accept"
-                        onClick={() => acceptRequest(request.id)}
+                        onClick={() => runAction(request.id, 'accept')}
                       >
                         {t('notifications.accept')}
                       </button>
                       <button
                         type="button"
                         className="notification-request-btn notification-request-btn--reject"
-                        onClick={() => removeRequest(request.id)}
+                        onClick={() => runAction(request.id, 'reject')}
                       >
                         {t('notifications.reject')}
                       </button>

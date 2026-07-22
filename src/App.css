@@ -3120,6 +3120,22 @@
   font-weight: 600;
 }
 
+.notification-request-card--rejected {
+  background: color-mix(in srgb, var(--accent-rose) 14%, transparent);
+  border-color: color-mix(in srgb, var(--accent-rose) 40%, var(--glass-border));
+  animation: notificationRejectOut 0.42s ease forwards;
+}
+
+.notification-request-card--rejected .notification-request-avatar {
+  background: color-mix(in srgb, var(--accent-rose) 24%, transparent);
+  color: var(--accent-rose);
+}
+
+.notification-request-card--rejected .notification-request-message {
+  color: var(--accent-rose);
+  font-weight: 600;
+}
+
 @keyframes notificationAcceptOut {
   0% {
     opacity: 1;
@@ -3132,6 +3148,21 @@
   100% {
     opacity: 0;
     transform: scale(0.98) translateX(8px);
+  }
+}
+
+@keyframes notificationRejectOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.99);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96) translateX(-8px);
   }
 }
 
