@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { updateProfile } from 'firebase/auth'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useResume } from '../context/ResumeContext'
@@ -10,10 +11,10 @@ import ThemeSwitcher from '../components/ThemeSwitcher'
 import ChangePasswordModal from '../components/ChangePasswordModal'
 import ChangeEmailModal from '../components/ChangeEmailModal'
 import { resolveAuthMethod, AUTH_METHOD_EMAIL_PASSWORD } from '../authUtils'
-import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserIdentity, saveUserProfileField } from '../userService'
+import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserIdentity, saveUserPhotoURL, saveUserProfileField } from '../userService'
 import { clearCachedProfile, readCachedProfile, writeCachedProfile } from '../profileCache'
 import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
-import { downloadCvFile } from '../storageService'
+import { downloadCvFile, uploadProfilePhoto } from '../storageService'
 import TurkishCitySelect from '../components/createCv/shared/TurkishCitySelect'
 
 const MOCK_MY_NETWORK = [
@@ -88,6 +89,21 @@ function SettingsIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  )
+}
+
+function CameraIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="1.75" />
     </svg>
   )
 }
@@ -1293,9 +1309,10 @@ function ActiveCvPanel({ t }) {
 }
 
 export default function Profile() {
-  const { user, authLoading, setShowLogoutConfirm, setShowDeleteConfirm } = useAuth()
+  const { user, authLoading, setShowLogoutConfirm, setShowDeleteConfirm, refreshUser } = useAuth()
   const { t } = useLanguage()
   const { files, activeFileId } = useResume()
+  const photoInputRef = useRef(null)
   const [panel, setPanel] = useState(null)
   const [showChangePassword, setShowChangePassword] = useState(false)
   const [showChangeEmail, setShowChangeEmail] = useState(false)
@@ -1306,6 +1323,8 @@ export default function Profile() {
   const [identitySaving, setIdentitySaving] = useState(false)
   const [identityError, setIdentityError] = useState('')
   const [identityNotice, setIdentityNotice] = useState(null)
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoNotice, setPhotoNotice] = useState(null)
   const [preferredWorkCities, setPreferredWorkCities] = useState([])
   const [educations, setEducations] = useState([])
   const [summary, setSummary] = useState('')
@@ -1386,6 +1405,12 @@ export default function Profile() {
     return () => window.clearTimeout(timer)
   }, [identityNotice])
 
+  useEffect(() => {
+    if (!photoNotice) return undefined
+    const timer = window.setTimeout(() => setPhotoNotice(null), 5000)
+    return () => window.clearTimeout(timer)
+  }, [photoNotice])
+
   async function handleSaveIdentity(event) {
     event.preventDefault()
     if (!user?.uid || identitySaving) return
@@ -1430,6 +1455,41 @@ export default function Profile() {
       })
     } finally {
       setIdentitySaving(false)
+    }
+  }
+
+  async function handleProfilePhotoChange(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!user?.uid || !file || photoUploading) return
+
+    setPhotoUploading(true)
+    setPhotoNotice(null)
+    try {
+      const { url } = await uploadProfilePhoto(user.uid, file)
+      await updateProfile(user, { photoURL: url })
+      await saveUserPhotoURL(user.uid, url)
+      await refreshUser?.()
+      setPhotoNotice({
+        type: 'success',
+        title: t('profile.photoSavedTitle'),
+        message: t('profile.photoSavedMessage'),
+      })
+    } catch (err) {
+      console.error('Profile photo upload failed:', err)
+      let message = t('profile.photoError')
+      if (err?.code === 'INVALID_PROFILE_PHOTO_TYPE') {
+        message = t('profile.photoInvalidType')
+      } else if (err?.code === 'PROFILE_PHOTO_TOO_LARGE') {
+        message = t('profile.photoTooLarge')
+      }
+      setPhotoNotice({
+        type: 'error',
+        title: t('profile.photoErrorTitle'),
+        message,
+      })
+    } finally {
+      setPhotoUploading(false)
     }
   }
 
@@ -1482,7 +1542,31 @@ export default function Profile() {
           <div className="profile-hero-glow" aria-hidden="true" />
           <div className="profile-hero-row">
             <div className="profile-hero-avatar-wrap">
-              <UserAvatar user={user} className="profile-page-avatar" />
+              <button
+                type="button"
+                className={`profile-hero-avatar-btn${photoUploading ? ' profile-hero-avatar-btn--busy' : ''}`}
+                onClick={() => photoInputRef.current?.click()}
+                disabled={photoUploading}
+                aria-label={t('profile.changePhoto')}
+                title={t('profile.changePhoto')}
+              >
+                <UserAvatar user={user} className="profile-page-avatar" />
+                <span className="profile-hero-avatar-overlay" aria-hidden="true">
+                  {photoUploading ? (
+                    <span className="profile-hero-avatar-spinner" />
+                  ) : (
+                    <CameraIcon />
+                  )}
+                </span>
+              </button>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="profile-hero-avatar-input"
+                onChange={handleProfilePhotoChange}
+                disabled={photoUploading}
+              />
             </div>
             <div className="profile-hero-text">
               <p className="profile-hero-name">@{profileUsername}</p>
@@ -1586,6 +1670,15 @@ export default function Profile() {
                 </section>
 
                 <section className="prefs-section" aria-label={t('prefs.profile')}>
+                  <style>{`
+                    #prefs-username.prefs-identity-input {
+                      padding-left: 12px !important;
+                      padding-bottom: 12px !important;
+                    }
+                    #prefs-home-city.prefs-identity-city-trigger {
+                      padding-left: 12px !important;
+                    }
+                  `}</style>
                   <form className="prefs-identity-form" onSubmit={handleSaveIdentity}>
                     <div className="prefs-identity-field">
                       <div className="prefs-row-leading">
@@ -1626,34 +1719,32 @@ export default function Profile() {
                           <p className="prefs-row-hint">{t('prefs.cityHint')}</p>
                         </div>
                       </div>
-                      <div className="prefs-identity-city">
-                        <TurkishCitySelect
-                          id="prefs-home-city"
-                          value={editHomeCity}
-                          onChange={(city) => {
-                            setEditHomeCity(city)
-                          }}
-                          placeholder={t('locationSetup.homeCityPlaceholder')}
-                          t={t}
-                        />
+                      <div className="prefs-identity-city-row">
+                        <div className="prefs-identity-city">
+                          <TurkishCitySelect
+                            id="prefs-home-city"
+                            value={editHomeCity}
+                            onChange={(city) => {
+                              setEditHomeCity(city)
+                            }}
+                            placeholder={t('locationSetup.homeCityPlaceholder')}
+                            t={t}
+                            triggerClassName="prefs-identity-city-trigger"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          className="prefs-action-btn prefs-identity-save"
+                          disabled={identitySaving}
+                        >
+                          {identitySaving ? t('prefs.identitySaving') : t('prefs.saveProfile')}
+                        </button>
                       </div>
-                    </div>
-
-                    <div className="prefs-identity-actions">
                       {identityError ? (
                         <p className="prefs-identity-status prefs-identity-status--error" role="alert">
                           {identityError}
                         </p>
-                      ) : (
-                        <span className="prefs-identity-status" />
-                      )}
-                      <button
-                        type="submit"
-                        className="prefs-action-btn"
-                        disabled={identitySaving}
-                      >
-                        {identitySaving ? t('prefs.identitySaving') : t('prefs.saveProfile')}
-                      </button>
+                      ) : null}
                     </div>
                   </form>
                 </section>
@@ -1793,29 +1884,38 @@ export default function Profile() {
         </div>
       </div>
 
-      {identityNotice
+      {(photoNotice || identityNotice)
         ? createPortal(
-            <div
-              className={`create-cv-toast create-cv-toast--${identityNotice.type}`}
-              role="status"
-              aria-live="polite"
-            >
-              <span className="create-cv-toast-icon" aria-hidden="true">
-                {identityNotice.type === 'success' ? '✓' : '!'}
-              </span>
-              <div className="create-cv-toast-copy">
-                <strong className="create-cv-toast-title">{identityNotice.title}</strong>
-                <p className="create-cv-toast-text">{identityNotice.message}</p>
-              </div>
-              <button
-                type="button"
-                className="create-cv-toast-close"
-                aria-label={t('prefs.dismissNotice')}
-                onClick={() => setIdentityNotice(null)}
-              >
-                ×
-              </button>
-            </div>,
+            (() => {
+              const notice = photoNotice || identityNotice
+              const dismiss = () => {
+                if (photoNotice) setPhotoNotice(null)
+                else setIdentityNotice(null)
+              }
+              return (
+                <div
+                  className={`create-cv-toast create-cv-toast--${notice.type}`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  <span className="create-cv-toast-icon" aria-hidden="true">
+                    {notice.type === 'success' ? '✓' : '!'}
+                  </span>
+                  <div className="create-cv-toast-copy">
+                    <strong className="create-cv-toast-title">{notice.title}</strong>
+                    <p className="create-cv-toast-text">{notice.message}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="create-cv-toast-close"
+                    aria-label={t('prefs.dismissNotice')}
+                    onClick={dismiss}
+                  >
+                    ×
+                  </button>
+                </div>
+              )
+            })(),
             document.body,
           )
         : null}

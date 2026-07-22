@@ -430,6 +430,17 @@ export async function saveUserProfileField(userId, field, value) {
   })
 }
 
+export async function saveUserPhotoURL(userId, photoURL) {
+  const normalized = typeof photoURL === 'string' ? photoURL.trim() : ''
+  if (!normalized || normalized.length > 2048 || !/^https:\/\//.test(normalized)) {
+    throw new Error('INVALID_PHOTO_URL')
+  }
+
+  await updateDoc(doc(db, 'users', userId), {
+    photoURL: normalized,
+  })
+}
+
 export async function syncUserToFirestore(user) {
   return withFirestoreAuthRetry(user, async () => {
     const userRef = doc(db, 'users', user.uid)
@@ -466,7 +477,7 @@ export async function syncUserToFirestore(user) {
       }
     }
 
-    if (photoURL !== prevPhotoURL) {
+    if (photoURL && photoURL !== prevPhotoURL) {
       patch.photoURL = photoURL
     }
 

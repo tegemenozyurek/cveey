@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function UserIcon() {
   return (
@@ -18,6 +18,10 @@ export default function UserAvatar({ user, className = 'profile-avatar' }) {
   const [imgError, setImgError] = useState(false)
   const photoURL = user?.photoURL
   const showPhoto = Boolean(photoURL && !imgError)
+
+  useEffect(() => {
+    setImgError(false)
+  }, [photoURL])
 
   if (showPhoto) {
     return (
