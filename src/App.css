@@ -2830,10 +2830,42 @@
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.04);
+  transition: opacity 0.3s ease, transform 0.3s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
 [data-theme='light'] .notification-request-card {
   background: rgba(15, 23, 42, 0.03);
+}
+
+.notification-request-card--accepted {
+  background: color-mix(in srgb, var(--accent-cyan) 16%, transparent);
+  border-color: color-mix(in srgb, var(--accent-cyan) 45%, var(--glass-border));
+  animation: notificationAcceptOut 0.42s ease forwards;
+}
+
+.notification-request-card--accepted .notification-request-avatar {
+  background: color-mix(in srgb, var(--accent-cyan) 28%, transparent);
+  color: var(--accent-cyan);
+}
+
+.notification-request-card--accepted .notification-request-message {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+@keyframes notificationAcceptOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.015);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.98) translateX(8px);
+  }
 }
 
 .notification-request-avatar {

@@ -11,6 +11,7 @@ const PLACEHOLDER_REQUESTS = [
 export default function NotificationsDropdown({ open, onClose, menuRef, placement = 'bottom' }) {
   const { t } = useLanguage()
   const [requests, setRequests] = useState(PLACEHOLDER_REQUESTS)
+  const [acceptingId, setAcceptingId] = useState(null)
 
   useEffect(() => {
     if (!open) return undefined
@@ -35,7 +36,17 @@ export default function NotificationsDropdown({ open, onClose, menuRef, placemen
 
   if (!open) return null
 
+  const acceptRequest = (id) => {
+    if (acceptingId) return
+    setAcceptingId(id)
+    window.setTimeout(() => {
+      setRequests((prev) => prev.filter((item) => item.id !== id))
+      setAcceptingId(null)
+    }, 420)
+  }
+
   const removeRequest = (id) => {
+    if (acceptingId) return
     setRequests((prev) => prev.filter((item) => item.id !== id))
   }
 
@@ -53,38 +64,48 @@ export default function NotificationsDropdown({ open, onClose, menuRef, placemen
         {requests.length === 0 ? (
           <p className="notifications-dropdown-empty">{t('notifications.empty')}</p>
         ) : (
-          requests.map((request) => (
-            <article key={request.id} className="notification-request-card">
-              <div className="notification-request-avatar" aria-hidden="true">
-                {request.name.charAt(0)}
-              </div>
-              <div className="notification-request-content">
-                <p className="notification-request-text">
-                  <strong className="notification-request-name">{request.name}</strong>
-                  {' '}
-                  <span className="notification-request-message">
-                    {t('notifications.wantToConnectSuffix')}
-                  </span>
-                </p>
-                <div className="notification-request-actions">
-                  <button
-                    type="button"
-                    className="notification-request-btn notification-request-btn--accept"
-                    onClick={() => removeRequest(request.id)}
-                  >
-                    {t('notifications.accept')}
-                  </button>
-                  <button
-                    type="button"
-                    className="notification-request-btn notification-request-btn--reject"
-                    onClick={() => removeRequest(request.id)}
-                  >
-                    {t('notifications.reject')}
-                  </button>
+          requests.map((request) => {
+            const isAccepting = acceptingId === request.id
+            return (
+              <article
+                key={request.id}
+                className={`notification-request-card${isAccepting ? ' notification-request-card--accepted' : ''}`}
+              >
+                <div className="notification-request-avatar" aria-hidden="true">
+                  {isAccepting ? '✓' : request.name.charAt(0)}
                 </div>
-              </div>
-            </article>
-          ))
+                <div className="notification-request-content">
+                  <p className="notification-request-text">
+                    <strong className="notification-request-name">{request.name}</strong>
+                    {' '}
+                    <span className="notification-request-message">
+                      {isAccepting
+                        ? t('notifications.accepted')
+                        : t('notifications.wantToConnectSuffix')}
+                    </span>
+                  </p>
+                  {!isAccepting && (
+                    <div className="notification-request-actions">
+                      <button
+                        type="button"
+                        className="notification-request-btn notification-request-btn--accept"
+                        onClick={() => acceptRequest(request.id)}
+                      >
+                        {t('notifications.accept')}
+                      </button>
+                      <button
+                        type="button"
+                        className="notification-request-btn notification-request-btn--reject"
+                        onClick={() => removeRequest(request.id)}
+                      >
+                        {t('notifications.reject')}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </article>
+            )
+          })
         )}
       </div>
     </div>
