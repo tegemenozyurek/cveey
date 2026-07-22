@@ -9,7 +9,8 @@ export default function NotificationsDropdown({
   menuRef,
   placement = 'bottom',
   requests,
-  onRequestsChange,
+  onAccept,
+  onReject,
 }) {
   const { t } = useLanguage()
   const [pendingAction, setPendingAction] = useState(null)
@@ -37,13 +38,25 @@ export default function NotificationsDropdown({
 
   if (!open) return null
 
-  const runAction = (id, type) => {
+  const runAction = async (request, type) => {
     if (pendingAction) return
-    setPendingAction({ id, type })
-    window.setTimeout(() => {
-      onRequestsChange((prev) => prev.filter((item) => item.id !== id))
+    setPendingAction({ id: request.id, type })
+
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 420)
+    })
+
+    try {
+      if (type === 'accept') {
+        await onAccept?.(request)
+      } else {
+        await onReject?.(request)
+      }
+    } catch (err) {
+      console.error(`Notification ${type} failed:`, err)
+    } finally {
       setPendingAction(null)
-    }, 420)
+    }
   }
 
   return (
@@ -63,6 +76,7 @@ export default function NotificationsDropdown({
           requests.map((request) => {
             const actionType = pendingAction?.id === request.id ? pendingAction.type : null
             const isBusy = Boolean(actionType)
+            const showPhoto = Boolean(request.photoURL) && !actionType
             return (
               <article
                 key={request.id}
@@ -73,11 +87,20 @@ export default function NotificationsDropdown({
                 ].filter(Boolean).join(' ')}
               >
                 <div className="notification-request-avatar" aria-hidden="true">
-                  {actionType === 'accept'
-                    ? '✓'
-                    : actionType === 'reject'
-                      ? '✕'
-                      : request.name.charAt(0)}
+                  {actionType === 'accept' ? (
+                    '✓'
+                  ) : actionType === 'reject' ? (
+                    '✕'
+                  ) : showPhoto ? (
+                    <img
+                      src={request.photoURL}
+                      alt=""
+                      className="notification-request-avatar-img"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    request.name.charAt(0).toUpperCase()
+                  )}
                 </div>
                 <div className="notification-request-content">
                   <p className="notification-request-text">
@@ -96,14 +119,14 @@ export default function NotificationsDropdown({
                       <button
                         type="button"
                         className="notification-request-btn notification-request-btn--accept"
-                        onClick={() => runAction(request.id, 'accept')}
+                        onClick={() => runAction(request, 'accept')}
                       >
                         {t('notifications.accept')}
                       </button>
                       <button
                         type="button"
                         className="notification-request-btn notification-request-btn--reject"
-                        onClick={() => runAction(request.id, 'reject')}
+                        onClick={() => runAction(request, 'reject')}
                       >
                         {t('notifications.reject')}
                       </button>

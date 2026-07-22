@@ -4,7 +4,11 @@ import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import NotificationsDropdown from './NotificationsDropdown'
 import UserAvatar from './UserAvatar'
-import { CONNECTION_REQUEST_NOTIFICATIONS } from '../notificationModel'
+import {
+  acceptConnectionNotification,
+  rejectConnectionNotification,
+  subscribeToConnectionNotifications,
+} from '../notificationService'
 
 const NAV_ITEMS = [
   { to: '/', key: 'nav.home', end: true, icon: 'home' },
@@ -140,7 +144,7 @@ export default function Navbar() {
   const { t } = useLanguage()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const [notificationRequests, setNotificationRequests] = useState(CONNECTION_REQUEST_NOTIFICATIONS)
+  const [notificationRequests, setNotificationRequests] = useState([])
   const desktopNotificationsRef = useRef(null)
   const mobileNotificationsRef = useRef(null)
   const navigate = useNavigate()
@@ -160,8 +164,27 @@ export default function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [mobileNavOpen])
 
+  useEffect(() => {
+    if (!user?.uid) {
+      setNotificationRequests([])
+      return undefined
+    }
+
+    return subscribeToConnectionNotifications(user.uid, setNotificationRequests)
+  }, [user?.uid])
+
   const closeMobileNav = () => setMobileNavOpen(false)
   const closeNotifications = useCallback(() => setNotificationsOpen(false), [])
+
+  const handleAcceptNotification = useCallback(async (request) => {
+    if (!user?.uid || !request?.fromUid) return
+    await acceptConnectionNotification(user.uid, request.fromUid)
+  }, [user?.uid])
+
+  const handleRejectNotification = useCallback(async (request) => {
+    if (!user?.uid || !request?.fromUid) return
+    await rejectConnectionNotification(user.uid, request.fromUid)
+  }, [user?.uid])
 
   const toggleNotifications = () => {
     setNotificationsOpen((open) => !open)
@@ -238,7 +261,8 @@ export default function Navbar() {
                     menuRef={desktopNotificationsRef}
                     placement="bottom"
                     requests={notificationRequests}
-                    onRequestsChange={setNotificationRequests}
+                    onAccept={handleAcceptNotification}
+                    onReject={handleRejectNotification}
                   />
                 </div>
                 <button
@@ -353,7 +377,8 @@ export default function Navbar() {
                       menuRef={mobileNotificationsRef}
                       placement="top"
                       requests={notificationRequests}
-                      onRequestsChange={setNotificationRequests}
+                      onAccept={handleAcceptNotification}
+                      onReject={handleRejectNotification}
                     />
                   </div>
                   <button
