@@ -6,6 +6,7 @@ import NotificationsDropdown from './NotificationsDropdown'
 import UserAvatar from './UserAvatar'
 import {
   acceptConnectionNotification,
+  dismissNotification,
   rejectConnectionNotification,
   subscribeToConnectionNotifications,
 } from '../notificationService'
@@ -186,6 +187,11 @@ export default function Navbar() {
     await rejectConnectionNotification(user.uid, request.fromUid)
   }, [user?.uid])
 
+  const handleDismissNotification = useCallback(async (request) => {
+    if (!user?.uid || !request?.id) return
+    await dismissNotification(user.uid, request.id)
+  }, [user?.uid])
+
   const toggleNotifications = () => {
     setNotificationsOpen((open) => !open)
   }
@@ -263,6 +269,7 @@ export default function Navbar() {
                     requests={notificationRequests}
                     onAccept={handleAcceptNotification}
                     onReject={handleRejectNotification}
+                    onDismiss={handleDismissNotification}
                   />
                 </div>
                 <button
@@ -379,6 +386,7 @@ export default function Navbar() {
                       requests={notificationRequests}
                       onAccept={handleAcceptNotification}
                       onReject={handleRejectNotification}
+                      onDismiss={handleDismissNotification}
                     />
                   </div>
                   <button

@@ -26,12 +26,12 @@ rules_version = '2';
 //   educationProgram: string
 //
 // users/{userId}/notifications/{notificationId}
-//   type: 'connection_request'
+//   type: 'connection_request' | 'connection_accepted'
 //   id: string
 //   fromUid: string
 //   name: string
 //   photoURL: string|null
-//   status: 'pending'
+//   status: 'pending' | 'unread'
 //   createdAt: timestamp
 //
 // users/{userId}/networks/{friendUid}
@@ -216,6 +216,29 @@ service cloud.firestore {
         (data.photoURL == null || isValidPhotoURL(data.photoURL)) &&
         data.status == 'pending' &&
         data.createdAt is timestamp;
+    }
+
+    function isValidConnectionAcceptedNotificationCreate(data) {
+      return data.keys().hasOnly([
+          'type', 'id', 'fromUid', 'name', 'photoURL', 'status', 'createdAt'
+        ]) &&
+        data.type == 'connection_accepted' &&
+        data.id is string &&
+        data.id.size() > 0 &&
+        data.id.size() <= 128 &&
+        data.fromUid is string &&
+        data.fromUid.size() > 0 &&
+        data.fromUid.size() <= 128 &&
+        data.fromUid == data.id &&
+        isValidNotificationName(data.name) &&
+        (data.photoURL == null || isValidPhotoURL(data.photoURL)) &&
+        data.status == 'unread' &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidNotificationCreate(data) {
+      return isValidConnectionRequestNotificationCreate(data) ||
+        isValidConnectionAcceptedNotificationCreate(data);
     }
 
     function isValidConnectionRequestNotificationUpdate(data) {
@@ -548,7 +571,7 @@ service cloud.firestore {
         );
         allow create: if isAuthenticated() &&
           request.auth.uid != userId &&
-          isValidConnectionRequestNotificationCreate(request.resource.data) &&
+          isValidNotificationCreate(request.resource.data) &&
           request.resource.data.fromUid == request.auth.uid &&
           request.resource.data.id == request.auth.uid &&
           notificationId == request.auth.uid;

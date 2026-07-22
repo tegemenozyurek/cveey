@@ -9,7 +9,10 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import { createConnectionRequestNotification } from './notificationModel'
+import {
+  createConnectionAcceptedNotification,
+  createConnectionRequestNotification,
+} from './notificationModel'
 import { getUserProfile } from './userService'
 
 function notificationsCollection(uid) {
@@ -26,8 +29,12 @@ function networkDoc(ownerUid, friendUid) {
 
 function normalizeNotification(id, data) {
   if (!data || typeof data !== 'object') return null
-  if (data.type && data.type !== 'connection_request') return null
-  if (data.status && data.status !== 'pending') return null
+
+  const type = data.type === 'connection_accepted' ? 'connection_accepted' : 'connection_request'
+
+  if (type === 'connection_request' && data.status && data.status !== 'pending') {
+    return null
+  }
 
   const fromUid =
     (typeof data.fromUid === 'string' && data.fromUid) ||
@@ -40,6 +47,16 @@ function normalizeNotification(id, data) {
     typeof data.photoURL === 'string' && data.photoURL.trim()
       ? data.photoURL.trim()
       : null
+
+  if (type === 'connection_accepted') {
+    return createConnectionAcceptedNotification({
+      id: fromUid,
+      name,
+      fromUid,
+      photoURL,
+      status: typeof data.status === 'string' ? data.status : 'unread',
+    })
+  }
 
   return createConnectionRequestNotification({
     id: fromUid,
@@ -68,7 +85,7 @@ function toNetworkMember(uid, profile) {
 }
 
 /**
- * Live subscription to the signed-in user's connection-request notifications.
+ * Live subscription to the signed-in user's notifications.
  * @returns {() => void} unsubscribe
  */
 export function subscribeToConnectionNotifications(uid, onChange, onError) {
@@ -105,10 +122,26 @@ export async function acceptConnectionNotification(ownerUid, fromUid) {
     getUserProfile(fromUid),
   ])
 
+  const acceptedNotification = createConnectionAcceptedNotification({
+    id: ownerUid,
+    name:
+      (typeof ownerProfile.username === 'string' && ownerProfile.username.trim()) ||
+      'User',
+    fromUid: ownerUid,
+    photoURL:
+      typeof ownerProfile.photoURL === 'string' && ownerProfile.photoURL.trim()
+        ? ownerProfile.photoURL.trim()
+        : null,
+  })
+
   const batch = writeBatch(db)
   batch.set(networkDoc(ownerUid, fromUid), toNetworkMember(fromUid, fromProfile))
   batch.set(networkDoc(fromUid, ownerUid), toNetworkMember(ownerUid, ownerProfile))
   batch.delete(notificationDoc(ownerUid, fromUid))
+  batch.set(notificationDoc(fromUid, ownerUid), {
+    ...acceptedNotification,
+    createdAt: serverTimestamp(),
+  })
   await batch.commit()
 }
 
@@ -117,4 +150,11 @@ export async function rejectConnectionNotification(ownerUid, fromUid) {
     throw new Error('INVALID_NOTIFICATION_ACTION')
   }
   await deleteDoc(notificationDoc(ownerUid, fromUid))
+}
+
+export async function dismissNotification(ownerUid, notificationId) {
+  if (!ownerUid || !notificationId) {
+    throw new Error('INVALID_NOTIFICATION_ACTION')
+  }
+  await deleteDoc(notificationDoc(ownerUid, notificationId))
 }
