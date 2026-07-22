@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import UserAvatar from '../components/UserAvatar'
 import ConfirmCancelRequestModal from '../components/ConfirmCancelRequestModal'
+import ProfileHeroEmail from '../components/ProfileHeroEmail'
 import { getUserProfile } from '../userService'
 import {
   cancelConnectionRequest,
@@ -334,6 +335,8 @@ export default function PublicProfile() {
   const [educations, setEducations] = useState([])
   const [summary, setSummary] = useState('')
   const [photoURL, setPhotoURL] = useState('')
+  const [email, setEmail] = useState('')
+  const [emailPublic, setEmailPublic] = useState(false)
   const [panel, setPanel] = useState(null)
   const [requestStatus, setRequestStatus] = useState('idle') // idle | pending | connected | loading
   const [requestBusy, setRequestBusy] = useState(false)
@@ -366,6 +369,8 @@ export default function PublicProfile() {
         setEducations(profile.educations || [])
         setSummary(profile.summary || '')
         setPhotoURL(profile.photoURL || '')
+        setEmailPublic(profile.emailPublic === true)
+        setEmail(profile.emailPublic ? profile.email || '' : '')
         setLoading(false)
       })
       .catch((err) => {
@@ -541,6 +546,13 @@ export default function PublicProfile() {
             </div>
             <div className="profile-hero-text">
               <p className="profile-hero-name">@{displayName}</p>
+              {emailPublic && email ? (
+                <ProfileHeroEmail
+                  email={email}
+                  copyLabel={t('profile.copyEmail')}
+                  copiedLabel={t('profile.emailCopied')}
+                />
+              ) : null}
             </div>
             <p
               className={`profile-hero-city${!homeCity ? ' profile-hero-city--muted' : ''}`}

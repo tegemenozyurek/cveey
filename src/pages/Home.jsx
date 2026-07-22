@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import UnderConstruction from '../components/UnderConstruction'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { hasPendingCvFile, setPendingCvFile } from '../pendingCvUpload'
@@ -39,10 +38,6 @@ export default function Home() {
     )
   }
 
-  if (user) {
-    return <UnderConstruction />
-  }
-
   const handleDragOver = (event) => {
     event.preventDefault()
     if (!dragging) setDragging(true)
@@ -71,6 +66,10 @@ export default function Home() {
       return
     }
     setPendingCvFile(file)
+    if (user) {
+      navigate('/my-cv')
+      return
+    }
     openLogin()
   }
 
