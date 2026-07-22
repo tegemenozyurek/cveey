@@ -5,9 +5,12 @@ import {
   orderBy,
   query,
   deleteDoc,
+  serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from './firebase'
 import { createConnectionRequestNotification } from './notificationModel'
+import { getUserProfile } from './userService'
 
 function notificationsCollection(uid) {
   return collection(db, 'users', uid, 'notifications')
@@ -15,6 +18,10 @@ function notificationsCollection(uid) {
 
 function notificationDoc(uid, notificationId) {
   return doc(db, 'users', uid, 'notifications', notificationId)
+}
+
+function networkDoc(ownerUid, friendUid) {
+  return doc(db, 'users', ownerUid, 'networks', friendUid)
 }
 
 function normalizeNotification(id, data) {
@@ -41,6 +48,23 @@ function normalizeNotification(id, data) {
     photoURL,
     status: 'pending',
   })
+}
+
+function toNetworkMember(uid, profile) {
+  const username =
+    (typeof profile?.username === 'string' && profile.username.trim()) ||
+    'User'
+  const photoURL =
+    typeof profile?.photoURL === 'string' && profile.photoURL.trim()
+      ? profile.photoURL.trim()
+      : null
+
+  return {
+    uid,
+    username,
+    photoURL,
+    connectedAt: serverTimestamp(),
+  }
 }
 
 /**
@@ -71,17 +95,26 @@ export function subscribeToConnectionNotifications(uid, onChange, onError) {
   )
 }
 
-async function removeConnectionNotification(ownerUid, fromUid) {
+export async function acceptConnectionNotification(ownerUid, fromUid) {
+  if (!ownerUid || !fromUid || ownerUid === fromUid) {
+    throw new Error('INVALID_NOTIFICATION_ACTION')
+  }
+
+  const [ownerProfile, fromProfile] = await Promise.all([
+    getUserProfile(ownerUid),
+    getUserProfile(fromUid),
+  ])
+
+  const batch = writeBatch(db)
+  batch.set(networkDoc(ownerUid, fromUid), toNetworkMember(fromUid, fromProfile))
+  batch.set(networkDoc(fromUid, ownerUid), toNetworkMember(ownerUid, ownerProfile))
+  batch.delete(notificationDoc(ownerUid, fromUid))
+  await batch.commit()
+}
+
+export async function rejectConnectionNotification(ownerUid, fromUid) {
   if (!ownerUid || !fromUid) {
     throw new Error('INVALID_NOTIFICATION_ACTION')
   }
   await deleteDoc(notificationDoc(ownerUid, fromUid))
-}
-
-export async function acceptConnectionNotification(ownerUid, fromUid) {
-  await removeConnectionNotification(ownerUid, fromUid)
-}
-
-export async function rejectConnectionNotification(ownerUid, fromUid) {
-  await removeConnectionNotification(ownerUid, fromUid)
 }
