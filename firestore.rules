@@ -7,7 +7,7 @@ rules_version = '2';
 // users/{userId}
 //   uid, email, createdAt, lastLoginAt, authMethod, activeFileId?,
 //   photoURL?, username?, homeCity?, preferredWorkCities?, locationSetupComplete?,
-//   bachelorStatus?, bachelorName?, bachelorUniversity?,
+//   emailPublic?, bachelorStatus?, bachelorName?, bachelorUniversity?,
 //   moreEducationStatus?, moreEducationDegree?, moreEducationOther?,
 //   summary?
 //
@@ -235,6 +235,7 @@ service cloud.firestore {
           'uid', 'email', 'createdAt', 'lastLoginAt', 'authMethod', 'activeFileId',
           'photoURL',
           'username', 'homeCity', 'preferredWorkCities', 'locationSetupComplete',
+          'emailPublic',
           'bachelor', 'bachelorStatus', 'bachelorName', 'bachelorUniversity',
           'moreEducationStatus', 'moreEducationDegree', 'moreEducationOther',
           // Legacy flat/array education keys may still exist on older user docs.
@@ -261,6 +262,7 @@ service cloud.firestore {
         (!('homeCity' in data) || isValidCityName(data.homeCity)) &&
         (!('preferredWorkCities' in data) || isValidPreferredWorkCities(data.preferredWorkCities)) &&
         (!('locationSetupComplete' in data) || data.locationSetupComplete is bool) &&
+        (!('emailPublic' in data) || data.emailPublic is bool) &&
         (!('bachelor' in data) || isOptionalProfileText(data.bachelor, 120)) &&
         (!('bachelorStatus' in data) || isValidBachelorStatus(data.bachelorStatus)) &&
         (!('bachelorName' in data) || isOptionalProfileText(data.bachelorName, 120)) &&
@@ -379,6 +381,15 @@ service cloud.firestore {
         isValidCityName(request.resource.data.homeCity);
     }
 
+    // Allow toggling whether email is shown on the public profile.
+    function isValidEmailVisibilityUpdate() {
+      let diff = request.resource.data.diff(resource.data).affectedKeys();
+      return diff.hasOnly(['emailPublic']) &&
+        request.resource.data.emailPublic is bool &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.authMethod == resource.data.authMethod;
+    }
+
     // Allow editing username / city later from Preferences.
     function isValidIdentityProfileUpdate() {
       let diff = request.resource.data.diff(resource.data).affectedKeys();
@@ -493,6 +504,7 @@ service cloud.firestore {
         isValidUserLoginUpdate() ||
         isValidLocationSetupUpdate() ||
         isValidIdentityProfileUpdate() ||
+        isValidEmailVisibilityUpdate() ||
         isValidActiveFileIdUpdate() ||
         isValidActiveFileIdClear() ||
         isValidLegacyUserCleanup() ||

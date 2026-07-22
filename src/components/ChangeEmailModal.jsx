@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLanguage } from '../context/LanguageContext'
 import { canChangeEmailInApp, changeUserEmail } from '../authAccountService'
 import { resolveAuthMethod } from '../authUtils'
@@ -26,8 +27,11 @@ function mapChangeEmailError(err, t) {
   if (code === 'auth/invalid-email' || code === 'INVALID_EMAIL') {
     return t('changeEmail.invalidEmail')
   }
-  if (code === 'auth/email-already-in-use') {
+  if (code === 'auth/email-already-in-use' || code === 'EMAIL_IN_USE') {
     return t('changeEmail.emailInUse')
+  }
+  if (code === 'EMAIL_IN_USE_OAUTH') {
+    return t('changeEmail.emailInUseOAuth')
   }
   if (code === 'SAME_EMAIL') {
     return t('changeEmail.sameEmail')
@@ -55,6 +59,27 @@ export default function ChangeEmailModal({ user, onClose }) {
   const [success, setSuccess] = useState(false)
   const [busy, setBusy] = useState(false)
 
+  useEffect(() => {
+    const html = document.documentElement
+    const body = document.body
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = body.style.overflow
+    const prevBodyPaddingRight = body.style.paddingRight
+    const scrollbarGap = window.innerWidth - html.clientWidth
+
+    html.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+    if (scrollbarGap > 0) {
+      body.style.paddingRight = `${scrollbarGap}px`
+    }
+
+    return () => {
+      html.style.overflow = prevHtmlOverflow
+      body.style.overflow = prevBodyOverflow
+      body.style.paddingRight = prevBodyPaddingRight
+    }
+  }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -71,11 +96,15 @@ export default function ChangeEmailModal({ user, onClose }) {
     }
   }
 
-  return (
-    <div className="modal-backdrop" onClick={busy ? undefined : onClose}>
+  return createPortal(
+    <div
+      className="modal-backdrop modal-backdrop--viewport"
+      onClick={busy ? undefined : onClose}
+    >
       <div
         className="modal confirm-modal change-email-modal"
         role="dialog"
+        aria-modal="true"
         aria-labelledby="change-email-title"
         onClick={(e) => e.stopPropagation()}
       >
@@ -146,6 +175,7 @@ export default function ChangeEmailModal({ user, onClose }) {
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
