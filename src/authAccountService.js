@@ -13,6 +13,7 @@ import {
   AUTH_METHOD_GOOGLE,
   resolveAuthMethod,
 } from './authUtils'
+import { findUserByEmail, normalizeEmailKey } from './passwordAccountService'
 
 const GOOGLE_SECURITY_URL = 'https://myaccount.google.com/security'
 const GITHUB_SECURITY_URL = 'https://github.com/settings/security'
@@ -95,14 +96,30 @@ export async function changeUserEmail(user, { currentPassword, newEmail }) {
     })
   }
 
-  const trimmed = typeof newEmail === 'string' ? newEmail.trim().toLowerCase() : ''
+  const trimmed = typeof newEmail === 'string' ? normalizeEmailKey(newEmail) : ''
   if (!trimmed || !EMAIL_PATTERN.test(trimmed)) {
     throw Object.assign(new Error('INVALID_EMAIL'), { code: 'auth/invalid-email' })
   }
 
-  const current = (user.email || '').trim().toLowerCase()
+  const current = normalizeEmailKey(user.email || '')
   if (trimmed === current) {
     throw Object.assign(new Error('SAME_EMAIL'), { code: 'SAME_EMAIL' })
+  }
+
+  // Firebase verifyBeforeUpdateEmail often returns success without sending mail
+  // when the address already belongs to another account. Check Firestore first.
+  const existing = await findUserByEmail(trimmed)
+  if (existing && existing.uid !== user.uid) {
+    if (
+      existing.authMethod === AUTH_METHOD_GOOGLE ||
+      existing.authMethod === AUTH_METHOD_GITHUB
+    ) {
+      throw Object.assign(new Error('EMAIL_IN_USE_OAUTH'), {
+        code: 'EMAIL_IN_USE_OAUTH',
+        authMethod: existing.authMethod,
+      })
+    }
+    throw Object.assign(new Error('EMAIL_IN_USE'), { code: 'auth/email-already-in-use' })
   }
 
   await reauthenticateWithPassword(user, currentPassword)

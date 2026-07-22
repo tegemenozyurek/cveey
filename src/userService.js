@@ -15,7 +15,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { AUTH_METHOD_EMAIL_PASSWORD, resolveAuthMethod } from './authUtils'
-import { db } from './firebase'
+import { auth, db } from './firebase'
 import { normalizeEmailKey } from './passwordAccountService'
 import { deleteUserStorageFiles } from './storageService'
 
@@ -157,6 +157,8 @@ export async function getUserProfile(userId) {
       educations: [],
       summary: '',
       photoURL: '',
+      email: '',
+      emailPublic: false,
     }
   }
 
@@ -164,6 +166,11 @@ export async function getUserProfile(userId) {
   const fromSubcollection = await listEducationDocs(userId)
   const educations =
     fromSubcollection.length > 0 ? fromSubcollection : normalizeLegacyEducations(data)
+  const emailPublic = data.emailPublic === true
+  const viewerUid = auth.currentUser?.uid
+  const canSeeEmail = emailPublic || viewerUid === userId
+  const email =
+    canSeeEmail && typeof data.email === 'string' ? data.email.trim() : ''
 
   return {
     exists: true,
@@ -178,6 +185,8 @@ export async function getUserProfile(userId) {
     educations,
     summary: typeof data.summary === 'string' ? data.summary : '',
     photoURL: typeof data.photoURL === 'string' ? data.photoURL : '',
+    email,
+    emailPublic,
   }
 }
 
@@ -438,6 +447,16 @@ export async function saveUserPhotoURL(userId, photoURL) {
 
   await updateDoc(doc(db, 'users', userId), {
     photoURL: normalized,
+  })
+}
+
+export async function saveEmailPublic(userId, emailPublic) {
+  if (typeof emailPublic !== 'boolean') {
+    throw new Error('INVALID_EMAIL_PUBLIC')
+  }
+
+  await updateDoc(doc(db, 'users', userId), {
+    emailPublic,
   })
 }
 

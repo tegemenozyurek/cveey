@@ -11,11 +11,12 @@ import ThemeSwitcher from '../components/ThemeSwitcher'
 import ChangePasswordModal from '../components/ChangePasswordModal'
 import ChangeEmailModal from '../components/ChangeEmailModal'
 import { resolveAuthMethod, AUTH_METHOD_EMAIL_PASSWORD } from '../authUtils'
-import { getUserProfile, MAX_EDUCATIONS, saveUserEducations, saveUserIdentity, saveUserPhotoURL, saveUserProfileField } from '../userService'
+import { getUserProfile, MAX_EDUCATIONS, saveEmailPublic, saveUserEducations, saveUserIdentity, saveUserPhotoURL, saveUserProfileField } from '../userService'
 import { clearCachedProfile, readCachedProfile, writeCachedProfile } from '../profileCache'
 import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversities'
 import { downloadCvFile, uploadProfilePhoto } from '../storageService'
 import TurkishCitySelect from '../components/createCv/shared/TurkishCitySelect'
+import ProfileHeroEmail from '../components/ProfileHeroEmail'
 
 const MOCK_MY_NETWORK = [
   {
@@ -1325,6 +1326,9 @@ export default function Profile() {
   const [identityNotice, setIdentityNotice] = useState(null)
   const [photoUploading, setPhotoUploading] = useState(false)
   const [photoNotice, setPhotoNotice] = useState(null)
+  const [emailPublic, setEmailPublic] = useState(false)
+  const [emailVisibilitySaving, setEmailVisibilitySaving] = useState(false)
+  const [profileEmail, setProfileEmail] = useState('')
   const [preferredWorkCities, setPreferredWorkCities] = useState([])
   const [educations, setEducations] = useState([])
   const [summary, setSummary] = useState('')
@@ -1349,6 +1353,8 @@ export default function Profile() {
       setPreferredWorkCities([])
       setEducations([])
       setSummary('')
+      setEmailPublic(false)
+      setProfileEmail('')
       setProfileDataLoading(false)
       return undefined
     }
@@ -1366,6 +1372,8 @@ export default function Profile() {
         setPreferredWorkCities(data.preferredWorkCities)
         setEducations(data.educations)
         setSummary(data.summary)
+        setEmailPublic(data.emailPublic === true)
+        setProfileEmail(data.email || '')
         writeCachedProfile(user.uid, data)
       })
       .catch((err) => {
@@ -1493,6 +1501,33 @@ export default function Profile() {
     }
   }
 
+  async function handleToggleEmailPublic() {
+    if (!user?.uid || emailVisibilitySaving) return
+    const next = !emailPublic
+    const previous = emailPublic
+    setEmailVisibilitySaving(true)
+    setEmailPublic(next)
+    try {
+      await saveEmailPublic(user.uid, next)
+      if (next && !profileEmail) {
+        setProfileEmail(user.email || '')
+      }
+    } catch (err) {
+      console.error('Email visibility update failed:', err)
+      setEmailPublic(previous)
+      setPhotoNotice({
+        type: 'error',
+        title: t('prefs.emailVisibilityErrorTitle'),
+        message:
+          err?.code === 'permission-denied'
+            ? t('prefs.emailVisibilityDenied')
+            : t('prefs.emailVisibilityError'),
+      })
+    } finally {
+      setEmailVisibilitySaving(false)
+    }
+  }
+
   async function updateProfileField(field, value) {
     await saveUserProfileField(user.uid, field, value)
     if (field === 'summary') {
@@ -1570,6 +1605,13 @@ export default function Profile() {
             </div>
             <div className="profile-hero-text">
               <p className="profile-hero-name">@{profileUsername}</p>
+              {emailPublic ? (
+                <ProfileHeroEmail
+                  email={profileEmail || user.email || ''}
+                  copyLabel={t('profile.copyEmail')}
+                  copiedLabel={t('profile.emailCopied')}
+                />
+              ) : null}
             </div>
             <p
               className={`profile-hero-city${!profileView.homeCity ? ' profile-hero-city--muted' : ''}`}
@@ -1749,6 +1791,40 @@ export default function Profile() {
                   </form>
                 </section>
 
+                <section className="prefs-section" aria-label={t('prefs.mail')}>
+                  <div className="prefs-row">
+                    <div className="prefs-row-leading">
+                      <span className="prefs-row-icon" aria-hidden="true">
+                        <PrefsEmailIcon />
+                      </span>
+                      <div className="prefs-row-info">
+                        <p className="prefs-row-label">{t('prefs.mail')}</p>
+                        <p className="prefs-row-hint">{t('prefs.mailHint')}</p>
+                      </div>
+                    </div>
+                    <div className="prefs-row-actions">
+                      {resolveAuthMethod(user) === AUTH_METHOD_EMAIL_PASSWORD ? (
+                        <button
+                          type="button"
+                          className="prefs-action-btn"
+                          onClick={() => setShowChangeEmail(true)}
+                        >
+                          {t('prefs.changeEmailAction')}
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="prefs-action-btn"
+                        onClick={handleToggleEmailPublic}
+                        disabled={emailVisibilitySaving}
+                        aria-pressed={emailPublic}
+                      >
+                        {emailPublic ? t('prefs.hideEmail') : t('prefs.showEmail')}
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
                 <section className="prefs-section" aria-label={t('prefs.title')}>
                   <div className="prefs-row">
                     <div className="prefs-row-leading">
@@ -1777,26 +1853,6 @@ export default function Profile() {
                 </section>
 
                 <section className="prefs-section" aria-label={t('prefs.account')}>
-                  {resolveAuthMethod(user) === AUTH_METHOD_EMAIL_PASSWORD ? (
-                    <div className="prefs-row">
-                      <div className="prefs-row-leading">
-                        <span className="prefs-row-icon" aria-hidden="true">
-                          <PrefsEmailIcon />
-                        </span>
-                        <div className="prefs-row-info">
-                          <p className="prefs-row-label">{t('prefs.changeEmail')}</p>
-                          <p className="prefs-row-hint">{t('prefs.changeEmailHint')}</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className="prefs-action-btn"
-                        onClick={() => setShowChangeEmail(true)}
-                      >
-                        {t('prefs.changeEmailAction')}
-                      </button>
-                    </div>
-                  ) : null}
                   <div className="prefs-row">
                     <div className="prefs-row-leading">
                       <span className="prefs-row-icon" aria-hidden="true">
