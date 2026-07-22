@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 
-export const PLACEHOLDER_NOTIFICATIONS = [
-  { id: '1', name: 'Alex Chen' },
-  { id: '2', name: 'Jordan Lee' },
-  { id: '3', name: 'Sam Rivera' },
-  { id: '4', name: 'Taylor Kim' },
-]
+export { CONNECTION_REQUEST_NOTIFICATIONS, createConnectionRequestNotification } from '../notificationModel'
 
 export default function NotificationsDropdown({
   open,
@@ -78,7 +73,11 @@ export default function NotificationsDropdown({
                 ].filter(Boolean).join(' ')}
               >
                 <div className="notification-request-avatar" aria-hidden="true">
-                  {actionType === 'accept' ? '✓' : actionType === 'reject' ? '✕' : request.name.charAt(0)}
+                  {actionType === 'accept'
+                    ? '✓'
+                    : actionType === 'reject'
+                      ? '✕'
+                      : request.name.charAt(0)}
                 </div>
                 <div className="notification-request-content">
                   <p className="notification-request-text">

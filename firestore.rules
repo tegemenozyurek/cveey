@@ -25,6 +25,20 @@ rules_version = '2';
 //   educationUniversityIsOther: bool
 //   educationProgram: string
 //
+// users/{userId}/connectionRequests/{fromUid}
+//   fromUid: string
+//   status: 'pending'
+//   createdAt: timestamp
+//
+// users/{userId}/notifications/{notificationId}
+//   type: 'connection_request'
+//   id: string
+//   fromUid: string
+//   name: string
+//   photoURL: string|null
+//   status: 'pending'
+//   createdAt: timestamp
+//
 // Default storage path: users/{userId}/{fileId}.pdf
 //
 // ===============================================================
@@ -177,6 +191,48 @@ service cloud.firestore {
       return url is string &&
         url.size() <= 2048 &&
         (url.size() == 0 || url.matches('^https://.+'));
+    }
+
+    function isValidNotificationName(name) {
+      return name is string &&
+        name.size() >= 1 &&
+        name.size() <= 80;
+    }
+
+    function isValidConnectionRequestNotificationCreate(data) {
+      return data.keys().hasOnly([
+          'type', 'id', 'fromUid', 'name', 'photoURL', 'status', 'createdAt'
+        ]) &&
+        data.type == 'connection_request' &&
+        data.id is string &&
+        data.id.size() > 0 &&
+        data.id.size() <= 128 &&
+        data.fromUid is string &&
+        data.fromUid.size() > 0 &&
+        data.fromUid.size() <= 128 &&
+        data.fromUid == data.id &&
+        isValidNotificationName(data.name) &&
+        (data.photoURL == null || isValidPhotoURL(data.photoURL)) &&
+        data.status == 'pending' &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidConnectionRequestNotificationUpdate(data) {
+      return data.keys().hasOnly([
+          'type', 'id', 'fromUid', 'name', 'photoURL', 'status', 'createdAt'
+        ]) &&
+        data.type == 'connection_request' &&
+        data.id is string &&
+        data.id.size() > 0 &&
+        data.id.size() <= 128 &&
+        data.fromUid is string &&
+        data.fromUid.size() > 0 &&
+        data.fromUid.size() <= 128 &&
+        data.fromUid == data.id &&
+        isValidNotificationName(data.name) &&
+        (data.photoURL == null || isValidPhotoURL(data.photoURL)) &&
+        data.status in ['pending', 'accepted', 'rejected'] &&
+        data.createdAt is timestamp;
     }
 
     function isValidUser(data) {
@@ -484,6 +540,27 @@ service cloud.firestore {
           request.resource.data.createdAt is timestamp;
         allow delete: if isAuthenticated() && (
           request.auth.uid == fromUid || request.auth.uid == userId
+        );
+      }
+
+      // Inbox notifications for the recipient (created when someone connects).
+      match /notifications/{notificationId} {
+        allow read: if isOwner(userId);
+        allow create: if isAuthenticated() &&
+          request.auth.uid != userId &&
+          isValidConnectionRequestNotificationCreate(request.resource.data) &&
+          request.resource.data.fromUid == request.auth.uid &&
+          request.resource.data.id == request.auth.uid &&
+          notificationId == request.auth.uid;
+        allow update: if isOwner(userId) &&
+          isValidConnectionRequestNotificationUpdate(request.resource.data) &&
+          request.resource.data.fromUid == resource.data.fromUid &&
+          request.resource.data.id == resource.data.id &&
+          request.resource.data.type == resource.data.type &&
+          request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if isAuthenticated() && (
+          isOwner(userId) ||
+          (resource.data.keys().hasAny(['fromUid']) && resource.data.fromUid == request.auth.uid)
         );
       }
     }

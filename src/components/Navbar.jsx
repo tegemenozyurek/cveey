@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import NotificationsDropdown, { PLACEHOLDER_NOTIFICATIONS } from './NotificationsDropdown'
+import NotificationsDropdown from './NotificationsDropdown'
 import UserAvatar from './UserAvatar'
+import { CONNECTION_REQUEST_NOTIFICATIONS } from '../notificationModel'
 
 const NAV_ITEMS = [
   { to: '/', key: 'nav.home', end: true, icon: 'home' },
@@ -139,7 +140,7 @@ export default function Navbar() {
   const { t } = useLanguage()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const [notificationRequests, setNotificationRequests] = useState(PLACEHOLDER_NOTIFICATIONS)
+  const [notificationRequests, setNotificationRequests] = useState(CONNECTION_REQUEST_NOTIFICATIONS)
   const desktopNotificationsRef = useRef(null)
   const mobileNotificationsRef = useRef(null)
   const navigate = useNavigate()
