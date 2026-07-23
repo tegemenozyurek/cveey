@@ -18,6 +18,7 @@ import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversit
 import { downloadCvFile, uploadProfilePhoto } from '../storageService'
 import TurkishCitySelect from '../components/createCv/shared/TurkishCitySelect'
 import ProfileHeroEmail from '../components/ProfileHeroEmail'
+import CvVisibilityModal, { DEFAULT_CV_VISIBILITY } from '../components/CvVisibilityModal'
 import { subscribeToUserNetworks } from '../networkService'
 
 function authMethodLabel(method, t) {
@@ -1136,8 +1137,11 @@ function ProfileAboutSection({
 function ActiveCvPanel({ t }) {
   const navigate = useNavigate()
   const { activeCv, activePreviewUrl, loading } = useResume()
-  const [cvHidden, setCvHidden] = useState(false)
+  const [cvVisibility, setCvVisibility] = useState(DEFAULT_CV_VISIBILITY)
+  const [showVisibilityModal, setShowVisibilityModal] = useState(false)
   const [downloading, setDownloading] = useState(false)
+
+  const cvHidden = cvVisibility.hideFromConnections || cvVisibility.hideFromCompanies
 
   function handlePreview() {
     if (!activePreviewUrl) return
@@ -1288,10 +1292,11 @@ function ActiveCvPanel({ t }) {
             <button
               type="button"
               className={`profile-cv-icon-btn profile-cv-icon-btn--hide${cvHidden ? ' profile-cv-icon-btn--active' : ''}`}
-              onClick={() => setCvHidden((v) => !v)}
-              aria-label={cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
-              title={cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
-              aria-pressed={cvHidden}
+              onClick={() => setShowVisibilityModal(true)}
+              aria-label={t('profile.cvHide')}
+              title={t('profile.cvHide')}
+              aria-haspopup="dialog"
+              aria-expanded={showVisibilityModal}
             >
               {cvHidden ? (
                 <Eye size={18} strokeWidth={1.9} aria-hidden="true" />
@@ -1302,6 +1307,16 @@ function ActiveCvPanel({ t }) {
           </div>
         ) : null}
       </div>
+
+      <CvVisibilityModal
+        open={showVisibilityModal}
+        initialValue={cvVisibility}
+        onClose={() => setShowVisibilityModal(false)}
+        onSave={(value) => {
+          setCvVisibility(value)
+          setShowVisibilityModal(false)
+        }}
+      />
     </section>
   )
 }
