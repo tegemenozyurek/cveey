@@ -575,10 +575,13 @@ service cloud.firestore {
       // Inbox notifications for the recipient (also used as pending connection requests).
       match /notifications/{notificationId} {
         allow get: if isAuthenticated() && (
-          isOwner(userId) || request.auth.uid == notificationId
+          isOwner(userId) ||
+          resource.data.fromUid == request.auth.uid
         );
-        allow list: if isOwner(userId) || (
-          resource.data.keys().hasAny(['fromUid']) &&
+        // Owner reads their inbox. Senders may query their own outgoing docs
+        // via collectionGroup (account wipe / cancel) when filtered by fromUid.
+        allow list: if isAuthenticated() && (
+          isOwner(userId) ||
           resource.data.fromUid == request.auth.uid
         );
         allow create: if isAuthenticated() &&
@@ -595,7 +598,7 @@ service cloud.firestore {
           request.resource.data.createdAt == resource.data.createdAt;
         allow delete: if isAuthenticated() && (
           isOwner(userId) ||
-          (resource.data.keys().hasAny(['fromUid']) && resource.data.fromUid == request.auth.uid)
+          resource.data.fromUid == request.auth.uid
         );
       }
 

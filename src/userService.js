@@ -18,7 +18,7 @@ import { AUTH_METHOD_EMAIL_PASSWORD, resolveAuthMethod } from './authUtils'
 import { auth, db } from './firebase'
 import { normalizeEmailKey } from './passwordAccountService'
 import { deleteUserStorageFiles } from './storageService'
-import { purgeOutgoingConnectionNotifications, purgeUserFromAllNetworks } from './networkService'
+import { purgeOutgoingConnectionNotifications, purgeOwnNotifications, purgeUserFromAllNetworks } from './networkService'
 
 const USERS_SEARCH_LIMIT = 8
 
@@ -507,8 +507,23 @@ export async function syncUserToFirestore(user) {
 
 export async function deleteUserAccount(user) {
   // Detach from friends' networks / pending requests first, then wipe own data / Auth.
-  await purgeUserFromAllNetworks(user.uid)
-  await purgeOutgoingConnectionNotifications(user.uid)
+  // Network/notification cleanup must not block Auth deletion if a query is briefly denied.
+  try {
+    await purgeUserFromAllNetworks(user.uid)
+  } catch (err) {
+    console.warn('Network purge during account delete failed:', err)
+  }
+  try {
+    await purgeOutgoingConnectionNotifications(user.uid)
+  } catch (err) {
+    console.warn('Outgoing notification purge during account delete failed:', err)
+  }
+  try {
+    await purgeOwnNotifications(user.uid)
+  } catch (err) {
+    console.warn('Own notification purge during account delete failed:', err)
+  }
+
   await deleteUserStorageFiles(user.uid)
   await deleteAllEducationDocs(user.uid)
 

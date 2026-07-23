@@ -34,7 +34,8 @@ export default function ConfirmDeleteModal({ user, onConfirm, onCancel, loading 
       })
       try {
         await onConfirm()
-      } catch {
+      } catch (err) {
+        console.error('Account delete failed:', err)
         setLocalError(t('deleteAccount.failed'))
       }
     } catch (err) {

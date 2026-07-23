@@ -129,6 +129,31 @@ export async function purgeOutgoingConnectionNotifications(fromUid) {
 }
 
 /**
+ * Clear the deleting user's own notifications inbox.
+ */
+export async function purgeOwnNotifications(uid) {
+  if (!uid) return
+
+  const snap = await getDocs(collection(db, 'users', uid, 'notifications'))
+  if (snap.empty) return
+
+  let batch = writeBatch(db)
+  let ops = 0
+
+  for (const docSnap of snap.docs) {
+    batch.delete(docSnap.ref)
+    ops += 1
+    if (ops >= BATCH_LIMIT) {
+      await batch.commit()
+      batch = writeBatch(db)
+      ops = 0
+    }
+  }
+
+  if (ops > 0) await batch.commit()
+}
+
+/**
  * Live subscription to a user's networks collection.
  * @returns {() => void} unsubscribe
  */
