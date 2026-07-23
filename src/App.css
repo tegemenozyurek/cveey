@@ -7390,6 +7390,24 @@
   .prefs-row-actions .prefs-action-btn {
     flex: 1;
   }
+
+  .prefs-identity-input,
+  .prefs-identity-city {
+    max-width: none;
+    width: 100%;
+    flex: none;
+  }
+
+  .prefs-identity-city-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .prefs-identity-save {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 @media (max-width: 640px) {
