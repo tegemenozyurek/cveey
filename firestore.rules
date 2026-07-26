@@ -15,7 +15,8 @@ rules_version = '2';
 //   displayName: string
 //   storageObject?: string  (only for legacy/non-default storage names)
 //   extractedText?: string  (plain text extracted from the PDF on upload)
-//   visibility: string      (default "networks+firms")
+//   visibility: string      (who can see: public / networks / firms / nobody
+//                            combinations joined by "+", default "networks+firms")
 //
 // users/{userId}/education/{educationId}
 //   educationDegreeType: string
@@ -484,7 +485,16 @@ service cloud.firestore {
     }
 
     function isValidCvVisibility(value) {
-      return value is string && value == 'networks+firms';
+      return value is string && (
+        value == 'nobody' ||
+        value == 'everybody' ||
+        value == 'public' ||
+        value == 'networks' ||
+        value == 'firms' ||
+        value == 'public+networks' ||
+        value == 'public+firms' ||
+        value == 'networks+firms'
+      );
     }
 
     function isValidCvFileFields(data) {
@@ -538,8 +548,19 @@ service cloud.firestore {
         isValidExtractedText(data.extractedText);
     }
 
+    function isValidCvFileVisibilityUpdate(data) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['visibility']) &&
+        isValidCvFileFields(data) &&
+        storageObjectUnchanged() &&
+        extractedTextUnchanged() &&
+        data.displayName == resource.data.displayName &&
+        isValidCvVisibility(data.visibility);
+    }
+
     function isValidCvFileUpdate(data) {
-      return isValidCvFileDisplayNameUpdate(data) || isValidCvFileExtractedTextUpdate(data);
+      return isValidCvFileDisplayNameUpdate(data) ||
+        isValidCvFileExtractedTextUpdate(data) ||
+        isValidCvFileVisibilityUpdate(data);
     }
 
     function isValidCvFileCompaction() {

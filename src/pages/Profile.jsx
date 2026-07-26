@@ -18,7 +18,11 @@ import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversit
 import { downloadCvFile, uploadProfilePhoto } from '../storageService'
 import TurkishCitySelect from '../components/createCv/shared/TurkishCitySelect'
 import ProfileHeroEmail from '../components/ProfileHeroEmail'
-import CvVisibilityModal, { DEFAULT_CV_VISIBILITY } from '../components/CvVisibilityModal'
+import CvVisibilityModal, {
+  DEFAULT_CV_VISIBILITY,
+  switchesFromVisibility,
+  visibilityFromSwitches,
+} from '../components/CvVisibilityModal'
 import { subscribeToUserNetworks } from '../networkService'
 
 function authMethodLabel(method, t) {
@@ -1136,10 +1140,19 @@ function ProfileAboutSection({
 
 function ActiveCvPanel({ t }) {
   const navigate = useNavigate()
-  const { activeCv, activePreviewUrl, loading } = useResume()
+  const { activeCv, activePreviewUrl, loading, updateUserCvVisibility } = useResume()
   const [cvVisibility, setCvVisibility] = useState(DEFAULT_CV_VISIBILITY)
   const [showVisibilityModal, setShowVisibilityModal] = useState(false)
+  const [visibilitySaving, setVisibilitySaving] = useState(false)
   const [downloading, setDownloading] = useState(false)
+
+  useEffect(() => {
+    if (!activeCv) {
+      setCvVisibility(DEFAULT_CV_VISIBILITY)
+      return
+    }
+    setCvVisibility(switchesFromVisibility(activeCv.visibility))
+  }, [activeCv?.id, activeCv?.visibility])
 
   const cvHidden = cvVisibility.hideFromConnections || cvVisibility.hideFromCompanies
 
@@ -1158,6 +1171,22 @@ function ActiveCvPanel({ t }) {
       console.error('Active CV download failed:', err)
     } finally {
       setDownloading(false)
+    }
+  }
+
+  async function handleVisibilitySave(value) {
+    if (!activeCv?.id || visibilitySaving) return
+
+    setVisibilitySaving(true)
+    try {
+      const visibility = visibilityFromSwitches(value)
+      await updateUserCvVisibility(activeCv.id, visibility)
+      setCvVisibility(value)
+      setShowVisibilityModal(false)
+    } catch (err) {
+      console.error('CV visibility update failed:', err)
+    } finally {
+      setVisibilitySaving(false)
     }
   }
 
@@ -1311,10 +1340,12 @@ function ActiveCvPanel({ t }) {
       <CvVisibilityModal
         open={showVisibilityModal}
         initialValue={cvVisibility}
-        onClose={() => setShowVisibilityModal(false)}
+        saving={visibilitySaving}
+        onClose={() => {
+          if (!visibilitySaving) setShowVisibilityModal(false)
+        }}
         onSave={(value) => {
-          setCvVisibility(value)
-          setShowVisibilityModal(false)
+          void handleVisibilitySave(value)
         }}
       />
     </section>

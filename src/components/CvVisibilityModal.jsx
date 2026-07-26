@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { EyeOff } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
+import {
+  DEFAULT_CV_VISIBILITY_SWITCHES,
+  switchesFromVisibility,
+  visibilityFromSwitches,
+} from '../cvFileService'
 
-export const DEFAULT_CV_VISIBILITY = {
-  hideFromNonConnections: true,
-  hideFromConnections: false,
-  hideFromCompanies: false,
-}
+export const DEFAULT_CV_VISIBILITY = DEFAULT_CV_VISIBILITY_SWITCHES
+
+export { switchesFromVisibility, visibilityFromSwitches }
 
 const OPTIONS = [
   {
@@ -33,6 +36,7 @@ export default function CvVisibilityModal({
   initialValue = DEFAULT_CV_VISIBILITY,
   onClose,
   onSave,
+  saving = false,
 }) {
   const { t } = useLanguage()
   const [values, setValues] = useState({ ...DEFAULT_CV_VISIBILITY, ...initialValue })
@@ -48,6 +52,7 @@ export default function CvVisibilityModal({
     if (!open) return undefined
     const onKey = (e) => {
       if (e.key === 'Escape') {
+        if (saving) return
         if (step === 'confirm') setStep('options')
         else onClose?.()
       }
@@ -59,24 +64,32 @@ export default function CvVisibilityModal({
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
     }
-  }, [open, onClose, step])
+  }, [open, onClose, step, saving])
 
   if (!open) return null
 
   const toggle = (key) => {
+    if (saving) return
     setValues((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
-  const handleSave = () => {
-    if (values.hideFromCompanies) {
-      setStep('confirm')
-      return
-    }
+  const commitSave = () => {
+    if (saving) return
     onSave?.(values)
   }
 
+  const handleSave = () => {
+    if (saving) return
+    // Only confirm when newly enabling hide-from-companies.
+    if (values.hideFromCompanies && !initialValue?.hideFromCompanies) {
+      setStep('confirm')
+      return
+    }
+    commitSave()
+  }
+
   return createPortal(
-    <div className="modal-backdrop cv-vis-backdrop" onClick={onClose}>
+    <div className="modal-backdrop cv-vis-backdrop" onClick={saving ? undefined : onClose}>
       <div
         className={`cv-vis-modal${step === 'confirm' ? ' cv-vis-modal--confirm' : ''}`}
         role="dialog"
@@ -102,6 +115,7 @@ export default function CvVisibilityModal({
                     type="button"
                     role="switch"
                     aria-checked={active}
+                    disabled={saving}
                     className={`cv-vis-row${active ? ' cv-vis-row--active' : ''}${opt.warn ? ' cv-vis-row--warn' : ''}${index === OPTIONS.length - 1 ? ' cv-vis-row--last' : ''}`}
                     onClick={() => toggle(opt.key)}
                   >
@@ -123,11 +137,18 @@ export default function CvVisibilityModal({
             </div>
 
             <div className="cv-vis-actions">
-              <button type="button" className="btn btn-ghost" onClick={onClose}>
+              <button type="button" className="btn btn-ghost" onClick={onClose} disabled={saving}>
                 {t('profile.cvVis.cancel')}
               </button>
-              <button type="button" className="btn-gradient-wrap cv-vis-save" onClick={handleSave}>
-                <span className="btn-gradient-inner">{t('profile.cvVis.save')}</span>
+              <button
+                type="button"
+                className="btn-gradient-wrap cv-vis-save"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                <span className="btn-gradient-inner">
+                  {saving ? t('profile.cvVis.saving') : t('profile.cvVis.save')}
+                </span>
               </button>
             </div>
           </>
@@ -141,11 +162,23 @@ export default function CvVisibilityModal({
             <p className="cv-vis-confirm-body">{t('profile.cvVis.confirmWarning')}</p>
 
             <div className="cv-vis-actions cv-vis-actions--confirm">
-              <button type="button" className="btn btn-ghost" onClick={() => setStep('options')}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setStep('options')}
+                disabled={saving}
+              >
                 {t('profile.cvVis.confirmBack')}
               </button>
-              <button type="button" className="btn-gradient-wrap cv-vis-save" onClick={() => onSave?.(values)}>
-                <span className="btn-gradient-inner">{t('profile.cvVis.confirmSave')}</span>
+              <button
+                type="button"
+                className="btn-gradient-wrap cv-vis-save"
+                onClick={commitSave}
+                disabled={saving}
+              >
+                <span className="btn-gradient-inner">
+                  {saving ? t('profile.cvVis.saving') : t('profile.cvVis.confirmSave')}
+                </span>
               </button>
             </div>
           </div>

@@ -25,6 +25,7 @@ import {
   setActiveFileId,
   storageNameFromPath,
   updateCvFileDisplayName,
+  updateCvFileVisibility,
 } from './cvFileService'
 import { extractTextFromPdf } from './cvTextService'
 import { getCvBlob, releasePreviewUrl } from './cvPreviewCache'
@@ -351,6 +352,17 @@ export async function renameCv(uid, fileId, newName) {
     await updateCvFileDisplayName(uid, fileId, newName)
   } catch (err) {
     console.error('CV rename failed:', err)
+    throw err
+  }
+  invalidateCvCache(uid)
+  return getUserCvs(uid, { force: true })
+}
+
+export async function updateCvVisibility(uid, fileId, visibility) {
+  try {
+    await updateCvFileVisibility(uid, fileId, visibility)
+  } catch (err) {
+    console.error('CV visibility update failed:', err)
     throw err
   }
   invalidateCvCache(uid)
