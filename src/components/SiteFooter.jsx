@@ -11,12 +11,14 @@ export default function SiteFooter() {
 
   return (
     <footer className="site-footer">
-      <div className={`site-footer-inner${showTheme ? '' : ' site-footer-inner--no-controls'}`}>
-        {showTheme ? (
-          <div className="site-footer-controls site-footer-controls--with-theme">
-            <ThemeSwitcher />
-          </div>
-        ) : null}
+      <div className="site-footer-inner">
+        <div className="site-footer-start">
+          {showTheme ? (
+            <div className="site-footer-controls site-footer-controls--with-theme">
+              <ThemeSwitcher />
+            </div>
+          ) : null}
+        </div>
         <p className="site-footer-copy">© {year} cveey</p>
         <nav className="site-footer-nav" aria-label={t('footer.legalNav')}>
           <Link to="/privacy">{t('legal.privacy')}</Link>
