@@ -566,33 +566,64 @@ export const translations = {
 
     'cookie.title': 'Cookies & ads',
     'cookie.text':
-      'We use cookies and may show personalized ads (Google AdSense). You can accept or continue without personalized ads. See our',
+      'We use cookies and local storage for sign-in, preferences, and (if you accept) personalized ads via Google AdSense. You can accept or continue without personalized ads. See our',
     'cookie.accept': 'Accept',
     'cookie.reject': 'Reject personalized ads',
 
     'privacy.title': 'Privacy Policy',
     'privacy.s1.title': '1. Who we are',
     'privacy.s1.body':
-      'cveey (“we”, “us”) provides a resume (CV) creation and management service. This policy explains what information we collect and how we use it.',
+      'cveey (“we”, “us”) is an online platform for creating and uploading CVs/resumes, managing a professional profile, joining a talent pool visible to partner HR firms, and connecting with other users. This Privacy Policy explains what personal data we process, why we process it, and the choices you have. By using cveey you acknowledge this policy together with our Terms of Service.',
     'privacy.s2.title': '2. Information we collect',
-    'privacy.s2.body': 'Depending on how you use the service, we may process:',
-    'privacy.s2.item1': 'Account data: email address, display name, and authentication provider details.',
-    'privacy.s2.item2': 'Resume content you upload or create (text, files, and related metadata).',
-    'privacy.s2.item3': 'Usage data: pages viewed, device/browser type, approximate location, and diagnostics.',
-    'privacy.s2.item4': 'Cookies and similar technologies used for login, preferences, analytics, and advertising.',
+    'privacy.s2.body':
+      'Depending on how you use the service, we may process the following categories of personal data:',
+    'privacy.s2.item1':
+      'Account and authentication: email address; sign-in method (email/password, Google, or GitHub); email verification status; profile photo URL from your auth provider when you use OAuth; and account timestamps (for example creation and last login).',
+    'privacy.s2.item2':
+      'Profile data you provide: username, home city, about/summary text, education details, email visibility preference (whether your email appears on your public profile), and related preference fields.',
+    'privacy.s2.item3':
+      'CV/resume content: PDF files you upload or export from the CV builder (subject to size limits); file names and visibility settings; optional text extracted from uploaded PDFs on your device for search/preview features; and any personal details you enter in the CV builder (for example name, contact details, work history, education, skills, projects, certifications, languages, awards, volunteer work, publications, references, and similar fields). Unsaved or draft CV builder content may remain only in your browser until you export or upload it.',
+    'privacy.s2.item4':
+      'Networking and notifications: connection requests and accepted connections (including related usernames and profile photos shown in notifications), and notification status/timestamps.',
+    'privacy.s2.item5':
+      'Device and usage data: technical information needed to run the app (for example browser/device type) and, where Firebase Analytics is enabled, aggregated or event-level usage metrics. We do not currently operate in-app messaging or job applications, so we do not process message or application content for those features.',
+    'privacy.s2.item6':
+      'Cookies, local storage, and similar technologies: session/auth persistence; language and theme preferences; ad-consent choice; cached profile snippets; and CV drafts stored on your device. See section 6.',
     'privacy.s3.title': '3. How we use information',
     'privacy.s3.body':
-      'We use this information to operate and improve cveey, authenticate users, store your resumes, provide customer support, measure performance, and — where you consent — show relevant ads.',
-    'privacy.s4.title': '4. Advertising (Google AdSense)',
+      'We use personal data to create and secure your account; provide CV storage, preview, and management; show your profile and (according to product settings) CV material to other signed-in users and for talent-pool / HR visibility features; enable networking (search by username, connection requests, notifications); improve reliability and performance; communicate about account security (for example verification and password-reset emails via Firebase); and, only if you accept personalized ads, load Google AdSense. We do not sell your personal data.',
+    'privacy.s4.title': '4. Sharing, visibility, and the talent pool',
     'privacy.s4.body':
-      'We use Google AdSense to display advertisements. Google and its partners may use cookies or similar technologies to serve ads based on your prior visits to this or other websites. You can manage ad personalization in your Google settings and via our cookie banner.',
-    'privacy.s4.link': 'How Google uses data for ads',
-    'privacy.s5.title': '5. Your choices',
-    'privacy.s5.body':
-      'You may update preferences in the app, reject personalized ads via the cookie banner, or request account deletion by contacting us. Local browser settings also let you block or clear cookies.',
-    'privacy.s6.title': '6. Contact',
+      'cveey is a multi-user product. After you sign in, other authenticated users may view profiles on the platform. You can choose whether your email address is shown on your profile. CV visibility settings (for example connections, partner firms / talent pool, or more open/restricted options) control how the product presents your CV in networking and talent-pool contexts. Content you place in a CV PDF or profile may include sensitive personal details, so share only what you are comfortable making available on the platform. Partner HR firms may review talent-pool candidates as part of the service. We may also disclose data if required by law or to protect the service and users.',
+    'privacy.s5.title': '5. Service providers and third parties',
+    'privacy.s5.body': 'We rely on processors and integrations to operate cveey, including:',
+    'privacy.s5.item1':
+      'Google Firebase (Authentication, Cloud Firestore, Cloud Storage, Analytics, and Cloud Functions, including password-reset related processing in the europe-west1 region) hosted by Google.',
+    'privacy.s5.item2':
+      'Google and GitHub when you choose to sign in with those providers (their terms and privacy policies also apply to that authentication).',
+    'privacy.s5.item3':
+      'Google AdSense for advertising when ads are enabled and you have accepted personalized ads via our consent banner.',
+    'privacy.s5.item4':
+      'Client-side PDF tools that run in your browser to build, preview, or extract text from CV files (processing stays on your device for those steps).',
+    'privacy.s6.title': '6. Cookies, local storage, and analytics',
     'privacy.s6.body':
-      'For privacy questions, contact the site operator through the support channel published on cveey once available. This policy may be updated; the “Last updated” date above will change when it does.',
+      'We use necessary storage to keep you signed in and to remember language, theme, and similar preferences. Your ad-consent choice is stored locally (so we know whether AdSense may load). CV builder drafts and short-lived profile caches may also be stored in your browser. Firebase Analytics may collect usage data to help us understand how the product is used; our cookie banner currently governs personalized advertising consent and does not by itself disable Analytics or required auth/preference storage. You can clear site data in your browser at any time.',
+    'privacy.s7.title': '7. Advertising (Google AdSense)',
+    'privacy.s7.body':
+      'When advertising is enabled and you accept personalized ads, we load Google AdSense. Google and its partners may use cookies or similar technologies to serve ads based on your visits to this or other sites. You can reject personalized ads in our banner (AdSense will not load under that choice) and manage ad settings in your Google account.',
+    'privacy.s7.link': 'How Google uses data for ads',
+    'privacy.s8.title': '8. Retention and account deletion',
+    'privacy.s8.body':
+      'We keep account, profile, CV, network, and notification data while your account is active. You can delete your account in the app (Profile). Deletion removes your Firebase Auth user, Firestore profile and related records (including education, CV metadata, networks, and notifications we manage for that account), and CV/profile files stored for you in Firebase Storage, after you re-authenticate. Drafts, preferences, and caches left only in your browser are not cleared automatically; remove them via browser settings if needed. Backup or logs held by infrastructure providers may persist for a limited period according to their systems.',
+    'privacy.s9.title': '9. Your choices and rights',
+    'privacy.s9.body':
+      'Depending on applicable law (including Turkish KVKK and, where relevant, GDPR), you may have rights to access, correct, delete, or restrict processing of your personal data, and to object to certain processing. In the product you can edit profile and education data, change email visibility, manage CV visibility and files, change password/email where the sign-in method allows, withdraw personalized-ad consent via the banner (or by clearing the stored consent and deciding again), and delete your account. For other privacy requests, contact us as described below.',
+    'privacy.s10.title': '10. Children',
+    'privacy.s10.body':
+      'cveey is intended for users who can lawfully create an account and share professional information. The service is not directed at children under 13 (or under the digital consent age in your country). If you believe a child has provided personal data, contact us so we can take appropriate steps.',
+    'privacy.s11.title': '11. Changes and contact',
+    'privacy.s11.body':
+      'We may update this Privacy Policy as the product evolves. The “Last updated” date at the top will change when we do. For privacy questions, contact the site operator through the support channel published on cveey when available.',
 
     'terms.title': 'Terms of Service',
     'terms.s1.title': '1. Acceptance',
@@ -600,16 +631,31 @@ export const translations = {
       'By accessing or using cveey you agree to these Terms of Service and our Privacy Policy. If you do not agree, do not use the service.',
     'terms.s2.title': '2. The service',
     'terms.s2.body':
-      'cveey lets you create, upload, preview, and manage resumes. Features may change, be limited, or become unavailable as the product evolves.',
-    'terms.s3.title': '3. Your content & account',
+      'cveey provides tools to create, upload, preview, and manage CVs/resumes; maintain a professional profile; appear in a talent pool intended for partner HR firms; search for and connect with other users; and receive related notifications. Some areas (for example Jobs and Messages) may be marked under construction and unavailable. Features may change, be limited, or become unavailable as the product evolves. We do not guarantee interviews, job offers, or hiring outcomes.',
+    'terms.s3.title': '3. Accounts and eligibility',
     'terms.s3.body':
-      'You are responsible for the accuracy of resume content you submit and for keeping your account credentials secure. Do not upload unlawful, infringing, or harmful content.',
-    'terms.s4.title': '4. Acceptable use',
+      'You may register with email/password (email verification required), Google, or GitHub. You must provide accurate information, keep credentials secure, and complete required onboarding (such as username and home city). You are responsible for activity under your account. We may suspend or terminate accounts that violate these terms or pose a security risk.',
+    'terms.s4.title': '4. Your content',
     'terms.s4.body':
-      'You must not abuse the platform, attempt unauthorized access, interfere with other users, or use cveey to spam or violate applicable laws. Ads must not be clicked by site operators or incentivized clicks.',
-    'terms.s5.title': '5. Disclaimers',
+      'You retain ownership of the CV, profile, photo, and other content you submit. You grant cveey a limited license to host, store, display, and transmit that content as needed to operate the service (including profile pages, networking, downloads by authorized viewers, and talent-pool visibility according to your settings). You represent that you have the rights to submit the content and that it is lawful and accurate. Do not upload malware, infringing material, or others’ personal data without a lawful basis (for example reference contact details).',
+    'terms.s5.title': '5. Networking and talent pool',
     'terms.s5.body':
-      'The service is provided “as is” without warranties of uninterrupted availability or fitness for a particular career outcome. We are not liable for indirect or consequential damages to the extent permitted by law.',
+      'Connecting with other users and participating in the talent pool are core parts of the product. Other signed-in users may view profiles; CV access follows the visibility options you choose in the product. Hiding your CV from firms may remove or reduce talent-pool visibility. Treat the platform as a professional environment and only share information you are willing to disclose to other users and HR viewers.',
+    'terms.s6.title': '6. Acceptable use',
+    'terms.s6.body':
+      'You must not: abuse or disrupt the platform; attempt unauthorized access to accounts, data, or systems; scrape or harvest user data beyond normal use of the UI; spam, harass, or impersonate others; upload unlawful or harmful content; circumvent security or visibility controls; or use cveey in violation of applicable law. Operators must not click their own ads or incentivize ad clicks.',
+    'terms.s7.title': '7. Third-party services and ads',
+    'terms.s7.body':
+      'Sign-in, hosting, analytics, and advertising are provided in part by third parties (including Google Firebase, Google/GitHub OAuth, and Google AdSense). Their terms may apply when you use those features. Personalized ads load only when you accept them via our consent banner (when ads are enabled).',
+    'terms.s8.title': '8. Disclaimers and limitation of liability',
+    'terms.s8.body':
+      'The service is provided “as is” and “as available,” without warranties of uninterrupted availability, error-free operation, or fitness for a particular career purpose. To the fullest extent permitted by law, we are not liable for indirect, incidental, special, or consequential damages, or for decisions made by you, other users, or HR firms based on information on the platform.',
+    'terms.s9.title': '9. Termination',
+    'terms.s9.body':
+      'You may stop using cveey and delete your account in the app at any time. We may suspend or end access if you breach these terms or if we discontinue the service. Provisions that by nature should survive (including disclaimers and limitations of liability) remain in effect.',
+    'terms.s10.title': '10. Changes and contact',
+    'terms.s10.body':
+      'We may update these Terms from time to time. Continued use after an update means you accept the revised Terms. The “Last updated” date at the top will change when we publish updates. For questions, contact the site operator through the support channel published on cveey when available.',
 
     ...createCvExtendedEn,
   },
@@ -1178,33 +1224,64 @@ export const translations = {
 
     'cookie.title': 'Çerezler ve reklamlar',
     'cookie.text':
-      'Çerez kullanıyoruz ve kişiselleştirilmiş reklamlar (Google AdSense) gösterebiliriz. Kabul edebilir veya kişiselleştirilmiş reklamlar olmadan devam edebilirsiniz. Ayrıntılar:',
+      'Oturum, tercihler ve (kabul ederseniz) Google AdSense ile kişiselleştirilmiş reklamlar için çerez ve yerel depolama kullanırız. Kabul edebilir veya kişiselleştirilmiş reklamlar olmadan devam edebilirsiniz. Ayrıntılar:',
     'cookie.accept': 'Kabul et',
     'cookie.reject': 'Kişiselleştirilmiş reklamları reddet',
 
     'privacy.title': 'Gizlilik Politikası',
     'privacy.s1.title': '1. Kimiz',
     'privacy.s1.body':
-      'cveey (“biz”) özgeçmiş (CV) oluşturma ve yönetim hizmeti sunar. Bu politika hangi bilgileri topladığımızı ve nasıl kullandığımızı açıklar.',
+      'cveey (“biz”), özgeçmiş (CV) oluşturma ve yükleme, profesyonel profil yönetimi, iş ortağı İK firmalarına görünür bir yetenek havuzuna katılma ve diğer kullanıcılarla bağlantı kurma hizmetleri sunan çevrimiçi bir platformdur. Bu Gizlilik Politikası hangi kişisel verileri işlediğimizi, neden işlediğimizi ve seçeneklerinizi açıklar. cveey’i kullanarak bu politikayı Kullanım Şartları ile birlikte kabul etmiş olursunuz.',
     'privacy.s2.title': '2. Topladığımız bilgiler',
-    'privacy.s2.body': 'Hizmeti nasıl kullandığınıza bağlı olarak şunları işleyebiliriz:',
-    'privacy.s2.item1': 'Hesap verileri: e-posta, görünen ad ve kimlik doğrulama sağlayıcısı bilgileri.',
-    'privacy.s2.item2': 'Yüklediğiniz veya oluşturduğunuz özgeçmiş içeriği (metin, dosya ve ilgili meta veriler).',
-    'privacy.s2.item3': 'Kullanım verileri: görüntülenen sayfalar, cihaz/tarayıcı türü, yaklaşık konum ve tanılama bilgileri.',
-    'privacy.s2.item4': 'Oturum, tercihler, analiz ve reklam için kullanılan çerezler ve benzer teknolojiler.',
+    'privacy.s2.body':
+      'Hizmeti nasıl kullandığınıza bağlı olarak aşağıdaki kişisel veri kategorilerini işleyebiliriz:',
+    'privacy.s2.item1':
+      'Hesap ve kimlik doğrulama: e-posta adresi; giriş yöntemi (e-posta/şifre, Google veya GitHub); e-posta doğrulama durumu; OAuth kullandığınızda sağlayıcıdan gelen profil fotoğrafı URL’si; hesap zaman damgaları (ör. oluşturma ve son giriş).',
+    'privacy.s2.item2':
+      'Sağladığınız profil verileri: kullanıcı adı, yaşadığınız şehir, hakkımda/özet metni, eğitim bilgileri, e-postanın herkese açık profilde görünür olup olmadığı tercihi ve ilgili tercih alanları.',
+    'privacy.s2.item3':
+      'CV/özgeçmiş içeriği: yüklediğiniz veya CV oluşturucudan dışa aktardığınız PDF dosyaları (boyut sınırlarına tabi); dosya adları ve görünürlük ayarları; arama/önizleme için cihazınızda PDF’den çıkarılan isteğe bağlı metin; CV oluşturucuya girdiğiniz kişisel bilgiler (ör. ad, iletişim, iş geçmişi, eğitim, beceriler, projeler, sertifikalar, diller, ödüller, gönüllülük, yayınlar, referanslar ve benzeri alanlar). Kaydedilmemiş veya taslak CV içeriği, dışa aktarana veya yükleyene kadar yalnızca tarayıcınızda kalabilir.',
+    'privacy.s2.item4':
+      'Ağ ve bildirimler: bağlantı istekleri ve kabul edilen bağlantılar (bildirimlerde gösterilen kullanıcı adı ve profil fotoğrafları dahil) ile bildirim durumu/zaman damgaları.',
+    'privacy.s2.item5':
+      'Cihaz ve kullanım verileri: uygulamayı çalıştırmak için gereken teknik bilgiler (ör. tarayıcı/cihaz türü) ve Firebase Analytics etkinse toplu veya olay düzeyinde kullanım metrikleri. Uygulama içi mesajlaşma veya iş başvurusu şu an sunulmadığı için bu özelliklere ait mesaj/başvuru içeriği işlemiyoruz.',
+    'privacy.s2.item6':
+      'Çerezler, yerel depolama ve benzer teknolojiler: oturum/kimlik doğrulama kalıcılığı; dil ve tema tercihleri; reklam onayı seçimi; önbelleğe alınan profil özetleri; cihazınızda saklanan CV taslakları. Bkz. bölüm 6.',
     'privacy.s3.title': '3. Bilgileri nasıl kullanırız',
     'privacy.s3.body':
-      'Bu bilgileri cveey’i işletmek ve geliştirmek, kullanıcıları doğrulamak, özgeçmişlerinizi saklamak, destek vermek, performansı ölçmek ve — onay verdiğinizde — ilgili reklamlar göstermek için kullanırız.',
-    'privacy.s4.title': '4. Reklamlar (Google AdSense)',
+      'Kişisel verileri hesabınızı oluşturmak ve güvenceye almak; CV depolama, önizleme ve yönetim sağlamak; profilinizi ve (ürün ayarlarına göre) CV içeriğinizi diğer oturum açmış kullanıcılara ve yetenek havuzu / İK görünürlüğü özellikleri için sunmak; ağ kurmayı (kullanıcı adı ile arama, bağlantı istekleri, bildirimler) mümkün kılmak; güvenilirlik ve performansı iyileştirmek; hesap güvenliği iletişimi (ör. Firebase üzerinden doğrulama ve şifre sıfırlama e-postaları) göndermek; kişiselleştirilmiş reklamları kabul ettiğinizde Google AdSense yüklemek için kullanırız. Kişisel verilerinizi satmayız.',
+    'privacy.s4.title': '4. Paylaşım, görünürlük ve yetenek havuzu',
     'privacy.s4.body':
-      'Reklam göstermek için Google AdSense kullanırız. Google ve iş ortakları, bu siteye veya diğer sitelere yaptığınız önceki ziyaretlere dayalı reklam sunmak için çerez veya benzer teknolojiler kullanabilir. Reklam kişiselleştirmesini Google ayarlarınızdan ve çerez banner’ımızdan yönetebilirsiniz.',
-    'privacy.s4.link': 'Google’ın reklamlar için verileri nasıl kullandığı',
-    'privacy.s5.title': '5. Seçenekleriniz',
-    'privacy.s5.body':
-      'Uygulamadaki tercihleri güncelleyebilir, çerez banner’ından kişiselleştirilmiş reklamları reddedebilir veya hesap silme talebinde bulunabilirsiniz. Tarayıcı ayarlarıyla da çerezleri engelleyebilir veya silebilirsiniz.',
-    'privacy.s6.title': '6. İletişim',
+      'cveey çok kullanıcılı bir üründür. Oturum açtıktan sonra diğer kimliği doğrulanmış kullanıcılar platformdaki profilleri görüntüleyebilir. E-posta adresinizin profilde gösterilip gösterilmeyeceğini seçebilirsiniz. CV görünürlük ayarları (ör. bağlantılar, iş ortağı firmalar / yetenek havuzu veya daha açık/kısıtlı seçenekler), CV’nizin ağ ve yetenek havuzu bağlamlarında nasıl sunulacağını kontrol eder. CV PDF’ine veya profile koyduğunuz içerik hassas kişisel bilgiler içerebilir; platformda paylaşmaya razı olduğunuz kadarını paylaşın. İş ortağı İK firmaları, hizmetin bir parçası olarak yetenek havuzu adaylarını inceleyebilir. Yasaların gerektirdiği veya hizmeti ve kullanıcıları korumak için de veri açıklayabiliriz.',
+    'privacy.s5.title': '5. Hizmet sağlayıcılar ve üçüncü taraflar',
+    'privacy.s5.body': 'cveey’i işletmek için aşağıdaki işleyenler ve entegrasyonlara başvururuz:',
+    'privacy.s5.item1':
+      'Google Firebase (Authentication, Cloud Firestore, Cloud Storage, Analytics ve Cloud Functions; örneğin europe-west1 bölgesinde şifre sıfırlama ile ilgili işlemler), Google tarafından barındırılır.',
+    'privacy.s5.item2':
+      'Google veya GitHub ile giriş yaptığınızda bu sağlayıcılar (kimlik doğrulama için onların şartları ve gizlilik politikaları da geçerlidir).',
+    'privacy.s5.item3':
+      'Reklamlar açıksa ve çerez banner’ımızdan kişiselleştirilmiş reklamları kabul ettiyseniz Google AdSense.',
+    'privacy.s5.item4':
+      'CV dosyalarını oluşturmak, önizlemek veya metin çıkarmak için tarayıcınızda çalışan istemci tarafı PDF araçları (bu adımlarda işleme cihazınızda kalır).',
+    'privacy.s6.title': '6. Çerezler, yerel depolama ve analitik',
     'privacy.s6.body':
-      'Gizlilik sorularınız için cveey’de yayınlanacak destek kanalı üzerinden site işletmecisine ulaşın. Bu politika güncellenebilir; güncellemede yukarıdaki “Son güncelleme” tarihi değişir.',
+      'Oturumunuzu açık tutmak ve dil, tema gibi tercihleri hatırlamak için gerekli depolamayı kullanırız. Reklam onayı tercihiniz yerelde saklanır (AdSense’in yüklenip yüklenemeyeceğini bilmek için). CV oluşturucu taslakları ve kısa ömürlü profil önbellekleri de tarayıcınızda tutulabilir. Firebase Analytics, ürünün nasıl kullanıldığını anlamamıza yardımcı olmak için kullanım verisi toplayabilir; çerez banner’ımız şu an kişiselleştirilmiş reklam onayını yönetir ve tek başına Analytics’i veya gerekli oturum/tercih depolamasını kapatmaz. Site verilerini tarayıcınızdan istediğiniz zaman temizleyebilirsiniz.',
+    'privacy.s7.title': '7. Reklamlar (Google AdSense)',
+    'privacy.s7.body':
+      'Reklamlar açıksa ve kişiselleştirilmiş reklamları kabul ederseniz Google AdSense yüklenir. Google ve iş ortakları, bu siteye veya diğer sitelere yaptığınız ziyaretlere dayalı reklam sunmak için çerez veya benzer teknolojiler kullanabilir. Banner’dan kişiselleştirilmiş reklamları reddedebilirsiniz (bu seçimde AdSense yüklenmez) ve Google hesabınızdan reklam ayarlarını yönetebilirsiniz.',
+    'privacy.s7.link': 'Google’ın reklamlar için verileri nasıl kullandığı',
+    'privacy.s8.title': '8. Saklama ve hesap silme',
+    'privacy.s8.body':
+      'Hesabınız aktifken hesap, profil, CV, ağ ve bildirim verilerini saklarız. Hesabınızı uygulamadan (Profil) silebilirsiniz. Silme; yeniden kimlik doğrulamanızdan sonra Firebase Auth kullanıcınızı, Firestore profilinizi ve ilgili kayıtları (eğitim, CV meta verileri, ağlar ve o hesap için yönettiğimiz bildirimler dahil) ile Firebase Storage’daki CV/profil dosyalarınızı kaldırır. Yalnızca tarayıcınızda kalan taslaklar, tercihler ve önbellekler otomatik silinmez; gerekirse tarayıcı ayarlarından temizleyin. Altyapı sağlayıcılarının yedek veya günlükleri, kendi sistemlerine göre sınırlı süre kalabilir.',
+    'privacy.s9.title': '9. Seçenekleriniz ve haklarınız',
+    'privacy.s9.body':
+      'Uygulanabilir hukuka (Türkiye’de KVKK ve ilgiliyse GDPR dahil) bağlı olarak kişisel verilerinize erişme, düzeltme, silme veya işlemeyi kısıtlama ve belirli işlemlere itiraz etme haklarına sahip olabilirsiniz. Üründe profil ve eğitim verilerini düzenleyebilir, e-posta görünürlüğünü değiştirebilir, CV görünürlüğünü ve dosyaları yönetebilir, giriş yöntemi izin verdiğinde şifre/e-posta değiştirebilir, banner üzerinden (veya saklanan onayı silip yeniden seçerek) kişiselleştirilmiş reklam onayını geri çekebilir ve hesabınızı silebilirsiniz. Diğer gizlilik talepleri için aşağıda belirtilen şekilde bize ulaşın.',
+    'privacy.s10.title': '10. Çocuklar',
+    'privacy.s10.body':
+      'cveey, yasal olarak hesap oluşturabilen ve profesyonel bilgi paylaşabilen kullanıcılara yöneliktir. Hizmet 13 yaşın altındaki çocuklara (veya ülkenizdeki dijital rıza yaşının altındakilere) yönelik değildir. Bir çocuğun kişisel veri verdiğini düşünüyorsanız uygun adımları atabilmemiz için bize ulaşın.',
+    'privacy.s11.title': '11. Değişiklikler ve iletişim',
+    'privacy.s11.body':
+      'Ürün geliştikçe bu Gizlilik Politikası’nı güncelleyebiliriz. Güncellemede yukarıdaki “Son güncelleme” tarihi değişir. Gizlilik sorularınız için cveey’de yayınlandığında destek kanalı üzerinden site işletmecisine ulaşın.',
 
     'terms.title': 'Kullanım Şartları',
     'terms.s1.title': '1. Kabul',
@@ -1212,16 +1289,31 @@ export const translations = {
       'cveey’e erişerek veya kullanarak bu Kullanım Şartları’nı ve Gizlilik Politikası’nı kabul etmiş olursunuz. Kabul etmiyorsanız hizmeti kullanmayın.',
     'terms.s2.title': '2. Hizmet',
     'terms.s2.body':
-      'cveey özgeçmiş oluşturmanızı, yüklemenizi, önizlemenizi ve yönetmenizi sağlar. Özellikler ürün geliştikçe değişebilir, sınırlanabilir veya kullanılamaz hale gelebilir.',
-    'terms.s3.title': '3. İçeriğiniz ve hesabınız',
+      'cveey; CV/özgeçmiş oluşturma, yükleme, önizleme ve yönetme; profesyonel profil tutma; iş ortağı İK firmalarına yönelik yetenek havuzunda yer alma; diğer kullanıcıları arama ve onlarla bağlantı kurma; ilgili bildirimleri alma araçları sunar. Bazı alanlar (ör. İlanlar ve Mesajlar) yapım aşamasında işaretlenmiş ve kullanılamıyor olabilir. Özellikler ürün geliştikçe değişebilir, sınırlanabilir veya kullanılamaz hale gelebilir. Mülakat, iş teklifi veya işe alım sonucu garanti etmeyiz.',
+    'terms.s3.title': '3. Hesaplar ve uygunluk',
     'terms.s3.body':
-      'Gönderdiğiniz özgeçmiş içeriğinin doğruluğundan ve hesap bilgilerinizin güvenliğinden siz sorumlusunuz. Yasadışı, ihlal edici veya zararlı içerik yüklemeyin.',
-    'terms.s4.title': '4. Kabul edilebilir kullanım',
+      'E-posta/şifre (e-posta doğrulaması zorunlu), Google veya GitHub ile kayıt olabilirsiniz. Doğru bilgi vermeli, kimlik bilgilerinizi güvende tutmalı ve gerekli onboarding’i (ör. kullanıcı adı ve yaşadığınız şehir) tamamlamalısınız. Hesabınızdaki etkinliklerden siz sorumlusunuz. Bu şartları ihlal eden veya güvenlik riski oluşturan hesapları askıya alabilir veya sonlandırabiliriz.',
+    'terms.s4.title': '4. İçeriğiniz',
     'terms.s4.body':
-      'Platformu kötüye kullanmamalı, yetkisiz erişim denememeli, diğer kullanıcıları engellememeli veya cveey’i spam / yasa dışı amaçlarla kullanmamalısınız. Site işletmecileri kendi reklamlarına tıklamamalı ve tıklama teşvik etmemelidir.',
-    'terms.s5.title': '5. Sorumluluk redleri',
+      'Gönderdiğiniz CV, profil, fotoğraf ve diğer içeriğin mülkiyeti sizde kalır. Hizmeti işletmek için gerekli olduğu ölçüde (ayarlarınıza göre profil sayfaları, ağ, yetkili görüntüleyicilerin indirmeleri ve yetenek havuzu görünürlüğü dahil) bu içeriği barındırma, saklama, görüntüleme ve iletme konusunda cveey’e sınırlı bir lisans verirsiniz. İçeriği gönderme hakkına sahip olduğunuzu ve içeriğin yasal ile doğru olduğunu beyan edersiniz. Kötü amaçlı yazılım, ihlal edici materyal veya hukuki dayanak olmadan başkalarının kişisel verilerini (ör. referans iletişim bilgileri) yüklemeyin.',
+    'terms.s5.title': '5. Ağ ve yetenek havuzu',
     'terms.s5.body':
-      'Hizmet “olduğu gibi” sunulur; kesintisiz erişim veya belirli bir kariyer sonucu garanti edilmez. Yasaların izin verdiği ölçüde dolaylı veya sonuçsal zararlardan sorumlu değiliz.',
+      'Diğer kullanıcılarla bağlantı kurmak ve yetenek havuzuna katılmak ürünün temel parçalarıdır. Diğer oturum açmış kullanıcılar profilleri görüntüleyebilir; CV erişimi üründe seçtiğiniz görünürlük seçeneklerine uyar. CV’nizi firmalardan gizlemeniz yetenek havuzu görünürlüğünü kaldırabilir veya azaltabilir. Platformu profesyonel bir ortam olarak değerlendirin ve yalnızca diğer kullanıcılara ve İK görüntüleyicilerine açıklamaya razı olduğunuz bilgileri paylaşın.',
+    'terms.s6.title': '6. Kabul edilebilir kullanım',
+    'terms.s6.body':
+      'Şunları yapmamalısınız: platformu kötüye kullanmak veya bozmak; hesaplara, verilere veya sistemlere yetkisiz erişim denemek; arayüzün olağan kullanımının ötesinde kullanıcı verisi kazımak veya toplamak; spam, taciz veya kimliğe bürünme; yasadışı veya zararlı içerik yüklemek; güvenlik veya görünürlük kontrollerini aşmak; cveey’i uygulanabilir hukuka aykırı kullanmak. İşletmeciler kendi reklamlarına tıklamamalı ve tıklama teşvik etmemelidir.',
+    'terms.s7.title': '7. Üçüncü taraf hizmetler ve reklamlar',
+    'terms.s7.body':
+      'Giriş, barındırma, analitik ve reklam kısmen üçüncü taraflarca (Google Firebase, Google/GitHub OAuth ve Google AdSense dahil) sağlanır. Bu özellikleri kullanırken onların şartları da geçerli olabilir. Kişiselleştirilmiş reklamlar (reklamlar açıksa) yalnızca onay banner’ımızdan kabul ettiğinizde yüklenir.',
+    'terms.s8.title': '8. Sorumluluk redleri ve sorumluluk sınırı',
+    'terms.s8.body':
+      'Hizmet “olduğu gibi” ve “mevcut olduğu şekilde” sunulur; kesintisiz erişim, hatasız çalışma veya belirli bir kariyer amacına uygunluk garantisi verilmez. Yasaların izin verdiği en geniş ölçüde; dolaylı, arızi, özel veya sonuçsal zararlardan ya da siz, diğer kullanıcılar veya İK firmalarının platformdaki bilgilere dayanarak aldığı kararlardan sorumlu değiliz.',
+    'terms.s9.title': '9. Fesih',
+    'terms.s9.body':
+      'cveey’i kullanmayı istediğiniz zaman bırakabilir ve hesabınızı uygulamadan silebilirsiniz. Bu şartları ihlal ederseniz veya hizmeti sonlandırırsak erişimi askıya alabilir veya sonlandırabiliriz. Doğası gereği ayakta kalması gereken hükümler (sorumluluk redleri ve sınırlamalar dahil) yürürlükte kalır.',
+    'terms.s10.title': '10. Değişiklikler ve iletişim',
+    'terms.s10.body':
+      'Bu Şartları zaman zaman güncelleyebiliriz. Güncellemeden sonra hizmeti kullanmaya devam etmeniz revize edilmiş Şartları kabul ettiğiniz anlamına gelir. Yayınladığımızda yukarıdaki “Son güncelleme” tarihi değişir. Sorularınız için cveey’de yayınlandığında destek kanalı üzerinden site işletmecisine ulaşın.',
 
     ...createCvExtendedTr,
   },
