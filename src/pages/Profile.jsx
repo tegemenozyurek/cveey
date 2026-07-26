@@ -23,6 +23,7 @@ import CvVisibilityModal, {
   switchesFromVisibility,
   visibilityFromSwitches,
 } from '../components/CvVisibilityModal'
+import { getCvVisibilityCopyKeys } from '../cvFileService'
 import { subscribeToUserNetworks } from '../networkService'
 
 function authMethodLabel(method, t) {
@@ -1154,7 +1155,16 @@ function ActiveCvPanel({ t }) {
     setCvVisibility(switchesFromVisibility(activeCv.visibility))
   }, [activeCv?.id, activeCv?.visibility])
 
-  const cvHidden = cvVisibility.hideFromConnections || cvVisibility.hideFromCompanies
+  const cvVisibilityCopy = getCvVisibilityCopyKeys(
+    activeCv ? visibilityFromSwitches(cvVisibility) : undefined,
+  )
+  const cvHidden = cvVisibilityCopy.restricted
+  const activeCvIntro = activeCv || loading
+    ? t(cvVisibilityCopy.introKey)
+    : t('profile.cvEmptyIntro')
+  const sheetStatusLabel = cvVisibilityCopy.sheetKey
+    ? t(cvVisibilityCopy.sheetKey)
+    : t('profile.cvHidden')
 
   function handlePreview() {
     if (!activePreviewUrl) return
@@ -1205,7 +1215,7 @@ function ActiveCvPanel({ t }) {
             </div>
           ) : cvHidden ? (
             <div className="profile-cv-sheet-status">
-              <p>{t('profile.cvHidden')}</p>
+              <p>{sheetStatusLabel}</p>
             </div>
           ) : !activeCv ? (
             <div className="profile-cv-sheet-status profile-cv-sheet-status--empty">
@@ -1275,7 +1285,7 @@ function ActiveCvPanel({ t }) {
             {activeCv ? stripPdfExtension(activeCv.displayName) : t('profile.cvEmpty')}
           </h2>
           <p className="profile-cv-caption">
-            {activeCv || loading ? t('profile.activeCvIntro') : t('profile.cvEmptyIntro')}
+            {activeCvIntro}
           </p>
         </div>
 

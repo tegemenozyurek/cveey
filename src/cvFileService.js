@@ -101,6 +101,42 @@ export function switchesFromVisibility(visibility) {
   }
 }
 
+const CV_VISIBILITY_INTRO_KEYS = {
+  everybody: 'profile.cvIntro.everybody',
+  'networks+firms': 'profile.cvIntro.networksFirms',
+  firms: 'profile.cvIntro.firms',
+  networks: 'profile.cvIntro.networks',
+  nobody: 'profile.cvIntro.nobody',
+  public: 'profile.cvIntro.public',
+  'public+networks': 'profile.cvIntro.publicNetworks',
+  'public+firms': 'profile.cvIntro.publicFirms',
+}
+
+const CV_VISIBILITY_SHEET_KEYS = {
+  nobody: 'profile.cvSheet.nobody',
+  firms: 'profile.cvSheet.firms',
+  networks: 'profile.cvSheet.networks',
+  public: 'profile.cvSheet.public',
+  'public+networks': 'profile.cvSheet.publicNetworks',
+  'public+firms': 'profile.cvSheet.publicFirms',
+}
+
+/** i18n keys + restricted flag for the profile active-CV panel. */
+export function getCvVisibilityCopyKeys(visibility) {
+  const value = normalizeCvFileVisibility(visibility)
+  const switches = switchesFromVisibility(value)
+  const restricted = switches.hideFromConnections || switches.hideFromCompanies
+
+  return {
+    value,
+    restricted,
+    introKey: CV_VISIBILITY_INTRO_KEYS[value] || 'profile.cvIntro.networksFirms',
+    sheetKey: restricted
+      ? (CV_VISIBILITY_SHEET_KEYS[value] || 'profile.cvHidden')
+      : null,
+  }
+}
+
 export function normalizeStoragePath(fullPath) {
   return fullPath.replace(/^\/+/, '')
 }
