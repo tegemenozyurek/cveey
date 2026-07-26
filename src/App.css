@@ -1485,6 +1485,7 @@
   position: relative;
   z-index: 1;
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 18px;
   padding: 18px 16px;
@@ -3021,18 +3022,68 @@
     border-right: none;
   }
 
-  .profile-hero-row {
-    flex-wrap: wrap;
+  .profile-hero {
+    padding: 6px;
   }
 
-  .profile-page-actions {
-    width: 100%;
-    margin-left: 0;
-    justify-content: flex-end;
+  .profile-hero-row {
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 12px 10px;
+    align-items: center;
+  }
+
+  .profile-hero-avatar-wrap .profile-page-avatar {
+    width: 52px;
+    height: 52px;
+  }
+
+  .profile-hero-text {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .profile-hero-name {
-    font-size: 20px;
+    font-size: 16px;
+  }
+
+  .profile-hero-email {
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .profile-hero-city {
+    max-width: min(96px, 28vw);
+    gap: 4px;
+    font-size: 13px;
+  }
+
+  .profile-hero-city-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .profile-page-actions {
+    width: auto;
+    margin-left: 0;
+    justify-content: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .profile-page-actions .profile-page-icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .profile-page-actions--public {
+    gap: 4px;
+  }
+
+  .profile-connect-btn {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
   }
 }
 
