@@ -11,7 +11,8 @@
     "storage:cors": "node scripts/set-storage-cors.cjs",
     "firebase:login": "firebase login",
     "firebase:deploy:rules": "firebase deploy --only firestore:rules",
-    "firebase:deploy:storage": "firebase deploy --only storage"
+    "firebase:deploy:storage": "firebase deploy --only storage",
+    "firebase:deploy:hosting": "firebase deploy --only hosting"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.3.0",
