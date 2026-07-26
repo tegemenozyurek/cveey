@@ -15,6 +15,8 @@ rules_version = '2';
 //   displayName: string
 //   storageObject?: string  (only for legacy/non-default storage names)
 //   extractedText?: string  (plain text extracted from the PDF on upload)
+//   visibility: string      (who can see: public / networks / firms / nobody
+//                            combinations joined by "+", default "networks+firms")
 //
 // users/{userId}/education/{educationId}
 //   educationDegreeType: string
@@ -482,12 +484,27 @@ service cloud.firestore {
       return text is string && text.size() <= 100000;
     }
 
+    function isValidCvVisibility(value) {
+      return value is string && (
+        value == 'nobody' ||
+        value == 'everybody' ||
+        value == 'public' ||
+        value == 'networks' ||
+        value == 'firms' ||
+        value == 'public+networks' ||
+        value == 'public+firms' ||
+        value == 'networks+firms'
+      );
+    }
+
     function isValidCvFileFields(data) {
-      return data.keys().hasOnly(['displayName', 'storageObject', 'extractedText']) &&
+      return data.keys().hasOnly(['displayName', 'storageObject', 'extractedText', 'visibility']) &&
         data.displayName is string &&
         data.displayName.size() > 0 &&
         data.displayName.size() <= 120 &&
         data.displayName.matches('^.+\\.pdf$') &&
+        data.keys().hasAll(['visibility']) &&
+        isValidCvVisibility(data.visibility) &&
         (!('storageObject' in data) || isValidStorageObject(data.storageObject)) &&
         (!('extractedText' in data) || isValidExtractedText(data.extractedText));
     }
@@ -508,26 +525,46 @@ service cloud.firestore {
           request.resource.data.extractedText == resource.data.extractedText);
     }
 
+    function visibilityUnchanged() {
+      return (!('visibility' in resource.data) && !('visibility' in request.resource.data)) ||
+        (('visibility' in resource.data) && ('visibility' in request.resource.data) &&
+          request.resource.data.visibility == resource.data.visibility);
+    }
+
     function isValidCvFileDisplayNameUpdate(data) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName']) &&
         isValidCvFileFields(data) &&
         storageObjectUnchanged() &&
-        extractedTextUnchanged();
+        extractedTextUnchanged() &&
+        visibilityUnchanged();
     }
 
     function isValidCvFileExtractedTextUpdate(data) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['extractedText']) &&
         isValidCvFileFields(data) &&
         storageObjectUnchanged() &&
+        visibilityUnchanged() &&
         data.displayName == resource.data.displayName &&
         isValidExtractedText(data.extractedText);
     }
 
+    function isValidCvFileVisibilityUpdate(data) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['visibility']) &&
+        isValidCvFileFields(data) &&
+        storageObjectUnchanged() &&
+        extractedTextUnchanged() &&
+        data.displayName == resource.data.displayName &&
+        isValidCvVisibility(data.visibility);
+    }
+
     function isValidCvFileUpdate(data) {
-      return isValidCvFileDisplayNameUpdate(data) || isValidCvFileExtractedTextUpdate(data);
+      return isValidCvFileDisplayNameUpdate(data) ||
+        isValidCvFileExtractedTextUpdate(data) ||
+        isValidCvFileVisibilityUpdate(data);
     }
 
     function isValidCvFileCompaction() {
+      // Compaction may add default visibility to legacy docs missing the field.
       return isValidCvFileCreate(request.resource.data);
     }
 

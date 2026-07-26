@@ -7,6 +7,7 @@ import {
   getUserCvs,
   invalidateCvCache,
   renameCv,
+  updateCvVisibility,
   uploadCv,
 } from '../storageService'
 import {
@@ -184,6 +185,20 @@ export function ResumeProvider({ children }) {
     return data
   }, [user, applyCvData])
 
+  const updateUserCvVisibility = useCallback(async (fileId, visibility) => {
+    if (!user) {
+      const err = new Error('NOT_AUTHENTICATED')
+      err.code = 'auth/not-authenticated'
+      throw err
+    }
+
+    setError('')
+    const data = await updateCvVisibility(user.uid, fileId, visibility)
+    applyCvData(data)
+    loadedUidRef.current = user.uid
+    return data
+  }, [user, applyCvData])
+
   const setActiveUserCv = useCallback(async (fileId) => {
     if (!user) return null
 
@@ -213,6 +228,7 @@ export function ResumeProvider({ children }) {
         uploadUserCv,
         removeCv,
         renameUserCv,
+        updateUserCvVisibility,
         setActiveUserCv,
         clearCvCache,
       }}

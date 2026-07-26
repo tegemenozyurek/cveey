@@ -16,6 +16,127 @@ import { normalizeExtractedText } from './cvTextService'
 export const MAX_CV_NAME_LENGTH = 120
 const PDF_EXTENSION = '.pdf'
 
+/**
+ * CV visibility encodes who can see the active CV (audiences joined by `+`).
+ * Audiences: public (non-connections), networks (connections), firms (companies).
+ *
+ * Switch → value map (hide* = true means that audience is excluded):
+ *   default (hide public)              → networks+firms
+ *   + hide connections                 → firms
+ *   + hide companies                   → nobody
+ *   hide companies only                → networks
+ *   show public too                    → everybody
+ *   public + firms                     → public+firms
+ *   public + networks                  → public+networks
+ *   public only                        → public
+ */
+export const CV_FILE_VISIBILITY = {
+  NOBODY: 'nobody',
+  EVERYBODY: 'everybody',
+  PUBLIC: 'public',
+  NETWORKS: 'networks',
+  FIRMS: 'firms',
+  PUBLIC_AND_NETWORKS: 'public+networks',
+  PUBLIC_AND_FIRMS: 'public+firms',
+  NETWORKS_AND_FIRMS: 'networks+firms',
+}
+
+export const DEFAULT_CV_FILE_VISIBILITY = CV_FILE_VISIBILITY.NETWORKS_AND_FIRMS
+
+const VALID_CV_FILE_VISIBILITY = new Set(Object.values(CV_FILE_VISIBILITY))
+
+/** UI defaults matching `networks+firms`. */
+export const DEFAULT_CV_VISIBILITY_SWITCHES = {
+  hideFromNonConnections: true,
+  hideFromConnections: false,
+  hideFromCompanies: false,
+}
+
+export function normalizeCvFileVisibility(value) {
+  const normalized = String(value ?? '').trim()
+  // Legacy alias from early drafts.
+  if (normalized === 'public+networks+firms') return CV_FILE_VISIBILITY.EVERYBODY
+  if (VALID_CV_FILE_VISIBILITY.has(normalized)) return normalized
+  return DEFAULT_CV_FILE_VISIBILITY
+}
+
+/** Map modal switches → Firestore `visibility` string. */
+export function visibilityFromSwitches({
+  hideFromNonConnections = true,
+  hideFromConnections = false,
+  hideFromCompanies = false,
+} = {}) {
+  const audiences = []
+  if (!hideFromNonConnections) audiences.push('public')
+  if (!hideFromConnections) audiences.push('networks')
+  if (!hideFromCompanies) audiences.push('firms')
+  if (audiences.length === 0) return CV_FILE_VISIBILITY.NOBODY
+  if (audiences.length === 3) return CV_FILE_VISIBILITY.EVERYBODY
+  return audiences.join('+')
+}
+
+/** Map Firestore `visibility` → modal switches. */
+export function switchesFromVisibility(visibility) {
+  const value = normalizeCvFileVisibility(visibility)
+  if (value === CV_FILE_VISIBILITY.NOBODY) {
+    return {
+      hideFromNonConnections: true,
+      hideFromConnections: true,
+      hideFromCompanies: true,
+    }
+  }
+  if (value === CV_FILE_VISIBILITY.EVERYBODY) {
+    return {
+      hideFromNonConnections: false,
+      hideFromConnections: false,
+      hideFromCompanies: false,
+    }
+  }
+
+  const parts = new Set(value.split('+'))
+  return {
+    hideFromNonConnections: !parts.has('public'),
+    hideFromConnections: !parts.has('networks'),
+    hideFromCompanies: !parts.has('firms'),
+  }
+}
+
+const CV_VISIBILITY_INTRO_KEYS = {
+  everybody: 'profile.cvIntro.everybody',
+  'networks+firms': 'profile.cvIntro.networksFirms',
+  firms: 'profile.cvIntro.firms',
+  networks: 'profile.cvIntro.networks',
+  nobody: 'profile.cvIntro.nobody',
+  public: 'profile.cvIntro.public',
+  'public+networks': 'profile.cvIntro.publicNetworks',
+  'public+firms': 'profile.cvIntro.publicFirms',
+}
+
+const CV_VISIBILITY_SHEET_KEYS = {
+  nobody: 'profile.cvSheet.nobody',
+  firms: 'profile.cvSheet.firms',
+  networks: 'profile.cvSheet.networks',
+  public: 'profile.cvSheet.public',
+  'public+networks': 'profile.cvSheet.publicNetworks',
+  'public+firms': 'profile.cvSheet.publicFirms',
+}
+
+/** i18n keys + restricted flag for the profile active-CV panel. */
+export function getCvVisibilityCopyKeys(visibility) {
+  const value = normalizeCvFileVisibility(visibility)
+  const switches = switchesFromVisibility(value)
+  const restricted = switches.hideFromConnections || switches.hideFromCompanies
+
+  return {
+    value,
+    restricted,
+    introKey: CV_VISIBILITY_INTRO_KEYS[value] || 'profile.cvIntro.networksFirms',
+    sheetKey: restricted
+      ? (CV_VISIBILITY_SHEET_KEYS[value] || 'profile.cvHidden')
+      : null,
+  }
+}
+
 export function normalizeStoragePath(fullPath) {
   return fullPath.replace(/^\/+/, '')
 }
@@ -82,6 +203,7 @@ function storageObjectFromData(uid, fileId, data) {
 function compactFileData(uid, fileId, data) {
   const compact = {
     displayName: normalizeCvDisplayName(data.displayName || 'cv.pdf'),
+    visibility: normalizeCvFileVisibility(data.visibility),
   }
 
   if (typeof data.extractedText === 'string') {
@@ -97,9 +219,10 @@ function compactFileData(uid, fileId, data) {
 }
 
 function needsFileCompaction(uid, fileId, data) {
-  const allowed = new Set(['displayName', 'storageObject', 'extractedText'])
+  const allowed = new Set(['displayName', 'storageObject', 'extractedText', 'visibility'])
   const keys = Object.keys(data ?? {})
   if (keys.some((key) => !allowed.has(key))) return true
+  if (!('visibility' in (data ?? {}))) return true
 
   const filePath = resolveFilePath(uid, fileId, data)
   const shouldHaveStorageObject = !isDefaultStoragePath(uid, fileId, filePath)
@@ -116,6 +239,7 @@ function mapFileDoc(uid, id, data) {
     fullPath: filePath,
     displayName: data.displayName || storageNameFromPath(filePath),
     storageName: storageNameFromPath(filePath),
+    visibility: normalizeCvFileVisibility(data.visibility),
     ...(typeof data.extractedText === 'string' ? { extractedText: data.extractedText } : {}),
   }
 }
@@ -187,12 +311,19 @@ export async function getCvFileRecord(uid, fileId) {
   return compactFileRecord(uid, snap.id, snap.data())
 }
 
-export async function createCvFileRecord(uid, { displayName, fileId, storageObject, extractedText }) {
+export async function createCvFileRecord(uid, {
+  displayName,
+  fileId,
+  storageObject,
+  extractedText,
+  visibility = DEFAULT_CV_FILE_VISIBILITY,
+}) {
   await ensureUserDoc(uid)
 
   const fileRef = fileId ? fileDoc(uid, fileId) : doc(filesCollection(uid))
   const payload = {
     displayName: normalizeCvDisplayName(displayName),
+    visibility: normalizeCvFileVisibility(visibility),
   }
 
   if (storageObject) {
@@ -217,6 +348,12 @@ export async function updateCvFileExtractedText(uid, fileId, extractedText) {
 export async function updateCvFileDisplayName(uid, fileId, displayName) {
   await updateDoc(fileDoc(uid, fileId), {
     displayName: normalizeCvDisplayName(displayName),
+  })
+}
+
+export async function updateCvFileVisibility(uid, fileId, visibility) {
+  await updateDoc(fileDoc(uid, fileId), {
+    visibility: normalizeCvFileVisibility(visibility),
   })
 }
 

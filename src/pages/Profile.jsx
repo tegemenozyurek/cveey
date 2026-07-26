@@ -18,6 +18,12 @@ import { TURKISH_UNIVERSITIES, UNIVERSITY_OTHER } from '../data/turkishUniversit
 import { downloadCvFile, uploadProfilePhoto } from '../storageService'
 import TurkishCitySelect from '../components/createCv/shared/TurkishCitySelect'
 import ProfileHeroEmail from '../components/ProfileHeroEmail'
+import CvVisibilityModal, {
+  DEFAULT_CV_VISIBILITY,
+  switchesFromVisibility,
+  visibilityFromSwitches,
+} from '../components/CvVisibilityModal'
+import { getCvVisibilityCopyKeys } from '../cvFileService'
 import { subscribeToUserNetworks } from '../networkService'
 
 function authMethodLabel(method, t) {
@@ -1135,9 +1141,30 @@ function ProfileAboutSection({
 
 function ActiveCvPanel({ t }) {
   const navigate = useNavigate()
-  const { activeCv, activePreviewUrl, loading } = useResume()
-  const [cvHidden, setCvHidden] = useState(false)
+  const { activeCv, activePreviewUrl, loading, updateUserCvVisibility } = useResume()
+  const [cvVisibility, setCvVisibility] = useState(DEFAULT_CV_VISIBILITY)
+  const [showVisibilityModal, setShowVisibilityModal] = useState(false)
+  const [visibilitySaving, setVisibilitySaving] = useState(false)
   const [downloading, setDownloading] = useState(false)
+
+  useEffect(() => {
+    if (!activeCv) {
+      setCvVisibility(DEFAULT_CV_VISIBILITY)
+      return
+    }
+    setCvVisibility(switchesFromVisibility(activeCv.visibility))
+  }, [activeCv?.id, activeCv?.visibility])
+
+  const cvVisibilityCopy = getCvVisibilityCopyKeys(
+    activeCv ? visibilityFromSwitches(cvVisibility) : undefined,
+  )
+  const cvHidden = cvVisibilityCopy.restricted
+  const activeCvIntro = activeCv || loading
+    ? t(cvVisibilityCopy.introKey)
+    : t('profile.cvEmptyIntro')
+  const sheetStatusLabel = cvVisibilityCopy.sheetKey
+    ? t(cvVisibilityCopy.sheetKey)
+    : t('profile.cvHidden')
 
   function handlePreview() {
     if (!activePreviewUrl) return
@@ -1157,6 +1184,22 @@ function ActiveCvPanel({ t }) {
     }
   }
 
+  async function handleVisibilitySave(value) {
+    if (!activeCv?.id || visibilitySaving) return
+
+    setVisibilitySaving(true)
+    try {
+      const visibility = visibilityFromSwitches(value)
+      await updateUserCvVisibility(activeCv.id, visibility)
+      setCvVisibility(value)
+      setShowVisibilityModal(false)
+    } catch (err) {
+      console.error('CV visibility update failed:', err)
+    } finally {
+      setVisibilitySaving(false)
+    }
+  }
+
   const paperName = stripPdfExtension(activeCv?.displayName) || t('profile.activeCv')
 
   return (
@@ -1172,7 +1215,7 @@ function ActiveCvPanel({ t }) {
             </div>
           ) : cvHidden ? (
             <div className="profile-cv-sheet-status">
-              <p>{t('profile.cvHidden')}</p>
+              <p>{sheetStatusLabel}</p>
             </div>
           ) : !activeCv ? (
             <div className="profile-cv-sheet-status profile-cv-sheet-status--empty">
@@ -1242,7 +1285,7 @@ function ActiveCvPanel({ t }) {
             {activeCv ? stripPdfExtension(activeCv.displayName) : t('profile.cvEmpty')}
           </h2>
           <p className="profile-cv-caption">
-            {activeCv || loading ? t('profile.activeCvIntro') : t('profile.cvEmptyIntro')}
+            {activeCvIntro}
           </p>
         </div>
 
@@ -1288,10 +1331,11 @@ function ActiveCvPanel({ t }) {
             <button
               type="button"
               className={`profile-cv-icon-btn profile-cv-icon-btn--hide${cvHidden ? ' profile-cv-icon-btn--active' : ''}`}
-              onClick={() => setCvHidden((v) => !v)}
-              aria-label={cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
-              title={cvHidden ? t('profile.cvShow') : t('profile.cvHide')}
-              aria-pressed={cvHidden}
+              onClick={() => setShowVisibilityModal(true)}
+              aria-label={t('profile.cvHide')}
+              title={t('profile.cvHide')}
+              aria-haspopup="dialog"
+              aria-expanded={showVisibilityModal}
             >
               {cvHidden ? (
                 <Eye size={18} strokeWidth={1.9} aria-hidden="true" />
@@ -1302,6 +1346,18 @@ function ActiveCvPanel({ t }) {
           </div>
         ) : null}
       </div>
+
+      <CvVisibilityModal
+        open={showVisibilityModal}
+        initialValue={cvVisibility}
+        saving={visibilitySaving}
+        onClose={() => {
+          if (!visibilitySaving) setShowVisibilityModal(false)
+        }}
+        onSave={(value) => {
+          void handleVisibilitySave(value)
+        }}
+      />
     </section>
   )
 }
