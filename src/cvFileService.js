@@ -16,6 +16,21 @@ import { normalizeExtractedText } from './cvTextService'
 export const MAX_CV_NAME_LENGTH = 120
 const PDF_EXTENSION = '.pdf'
 
+/** Default CV file visibility written on every upload/create. */
+export const CV_FILE_VISIBILITY = {
+  NETWORKS_AND_FIRMS: 'networks+firms',
+}
+
+export const DEFAULT_CV_FILE_VISIBILITY = CV_FILE_VISIBILITY.NETWORKS_AND_FIRMS
+
+export function normalizeCvFileVisibility(value) {
+  const normalized = String(value ?? '').trim()
+  if (normalized === CV_FILE_VISIBILITY.NETWORKS_AND_FIRMS) {
+    return normalized
+  }
+  return DEFAULT_CV_FILE_VISIBILITY
+}
+
 export function normalizeStoragePath(fullPath) {
   return fullPath.replace(/^\/+/, '')
 }
@@ -82,6 +97,7 @@ function storageObjectFromData(uid, fileId, data) {
 function compactFileData(uid, fileId, data) {
   const compact = {
     displayName: normalizeCvDisplayName(data.displayName || 'cv.pdf'),
+    visibility: normalizeCvFileVisibility(data.visibility),
   }
 
   if (typeof data.extractedText === 'string') {
@@ -97,9 +113,10 @@ function compactFileData(uid, fileId, data) {
 }
 
 function needsFileCompaction(uid, fileId, data) {
-  const allowed = new Set(['displayName', 'storageObject', 'extractedText'])
+  const allowed = new Set(['displayName', 'storageObject', 'extractedText', 'visibility'])
   const keys = Object.keys(data ?? {})
   if (keys.some((key) => !allowed.has(key))) return true
+  if (!('visibility' in (data ?? {}))) return true
 
   const filePath = resolveFilePath(uid, fileId, data)
   const shouldHaveStorageObject = !isDefaultStoragePath(uid, fileId, filePath)
@@ -116,6 +133,7 @@ function mapFileDoc(uid, id, data) {
     fullPath: filePath,
     displayName: data.displayName || storageNameFromPath(filePath),
     storageName: storageNameFromPath(filePath),
+    visibility: normalizeCvFileVisibility(data.visibility),
     ...(typeof data.extractedText === 'string' ? { extractedText: data.extractedText } : {}),
   }
 }
@@ -187,12 +205,19 @@ export async function getCvFileRecord(uid, fileId) {
   return compactFileRecord(uid, snap.id, snap.data())
 }
 
-export async function createCvFileRecord(uid, { displayName, fileId, storageObject, extractedText }) {
+export async function createCvFileRecord(uid, {
+  displayName,
+  fileId,
+  storageObject,
+  extractedText,
+  visibility = DEFAULT_CV_FILE_VISIBILITY,
+}) {
   await ensureUserDoc(uid)
 
   const fileRef = fileId ? fileDoc(uid, fileId) : doc(filesCollection(uid))
   const payload = {
     displayName: normalizeCvDisplayName(displayName),
+    visibility: normalizeCvFileVisibility(visibility),
   }
 
   if (storageObject) {
