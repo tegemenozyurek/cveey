@@ -34,7 +34,7 @@ export default function App() {
                 <Navbar />
                 <div className="app-scroll">
                   <div className="app-body">
-                    <aside className="ad-rail ad-rail--left">
+                    <aside className="side-rail side-rail--left">
                       <AdBanner position="left" />
                     </aside>
                     <div className="app-body-main">
@@ -52,13 +52,13 @@ export default function App() {
                         <Route path="/terms" element={<TermsOfService />} />
                       </Routes>
                     </div>
-                    <aside className="ad-rail ad-rail--right">
+                    <aside className="side-rail side-rail--right">
                       <AdBanner position="right" />
                     </aside>
                   </div>
                   <SiteFooter />
                 </div>
-                <div className="ad-bottom-bar">
+                <div className="foot-slot-bar">
                   <AdBanner position="bottom" format="horizontal" />
                 </div>
               </div>

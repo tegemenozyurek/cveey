@@ -47,19 +47,19 @@ export default function AdBanner({ slot, position = 'left', format = 'vertical' 
   if (!canLoadLive) {
     return (
       <div
-        className={`ad-unit ad-unit--placeholder ad-unit--${position} ad-unit--${format}`}
+        className={`unit-slot unit-slot--placeholder unit-slot--${position} unit-slot--${format}`}
         aria-label={t('ads.placeholderLabel')}
       >
-        <span className="ad-unit-badge">{t('ads.label')}</span>
-        <span className="ad-unit-size">{fmt.sizeLabel}</span>
-        <span className="ad-unit-hint">{t('ads.placeholderHint')}</span>
+        <span className="unit-slot-badge">{t('ads.label')}</span>
+        <span className="unit-slot-size">{fmt.sizeLabel}</span>
+        <span className="unit-slot-hint">{t('ads.placeholderHint')}</span>
       </div>
     )
   }
 
   return (
-    <div className={`ad-unit ad-unit--live ad-unit--${position} ad-unit--${format}`}>
-      <span className="ad-unit-badge">{t('ads.label')}</span>
+    <div className={`unit-slot unit-slot--live unit-slot--${position} unit-slot--${format}`}>
+      <span className="unit-slot-badge">{t('ads.label')}</span>
       <ins
         className="adsbygoogle"
         style={fmt.style}

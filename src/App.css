@@ -42,8 +42,8 @@
   flex-direction: column;
 }
 
-/* Side ad rails — desktop only (Accidental click / UX) */
-.ad-rail {
+/* Side rails — desktop only (Accidental click / UX). Neutral class names avoid adblock cosmetic filters. */
+.side-rail {
   display: none;
   flex-shrink: 0;
   width: 176px;
@@ -54,12 +54,12 @@
 }
 
 @media (min-width: 1280px) {
-  .ad-rail {
+  .side-rail {
     display: flex;
   }
 }
 
-.ad-unit {
+.unit-slot {
   position: sticky;
   top: 88px;
   display: flex;
@@ -71,7 +71,7 @@
   box-sizing: border-box;
 }
 
-.ad-unit--placeholder {
+.unit-slot--placeholder {
   padding: 16px 10px;
   border: 1px dashed color-mix(in srgb, var(--text) 22%, transparent);
   background: color-mix(in srgb, var(--glass) 70%, transparent);
@@ -81,7 +81,7 @@
   line-height: 1.35;
 }
 
-.ad-unit-badge {
+.unit-slot-badge {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -89,24 +89,24 @@
   color: color-mix(in srgb, var(--text) 45%, transparent);
 }
 
-.ad-unit-size {
+.unit-slot-size {
   margin-top: 40px;
   font-size: 13px;
   font-weight: 600;
   color: color-mix(in srgb, var(--text) 40%, transparent);
 }
 
-.ad-unit-hint {
+.unit-slot-hint {
   margin-top: auto;
   padding-bottom: 8px;
 }
 
-.ad-unit--live .adsbygoogle {
+.unit-slot--live .adsbygoogle {
   margin-top: 4px;
 }
 
-/* Mobile sticky bottom banner (hidden on desktop side-rail breakpoint) */
-.ad-bottom-bar {
+/* Mobile sticky bottom slot (hidden on desktop side-rail breakpoint) */
+.foot-slot-bar {
   position: fixed;
   left: 0;
   right: 0;
@@ -122,7 +122,7 @@
   box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.2);
 }
 
-.ad-bottom-bar .ad-unit {
+.foot-slot-bar .unit-slot {
   position: static;
   top: auto;
   width: 100%;
@@ -131,7 +131,7 @@
   gap: 4px;
 }
 
-.ad-bottom-bar .ad-unit--placeholder {
+.foot-slot-bar .unit-slot--placeholder {
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
@@ -141,16 +141,16 @@
   gap: 6px 10px;
 }
 
-.ad-bottom-bar .ad-unit-size {
+.foot-slot-bar .unit-slot-size {
   margin-top: 0;
 }
 
-.ad-bottom-bar .ad-unit-hint {
+.foot-slot-bar .unit-slot-hint {
   display: none;
 }
 
 @media (min-width: 1280px) {
-  .ad-bottom-bar {
+  .foot-slot-bar {
     display: none;
   }
 }
