@@ -4,9 +4,16 @@ import { useConsent } from '../context/ConsentContext'
 
 const SCRIPT_ID = 'adsense-loader'
 
+function adsenseScriptPresent() {
+  if (document.getElementById(SCRIPT_ID)) return true
+  return Boolean(
+    document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'),
+  )
+}
+
 /**
- * Loads the official AdSense script once — only when ads are enabled
- * and cookie consent has been granted (if requireConsent is on).
+ * Loads the official AdSense script once when ads are enabled and consent
+ * allows it. Skips if the verification snippet is already in index.html.
  */
 export default function AdSenseLoader() {
   const { adsAllowed } = useConsent()
@@ -14,7 +21,7 @@ export default function AdSenseLoader() {
   useEffect(() => {
     if (!adsReady()) return
     if (ADS_CONFIG.requireConsent && !adsAllowed) return
-    if (document.getElementById(SCRIPT_ID)) return
+    if (adsenseScriptPresent()) return
 
     const script = document.createElement('script')
     script.id = SCRIPT_ID

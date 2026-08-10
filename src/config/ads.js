@@ -16,8 +16,9 @@ const truthy = (value) => {
 }
 
 export const ADS_CONFIG = {
-  /** Google AdSense publisher ID (ca-pub-…) */
-  client: import.meta.env.VITE_ADSENSE_CLIENT?.trim() || '',
+  /** Google AdSense publisher ID (ca-pub-…) — public in page source */
+  client:
+    import.meta.env.VITE_ADSENSE_CLIENT?.trim() || 'ca-pub-3733845304652661',
 
   /**
    * Slot IDs from AdSense → Ads → By ad unit.
