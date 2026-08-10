@@ -6,7 +6,8 @@ import { getStorage } from 'firebase/storage'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDllXXMOliHnKKhycS-AezkbKCDz6UvGaU',
-  authDomain: 'cveey-a7faa.firebaseapp.com',
+  // Custom Hosting domain — keeps auth helper on the same origin as the app
+  authDomain: 'cveey.com',
   projectId: 'cveey-a7faa',
   storageBucket: 'cveey-a7faa.firebasestorage.app',
   messagingSenderId: '399886964668',

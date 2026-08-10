@@ -1,10 +1,24 @@
 {
   "auth": {
+    "authorizedDomains": [
+      "localhost",
+      "cveey-a7faa.web.app",
+      "cveey-a7faa.firebaseapp.com",
+      "cveey.com",
+      "www.cveey.com"
+    ],
     "providers": {
       "emailPassword": true,
       "googleSignIn": {
         "oAuthBrandDisplayName": "cveey",
-        "supportEmail": "cveey-a7faa@firebase.google.com"
+        "supportEmail": "cveey-a7faa@firebase.google.com",
+        "authorizedRedirectUris": [
+          "https://cveey.com",
+          "https://www.cveey.com",
+          "https://cveey-a7faa.web.app",
+          "https://cveey-a7faa.firebaseapp.com",
+          "http://localhost"
+        ]
       }
     }
   },
