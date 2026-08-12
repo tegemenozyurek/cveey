@@ -6,7 +6,12 @@ import { useLanguage } from '../context/LanguageContext'
 import LockIcon from '../components/LockIcon'
 import UserAvatar from '../components/UserAvatar'
 import { subscribeToUserNetworks } from '../networkService'
-import { searchUsersByUsername } from '../userService'
+import { getUsersByIds, searchUsersByUsername } from '../userService'
+
+const SUGGESTED_USER_IDS = [
+  'HRVXsVDQOMRv8B3aYqeXdYcraEw1',
+  'uxdVROF7gCYESRYuSbMSjbPUBW92',
+]
 
 const SEARCH_DEBOUNCE_MS = 300
 
@@ -118,6 +123,8 @@ export default function Network() {
   const [showMyNetwork, setShowMyNetwork] = useState(false)
   const [myNetwork, setMyNetwork] = useState([])
   const [myNetworkLoading, setMyNetworkLoading] = useState(true)
+  const [suggested, setSuggested] = useState([])
+  const [suggestedLoading, setSuggestedLoading] = useState(true)
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -145,6 +152,35 @@ export default function Network() {
         setMyNetworkLoading(false)
       },
     )
+  }, [user?.uid])
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setSuggested([])
+      setSuggestedLoading(false)
+      return undefined
+    }
+
+    let cancelled = false
+    setSuggestedLoading(true)
+
+    getUsersByIds(SUGGESTED_USER_IDS)
+      .then((people) => {
+        if (!cancelled) {
+          setSuggested(people)
+          setSuggestedLoading(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSuggested([])
+          setSuggestedLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [user?.uid])
 
   const isSearching = !showMyNetwork && debouncedQuery.length >= 3
@@ -310,7 +346,27 @@ export default function Network() {
                   <p className="network-section-hint">{t('network.suggestedHint')}</p>
                 </div>
 
-                <p className="network-empty">{t('network.noSuggested')}</p>
+                {suggestedLoading ? (
+                  <p className="network-empty">{t('network.loading')}</p>
+                ) : suggested.length === 0 ? (
+                  <p className="network-empty">{t('network.noSuggested')}</p>
+                ) : (
+                  <ul className="network-people-list">
+                    {suggested.map((person) => (
+                      <PersonRow
+                        key={person.id}
+                        person={person}
+                        actionLabel={t('network.connect')}
+                        variant="result"
+                        onAction={
+                          person.uid
+                            ? () => navigate(`/profile/${person.uid}`)
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </ul>
+                )}
               </section>
             )}
           </>

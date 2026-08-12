@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { CONTACT_EMAIL } from '../config/site'
+import { CONTACT_EMAILS } from '../config/site'
 import { useLanguage } from '../context/LanguageContext'
 
 export default function PrivacyPolicy() {
@@ -92,7 +92,12 @@ export default function PrivacyPolicy() {
 
         <section className="legal-section">
           <h2>{t('privacy.s11.title')}</h2>
-          <p>{t('privacy.s11.body', { email: CONTACT_EMAIL })}</p>
+          <p>
+            {t('privacy.s11.body', {
+              email: CONTACT_EMAILS[0],
+              email2: CONTACT_EMAILS[1],
+            })}
+          </p>
         </section>
       </article>
     </main>

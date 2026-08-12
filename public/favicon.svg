@@ -1,7 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="8" fill="#7C3AED"/>
   <path
-    fill="#fff"
-    d="M23.114 9.444A10.2 10.2 0 1 0 23.114 22.556L19.054 19.15A4.9 4.9 0 1 1 19.054 12.85Z"
+    d="M21.08 11.15A7.55 7.55 0 1 0 21.08 20.85"
+    fill="none"
+    stroke="#fff"
+    stroke-width="5.3"
+    stroke-linecap="round"
   />
 </svg>

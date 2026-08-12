@@ -16,6 +16,7 @@ import MyCV from './pages/MyCV'
 import Profile from './pages/Profile'
 import PublicProfile from './pages/PublicProfile'
 import Network from './pages/Network'
+import About from './pages/About'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import './App.css'
@@ -46,6 +47,7 @@ function AppShell() {
                 <Route path="/notifications" element={<Navigate to="/" replace />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:uid" element={<PublicProfile />} />
+                <Route path="/about" element={<About />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
               </Routes>

@@ -162,6 +162,7 @@ export const translations = {
       'You own the files and profile text you submit. You can hide your email on your profile, rename or replace CVs, change visibility, and delete your account from Profile. Share only what you are comfortable showing to other users and HR viewers.',
     'home.contact.title': 'Contact',
     'home.contact.lead': 'For product, privacy, or account questions, email',
+    'home.contact.or': 'or',
 
     'myCv.title': 'My CVs',
     'myCv.subtitle': 'Manage your CVs and stay visible in the talent pool.',
@@ -631,7 +632,7 @@ export const translations = {
       'cveey is intended for users who can lawfully create an account and share professional information. The service is not directed at children under 13 (or under the digital consent age in your country). If you believe a child has provided personal data, contact us so we can take appropriate steps.',
     'privacy.s11.title': '11. Changes and contact',
     'privacy.s11.body':
-      'We may update this Privacy Policy as the product evolves. The “Last updated” date at the top will change when we do. For privacy questions, email {email}.',
+      'We may update this Privacy Policy as the product evolves. The “Last updated” date at the top will change when we do. For privacy questions, email {email} or {email2}.',
 
     'terms.title': 'Terms of Service',
     'terms.s1.title': '1. Acceptance',
@@ -663,7 +664,7 @@ export const translations = {
       'You may stop using cveey and delete your account in the app at any time. We may suspend or end access if you breach these terms or if we discontinue the service. Provisions that by nature should survive (including disclaimers and limitations of liability) remain in effect.',
     'terms.s10.title': '10. Changes and contact',
     'terms.s10.body':
-      'We may update these Terms from time to time. Continued use after an update means you accept the revised Terms. The “Last updated” date at the top will change when we publish updates. For questions, email {email}.',
+      'We may update these Terms from time to time. Continued use after an update means you accept the revised Terms. The “Last updated” date at the top will change when we publish updates. For questions, email {email} or {email2}.',
 
     ...createCvExtendedEn,
   },
@@ -828,6 +829,7 @@ export const translations = {
       'Gönderdiğiniz dosyaların ve profil metninin sahibi sizsiniz. Profilde e-postanızı gizleyebilir, CV’leri yeniden adlandırabilir veya değiştirebilir, görünürlüğü ayarlayabilir ve hesabınızı Profil’den silebilirsiniz. Diğer kullanıcılara ve İK görüntüleyicilerine göstermek istediğiniz kadarını paylaşın.',
     'home.contact.title': 'İletişim',
     'home.contact.lead': 'Ürün, gizlilik veya hesap soruları için e-posta',
+    'home.contact.or': 'veya',
 
     'myCv.title': 'CVlerim',
     'myCv.subtitle': 'CV\'lerinizi yönetin ve yetenek havuzunda görünür kalın.',
@@ -1297,7 +1299,7 @@ export const translations = {
       'cveey, yasal olarak hesap oluşturabilen ve profesyonel bilgi paylaşabilen kullanıcılara yöneliktir. Hizmet 13 yaşın altındaki çocuklara (veya ülkenizdeki dijital rıza yaşının altındakilere) yönelik değildir. Bir çocuğun kişisel veri verdiğini düşünüyorsanız uygun adımları atabilmemiz için bize ulaşın.',
     'privacy.s11.title': '11. Değişiklikler ve iletişim',
     'privacy.s11.body':
-      'Ürün geliştikçe bu Gizlilik Politikası’nı güncelleyebiliriz. Güncellemede yukarıdaki “Son güncelleme” tarihi değişir. Gizlilik sorularınız için {email} adresine yazın.',
+      'Ürün geliştikçe bu Gizlilik Politikası’nı güncelleyebiliriz. Güncellemede yukarıdaki “Son güncelleme” tarihi değişir. Gizlilik sorularınız için {email} veya {email2} adresine yazın.',
 
     'terms.title': 'Kullanım Şartları',
     'terms.s1.title': '1. Kabul',
@@ -1329,7 +1331,7 @@ export const translations = {
       'cveey’i kullanmayı istediğiniz zaman bırakabilir ve hesabınızı uygulamadan silebilirsiniz. Bu şartları ihlal ederseniz veya hizmeti sonlandırırsak erişimi askıya alabilir veya sonlandırabiliriz. Doğası gereği ayakta kalması gereken hükümler (sorumluluk redleri ve sınırlamalar dahil) yürürlükte kalır.',
     'terms.s10.title': '10. Değişiklikler ve iletişim',
     'terms.s10.body':
-      'Bu Şartları zaman zaman güncelleyebiliriz. Güncellemeden sonra hizmeti kullanmaya devam etmeniz revize edilmiş Şartları kabul ettiğiniz anlamına gelir. Yayınladığımızda yukarıdaki “Son güncelleme” tarihi değişir. Sorularınız için {email} adresine yazın.',
+      'Bu Şartları zaman zaman güncelleyebiliriz. Güncellemeden sonra hizmeti kullanmaya devam etmeniz revize edilmiş Şartları kabul ettiğiniz anlamına gelir. Yayınladığımızda yukarıdaki “Son güncelleme” tarihi değişir. Sorularınız için {email} veya {email2} adresine yazın.',
 
     ...createCvExtendedTr,
   },

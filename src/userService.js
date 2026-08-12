@@ -536,6 +536,46 @@ export async function deleteUserAccount(user) {
   await deleteUser(user)
 }
 
+async function mapUserSnapToPerson(docSnap) {
+  const data = docSnap.data()
+  const uid = data.uid || docSnap.id
+  const username = typeof data.username === 'string' ? data.username : ''
+  let bachelorNames = []
+
+  try {
+    const educations = await resolveUserEducations(uid, data)
+    bachelorNames = getBachelorProgramNames(educations)
+  } catch {
+    // Keep empty bachelor list when education is unreadable.
+  }
+
+  return {
+    id: docSnap.id,
+    uid,
+    username,
+    bachelorNames,
+    homeCity: data.homeCity || '',
+    displayName: username || docSnap.id,
+    location: data.homeCity || '',
+    photoURL: typeof data.photoURL === 'string' ? data.photoURL : '',
+  }
+}
+
+export async function getUsersByIds(userIds, { excludeUid } = {}) {
+  const ids = [...new Set((userIds || []).filter(Boolean))]
+  if (ids.length === 0) return []
+
+  const snaps = await Promise.all(ids.map((id) => getDoc(doc(db, 'users', id))))
+  const people = await Promise.all(
+    snaps.filter((snap) => snap.exists()).map((snap) => mapUserSnapToPerson(snap)),
+  )
+
+  const byUid = new Map(people.map((person) => [person.uid, person]))
+  return ids
+    .map((id) => byUid.get(id))
+    .filter((person) => person && person.uid !== excludeUid && person.username)
+}
+
 export async function searchUsersByUsername(usernameQuery, { excludeUid } = {}) {
   const q = normalizeUsernameKey(usernameQuery)
   if (q.length < 3) return []
@@ -550,32 +590,7 @@ export async function searchUsersByUsername(usernameQuery, { excludeUid } = {}) 
     ),
   )
 
-  const people = await Promise.all(
-    snap.docs.map(async (docSnap) => {
-      const data = docSnap.data()
-      const uid = data.uid || docSnap.id
-      const username = typeof data.username === 'string' ? data.username : ''
-      let bachelorNames = []
-
-      try {
-        const educations = await resolveUserEducations(uid, data)
-        bachelorNames = getBachelorProgramNames(educations)
-      } catch {
-        // Keep empty bachelor list when education is unreadable.
-      }
-
-      return {
-        id: docSnap.id,
-        uid,
-        username,
-        bachelorNames,
-        homeCity: data.homeCity || '',
-        displayName: username || docSnap.id,
-        location: data.homeCity || '',
-        photoURL: typeof data.photoURL === 'string' ? data.photoURL : '',
-      }
-    }),
-  )
+  const people = await Promise.all(snap.docs.map((docSnap) => mapUserSnapToPerson(docSnap)))
 
   return people.filter((person) => person.uid !== excludeUid && person.username)
 }
