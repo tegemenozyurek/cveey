@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { ADS_CONFIG, adsReady } from '../config/ads'
+import { useAdsPlacement } from '../context/AdsPlacementContext'
 import { useConsent } from '../context/ConsentContext'
 
 const SCRIPT_ID = 'adsense-loader'
@@ -11,17 +12,38 @@ function adsenseScriptPresent() {
   )
 }
 
+function setAdRequestsPaused(paused) {
+  try {
+    window.adsbygoogle = window.adsbygoogle || []
+    window.adsbygoogle.pauseAdRequests = paused ? 1 : 0
+  } catch {
+    // Ad blockers / missing script
+  }
+}
+
+function setBodyAdsClass(enabled) {
+  document.body.classList.toggle('ads-enabled', enabled)
+  document.body.classList.toggle('ads-disabled', !enabled)
+}
+
 /**
- * Loads the official AdSense script once when ads are enabled and consent
- * allows it. Skips if the verification snippet is already in index.html.
+ * Loads AdSense only on screens that opted in with real publisher content.
+ * Pauses requests and hides leftover Auto ads on login / loading / empty views.
  */
 export default function AdSenseLoader() {
   const { adsAllowed } = useConsent()
+  const { adsEligible } = useAdsPlacement()
+  const canLoad =
+    adsEligible &&
+    adsReady() &&
+    (!ADS_CONFIG.requireConsent || adsAllowed)
 
   useEffect(() => {
-    if (!adsReady()) return
-    if (ADS_CONFIG.requireConsent && !adsAllowed) return
-    if (adsenseScriptPresent()) return
+    setBodyAdsClass(canLoad)
+    setAdRequestsPaused(!canLoad)
+
+    if (!canLoad) return undefined
+    if (adsenseScriptPresent()) return undefined
 
     const script = document.createElement('script')
     script.id = SCRIPT_ID
@@ -29,7 +51,14 @@ export default function AdSenseLoader() {
     script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADS_CONFIG.client}`
     script.crossOrigin = 'anonymous'
     document.head.appendChild(script)
-  }, [adsAllowed])
+
+    return undefined
+  }, [canLoad])
+
+  useEffect(() => () => {
+    setAdRequestsPaused(true)
+    setBodyAdsClass(false)
+  }, [])
 
   return null
 }

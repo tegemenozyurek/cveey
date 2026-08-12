@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAdsContentReady } from '../context/AdsPlacementContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { hasPendingCvFile, setPendingCvFile } from '../pendingCvUpload'
@@ -12,6 +13,7 @@ export default function Home() {
   const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
   const navigate = useNavigate()
+  useAdsContentReady(!authLoading)
   const fileInputRef = useRef(null)
   const [dragging, setDragging] = useState(false)
   const [fileError, setFileError] = useState('')

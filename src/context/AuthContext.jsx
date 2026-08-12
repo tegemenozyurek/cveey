@@ -94,6 +94,10 @@ export function AuthProvider({ children }) {
     user && !showEmailVerification && locationSetupPending && !profileLoading,
   )
 
+  const authInterstitial = Boolean(
+    showLogin || showEmailVerification || showLocationSetup,
+  )
+
   const handleEmailVerified = () => {
     setVerificationDismissed(true)
     setUser(auth.currentUser)
@@ -116,6 +120,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         authLoading,
+        authInterstitial,
         openLogin,
         handleLogout,
         setShowDeleteConfirm,

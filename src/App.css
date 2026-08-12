@@ -6,8 +6,12 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* Space for fixed mobile bottom ad */
+  /* Space for fixed mobile bottom ad — dropped when ads are hidden */
   padding-bottom: calc(62px + env(safe-area-inset-bottom, 0px));
+}
+
+.page--no-ads {
+  padding-bottom: 0;
 }
 
 @media (min-width: 1280px) {
@@ -103,6 +107,19 @@
 
 .unit-slot--live .adsbygoogle {
   margin-top: 4px;
+}
+
+/* Hide leftover Auto ads on screens that must not show AdSense */
+body.ads-disabled ins.adsbygoogle,
+body.ads-disabled .google-auto-placed,
+body.ads-disabled iframe[id^="aswift"],
+body.ads-disabled iframe[id^="google_ads_iframe"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
 }
 
 /* Mobile sticky bottom slot (hidden on desktop side-rail breakpoint) */

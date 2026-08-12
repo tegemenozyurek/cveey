@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAdsContentReady } from '../context/AdsPlacementContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import LockIcon from '../components/LockIcon'
@@ -108,6 +109,7 @@ export default function Network() {
   const { t } = useLanguage()
   const { user, openLogin, authLoading } = useAuth()
   const navigate = useNavigate()
+  useAdsContentReady(!authLoading && Boolean(user))
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [results, setResults] = useState([])

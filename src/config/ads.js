@@ -38,7 +38,7 @@ export const ADS_CONFIG = {
 
   /**
    * AdSense script is only loaded after cookie consent is accepted
-   * (needed for EEA/UK personalization compliance prep).
+   * and a page opts in with real publisher content (see AdsPlacementContext).
    */
   requireConsent: true,
 }
