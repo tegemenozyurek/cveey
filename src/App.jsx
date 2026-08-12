@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Navigate, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { LanguageProvider } from './context/LanguageContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -10,13 +10,10 @@ import AdSenseLoader from './components/AdSenseLoader'
 import CookieConsent from './components/CookieConsent'
 import SiteFooter from './components/SiteFooter'
 import Home from './pages/Home'
-import Jobs from './pages/Jobs'
 import CreateCV from './pages/CreateCV'
 import MyCV from './pages/MyCV'
 import Profile from './pages/Profile'
 import PublicProfile from './pages/PublicProfile'
-import Messages from './pages/Messages'
-import Notifications from './pages/Notifications'
 import Network from './pages/Network'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
@@ -40,12 +37,12 @@ export default function App() {
                     <div className="app-body-main">
                       <Routes>
                         <Route path="/" element={<Home />} />
-                        <Route path="/jobs" element={<Jobs />} />
+                        <Route path="/jobs" element={<Navigate to="/" replace />} />
                         <Route path="/network" element={<Network />} />
                         <Route path="/create-cv" element={<CreateCV />} />
                         <Route path="/my-cv" element={<MyCV />} />
-                        <Route path="/messages" element={<Messages />} />
-                        <Route path="/notifications" element={<Notifications />} />
+                        <Route path="/messages" element={<Navigate to="/" replace />} />
+                        <Route path="/notifications" element={<Navigate to="/" replace />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/profile/:uid" element={<PublicProfile />} />
                         <Route path="/privacy" element={<PrivacyPolicy />} />

@@ -3,7 +3,6 @@ import { createCvExtendedEn, createCvExtendedTr } from './createCvExtended'
 export const translations = {
   en: {
     'nav.home': 'Home',
-    'nav.jobs': 'Jobs',
     'nav.network': 'Network',
     'nav.createCv': 'Create CV',
     'nav.myCv': 'My CVs',
@@ -16,8 +15,6 @@ export const translations = {
     'nav.mainNav': 'Main navigation',
     'nav.openMenu': 'Open menu',
     'nav.closeMenu': 'Close menu',
-    'nav.messages': 'Messages',
-    'nav.inbox': 'Inbox',
     'nav.notifications': 'Notifications',
     'notifications.wantToConnectSuffix': 'wants to connect!',
     'notifications.acceptedYourRequest': 'accepted your connection request.',
@@ -117,14 +114,6 @@ export const translations = {
     'login.github': 'Continue with GitHub',
     'login.or': 'or',
 
-    'jobs.title': 'Jobs',
-    'jobs.subtitle': 'Browse open positions and find your next opportunity.',
-    'jobs.emptyTitle': 'No jobs yet',
-    'jobs.emptyText': 'Job listings will appear here soon. Check back later.',
-    'jobs.loading': 'Loading…',
-    'jobs.signInRequired': 'Sign in required',
-    'jobs.signInText': 'Sign in to browse open positions.',
-
     'network.title': 'Search Network',
     'network.searchPlaceholder': 'Search people by username…',
     'network.searchAria': 'Search people by username',
@@ -146,9 +135,6 @@ export const translations = {
     'network.signInRequired': 'Sign in required',
     'network.signInText': 'Sign in to search and connect with people.',
     'network.theirNetworks': 'Network',
-
-    'underConstruction.title': 'We\'re still building this',
-    'underConstruction.text': 'Don\'t forget to drop your CV.',
 
     'home.copyHeadline': 'The Easiest Way to Get Recruited',
     'home.copyLead': 'Simply upload your CV and wait for HR firms to contact you.',
@@ -631,7 +617,7 @@ export const translations = {
       'By accessing or using cveey you agree to these Terms of Service and our Privacy Policy. If you do not agree, do not use the service.',
     'terms.s2.title': '2. The service',
     'terms.s2.body':
-      'cveey provides tools to create, upload, preview, and manage CVs/resumes; maintain a professional profile; appear in a talent pool intended for partner HR firms; search for and connect with other users; and receive related notifications. Some areas (for example Jobs and Messages) may be marked under construction and unavailable. Features may change, be limited, or become unavailable as the product evolves. We do not guarantee interviews, job offers, or hiring outcomes.',
+      'cveey provides tools to create, upload, preview, and manage CVs/resumes; maintain a professional profile; appear in a talent pool intended for partner HR firms; search for and connect with other users; and receive related notifications. Features may change, be limited, or become unavailable as the product evolves. We do not guarantee interviews, job offers, or hiring outcomes.',
     'terms.s3.title': '3. Accounts and eligibility',
     'terms.s3.body':
       'You may register with email/password (email verification required), Google, or GitHub. You must provide accurate information, keep credentials secure, and complete required onboarding (such as username and home city). You are responsible for activity under your account. We may suspend or terminate accounts that violate these terms or pose a security risk.',
@@ -661,7 +647,6 @@ export const translations = {
   },
   tr: {
     'nav.home': 'Ana Sayfa',
-    'nav.jobs': 'İlanlar',
     'nav.network': 'Bağlantılarım',
     'nav.createCv': 'CV Oluştur',
     'nav.myCv': 'CVlerim',
@@ -674,8 +659,6 @@ export const translations = {
     'nav.mainNav': 'Ana menü',
     'nav.openMenu': 'Menüyü aç',
     'nav.closeMenu': 'Menüyü kapat',
-    'nav.messages': 'Mesajlar',
-    'nav.inbox': 'Gelen kutusu',
     'nav.notifications': 'Bildirimler',
     'notifications.wantToConnectSuffix': 'bağlanmak istiyor!',
     'notifications.acceptedYourRequest': 'bağlantı isteğini kabul etti.',
@@ -775,14 +758,6 @@ export const translations = {
     'login.github': 'GitHub ile devam et',
     'login.or': 'veya',
 
-    'jobs.title': 'İlanlar',
-    'jobs.subtitle': 'Açık pozisyonlara göz atın ve yeni fırsatınızı bulun.',
-    'jobs.emptyTitle': 'Henüz ilan yok',
-    'jobs.emptyText': 'İş ilanları yakında burada görünecek.',
-    'jobs.loading': 'Yükleniyor…',
-    'jobs.signInRequired': 'Giriş gerekli',
-    'jobs.signInText': 'Açık pozisyonlara göz atmak için giriş yapın.',
-
     'network.title': 'Ağda Ara',
     'network.searchPlaceholder': 'Kullanıcı adı ile kişi ara…',
     'network.searchAria': 'Kullanıcı adı ile kişi ara',
@@ -804,9 +779,6 @@ export const translations = {
     'network.signInRequired': 'Giriş gerekli',
     'network.signInText': 'Kişi aramak ve bağlantı kurmak için giriş yapın.',
     'network.theirNetworks': 'Ağı',
-
-    'underConstruction.title': 'Geliştirmelerimiz devam ediyor',
-    'underConstruction.text': 'CV\'nizi bırakmayı unutmayın.',
 
     'home.copyHeadline': 'İşe Alınmanın En Kolay Yolu',
     'home.copyLead': 'CV\'nizi yükleyin ve İK firmalarının sizinle iletişime geçmesini bekleyin.',
@@ -1289,7 +1261,7 @@ export const translations = {
       'cveey’e erişerek veya kullanarak bu Kullanım Şartları’nı ve Gizlilik Politikası’nı kabul etmiş olursunuz. Kabul etmiyorsanız hizmeti kullanmayın.',
     'terms.s2.title': '2. Hizmet',
     'terms.s2.body':
-      'cveey; CV/özgeçmiş oluşturma, yükleme, önizleme ve yönetme; profesyonel profil tutma; iş ortağı İK firmalarına yönelik yetenek havuzunda yer alma; diğer kullanıcıları arama ve onlarla bağlantı kurma; ilgili bildirimleri alma araçları sunar. Bazı alanlar (ör. İlanlar ve Mesajlar) yapım aşamasında işaretlenmiş ve kullanılamıyor olabilir. Özellikler ürün geliştikçe değişebilir, sınırlanabilir veya kullanılamaz hale gelebilir. Mülakat, iş teklifi veya işe alım sonucu garanti etmeyiz.',
+      'cveey; CV/özgeçmiş oluşturma, yükleme, önizleme ve yönetme; profesyonel profil tutma; iş ortağı İK firmalarına yönelik yetenek havuzunda yer alma; diğer kullanıcıları arama ve onlarla bağlantı kurma; ilgili bildirimleri alma araçları sunar. Özellikler ürün geliştikçe değişebilir, sınırlanabilir veya kullanılamaz hale gelebilir. Mülakat, iş teklifi veya işe alım sonucu garanti etmeyiz.',
     'terms.s3.title': '3. Hesaplar ve uygunluk',
     'terms.s3.body':
       'E-posta/şifre (e-posta doğrulaması zorunlu), Google veya GitHub ile kayıt olabilirsiniz. Doğru bilgi vermeli, kimlik bilgilerinizi güvende tutmalı ve gerekli onboarding’i (ör. kullanıcı adı ve yaşadığınız şehir) tamamlamalısınız. Hesabınızdaki etkinliklerden siz sorumlusunuz. Bu şartları ihlal eden veya güvenlik riski oluşturan hesapları askıya alabilir veya sonlandırabiliriz.',
