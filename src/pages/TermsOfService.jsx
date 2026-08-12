@@ -3,7 +3,7 @@ import { useLanguage } from '../context/LanguageContext'
 
 export default function TermsOfService() {
   const { t, lang } = useLanguage()
-  const updated = lang === 'tr' ? '27 Temmuz 2026' : 'July 27, 2026'
+  const updated = lang === 'tr' ? '13 Ağustos 2026' : 'August 13, 2026'
 
   return (
     <main className="main legal-page">
