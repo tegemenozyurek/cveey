@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { ADS_CONFIG, adsReady } from '../config/ads'
+import { useAdsPlacement } from '../context/AdsPlacementContext'
 import { useConsent } from '../context/ConsentContext'
 import { useLanguage } from '../context/LanguageContext'
 
@@ -25,10 +26,12 @@ const FORMAT = {
 export default function AdBanner({ slot, position = 'left', format = 'vertical' }) {
   const { t } = useLanguage()
   const { adsAllowed } = useConsent()
+  const { adsEligible } = useAdsPlacement()
   const pushed = useRef(false)
   const slotId = slot || ADS_CONFIG.slots[position] || ''
   const fmt = FORMAT[format] || FORMAT.vertical
   const canLoadLive =
+    adsEligible &&
     adsReady() &&
     Boolean(slotId) &&
     (!ADS_CONFIG.requireConsent || adsAllowed)
@@ -43,6 +46,8 @@ export default function AdBanner({ slot, position = 'left', format = 'vertical' 
       // Ad blockers / missing script — keep layout stable
     }
   }, [canLoadLive])
+
+  if (!adsEligible) return null
 
   if (!canLoadLive) {
     return (

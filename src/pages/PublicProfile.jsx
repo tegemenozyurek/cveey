@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { Download, Search } from 'lucide-react'
+import { useAdsContentReady } from '../context/AdsPlacementContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import UserAvatar from '../components/UserAvatar'
@@ -349,6 +350,7 @@ export default function PublicProfile() {
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [activeCv, setActiveCv] = useState(null)
   const [cvLoading, setCvLoading] = useState(true)
+  useAdsContentReady(!authLoading && Boolean(user) && !loading && exists)
 
   useEffect(() => {
     if (!uid) {

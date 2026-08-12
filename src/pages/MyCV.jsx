@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CvCard from '../components/CvCard'
 import LockIcon from '../components/LockIcon'
+import { useAdsContentReady } from '../context/AdsPlacementContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useResume } from '../context/ResumeContext'
@@ -26,6 +27,8 @@ export default function MyCV() {
     renameUserCv,
     setActiveUserCv,
   } = useResume()
+  const showInitialLoading = Boolean(user) && !authLoading && loading && cvs.length === 0 && !error
+  useAdsContentReady(!authLoading && Boolean(user) && !showInitialLoading && !error)
   const fileInputRef = useRef(null)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -126,7 +129,6 @@ export default function MyCV() {
     )
   }
 
-  const showInitialLoading = loading && cvs.length === 0 && !error
   const activeCv = cvs.find((cv) => cv.id === activeCvPath || cv.fullPath === activeCvPath)
   const otherCvs = cvs.filter((cv) => cv !== activeCv)
 

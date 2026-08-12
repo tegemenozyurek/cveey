@@ -14,13 +14,14 @@ export default function SiteFooter() {
       <div className="site-footer-inner">
         <div className="site-footer-start">
           {showTheme ? (
-            <div className="site-footer-controls site-footer-controls--with-theme">
+            <div className="site-footer-controls">
               <ThemeSwitcher />
             </div>
           ) : null}
         </div>
         <p className="site-footer-copy">© {year} cveey</p>
         <nav className="site-footer-nav" aria-label={t('footer.legalNav')}>
+          <Link to="/about">{t('footer.about')}</Link>
           <Link to="/privacy">{t('legal.privacy')}</Link>
           <Link to="/terms">{t('legal.terms')}</Link>
         </nav>

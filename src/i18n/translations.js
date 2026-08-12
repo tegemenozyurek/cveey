@@ -3,7 +3,6 @@ import { createCvExtendedEn, createCvExtendedTr } from './createCvExtended'
 export const translations = {
   en: {
     'nav.home': 'Home',
-    'nav.jobs': 'Jobs',
     'nav.network': 'Network',
     'nav.createCv': 'Create CV',
     'nav.myCv': 'My CVs',
@@ -16,8 +15,6 @@ export const translations = {
     'nav.mainNav': 'Main navigation',
     'nav.openMenu': 'Open menu',
     'nav.closeMenu': 'Close menu',
-    'nav.messages': 'Messages',
-    'nav.inbox': 'Inbox',
     'nav.notifications': 'Notifications',
     'notifications.wantToConnectSuffix': 'wants to connect!',
     'notifications.acceptedYourRequest': 'accepted your connection request.',
@@ -117,14 +114,6 @@ export const translations = {
     'login.github': 'Continue with GitHub',
     'login.or': 'or',
 
-    'jobs.title': 'Jobs',
-    'jobs.subtitle': 'Browse open positions and find your next opportunity.',
-    'jobs.emptyTitle': 'No jobs yet',
-    'jobs.emptyText': 'Job listings will appear here soon. Check back later.',
-    'jobs.loading': 'Loading…',
-    'jobs.signInRequired': 'Sign in required',
-    'jobs.signInText': 'Sign in to browse open positions.',
-
     'network.title': 'Search Network',
     'network.searchPlaceholder': 'Search people by username…',
     'network.searchAria': 'Search people by username',
@@ -147,15 +136,33 @@ export const translations = {
     'network.signInText': 'Sign in to search and connect with people.',
     'network.theirNetworks': 'Network',
 
-    'underConstruction.title': 'We\'re still building this',
-    'underConstruction.text': 'Don\'t forget to drop your CV.',
-
     'home.copyHeadline': 'The Easiest Way to Get Recruited',
     'home.copyLead': 'Simply upload your CV and wait for HR firms to contact you.',
     'home.copyBody1': 'Your active CV is displayed to every HR firm in our network, including those working with a wide range of companies actively looking to hire.',
     'home.copyBody2': 'You no longer need to chase down opportunities across dozens of websites or manually send your CV to every employer.',
     'home.copyBody3': 'Just upload your profile and let the opportunities come to you—patience is the key!',
     'home.copyBonus': 'You can also build a professional-grade CV using our comprehensive CV maker tool.',
+    'home.about.title': 'What is cveey?',
+    'home.about.p1':
+      'cveey is a professional CV platform. You create or upload a resume, keep a profile with your city and education, and join a talent pool that partner HR firms can review. You can also search for other members and send connection requests.',
+    'home.about.p2':
+      'The idea is simple: instead of sending the same PDF to dozens of job boards, you keep one active CV on cveey and stay visible to recruiters who are already looking. We do not promise interviews or job offers — we give you a place to present your work and be found.',
+    'home.how.title': 'How it works',
+    'home.how.step1.title': 'Create an account',
+    'home.how.step1.text':
+      'Sign in with email, Google, or GitHub. Verify your email, then add a username and home city so your profile can appear in the network.',
+    'home.how.step2.title': 'Add a CV',
+    'home.how.step2.text':
+      'Upload a PDF (up to 5 MB) or build an ATS-friendly CV in the guided editor. Save it to My CVs and choose which file is active.',
+    'home.how.step3.title': 'Stay visible',
+    'home.how.step3.text':
+      'Decide who can see your CV — connections, partner firms in the talent pool, or a more limited option. Partner HR firms can review talent-pool candidates; other signed-in users see profiles according to your settings.',
+    'home.visibility.title': 'Your CV, your control',
+    'home.visibility.p1':
+      'You own the files and profile text you submit. You can hide your email on your profile, rename or replace CVs, change visibility, and delete your account from Profile. Share only what you are comfortable showing to other users and HR viewers.',
+    'home.contact.title': 'Contact',
+    'home.contact.lead': 'For product, privacy, or account questions, email',
+    'home.contact.or': 'or',
 
     'myCv.title': 'My CVs',
     'myCv.subtitle': 'Manage your CVs and stay visible in the talent pool.',
@@ -558,6 +565,8 @@ export const translations = {
     'ads.placeholderHint': 'Test slot — AdSense not loaded yet',
 
     'footer.legalNav': 'Legal',
+    'footer.about': 'About',
+    'footer.contact': 'Contact',
 
     'legal.privacy': 'Privacy Policy',
     'legal.terms': 'Terms of Service',
@@ -623,7 +632,7 @@ export const translations = {
       'cveey is intended for users who can lawfully create an account and share professional information. The service is not directed at children under 13 (or under the digital consent age in your country). If you believe a child has provided personal data, contact us so we can take appropriate steps.',
     'privacy.s11.title': '11. Changes and contact',
     'privacy.s11.body':
-      'We may update this Privacy Policy as the product evolves. The “Last updated” date at the top will change when we do. For privacy questions, contact the site operator through the support channel published on cveey when available.',
+      'We may update this Privacy Policy as the product evolves. The “Last updated” date at the top will change when we do. For privacy questions, email {email} or {email2}.',
 
     'terms.title': 'Terms of Service',
     'terms.s1.title': '1. Acceptance',
@@ -631,7 +640,7 @@ export const translations = {
       'By accessing or using cveey you agree to these Terms of Service and our Privacy Policy. If you do not agree, do not use the service.',
     'terms.s2.title': '2. The service',
     'terms.s2.body':
-      'cveey provides tools to create, upload, preview, and manage CVs/resumes; maintain a professional profile; appear in a talent pool intended for partner HR firms; search for and connect with other users; and receive related notifications. Some areas (for example Jobs and Messages) may be marked under construction and unavailable. Features may change, be limited, or become unavailable as the product evolves. We do not guarantee interviews, job offers, or hiring outcomes.',
+      'cveey provides tools to create, upload, preview, and manage CVs/resumes; maintain a professional profile; appear in a talent pool intended for partner HR firms; search for and connect with other users; and receive related notifications. Features may change, be limited, or become unavailable as the product evolves. We do not guarantee interviews, job offers, or hiring outcomes.',
     'terms.s3.title': '3. Accounts and eligibility',
     'terms.s3.body':
       'You may register with email/password (email verification required), Google, or GitHub. You must provide accurate information, keep credentials secure, and complete required onboarding (such as username and home city). You are responsible for activity under your account. We may suspend or terminate accounts that violate these terms or pose a security risk.',
@@ -655,13 +664,12 @@ export const translations = {
       'You may stop using cveey and delete your account in the app at any time. We may suspend or end access if you breach these terms or if we discontinue the service. Provisions that by nature should survive (including disclaimers and limitations of liability) remain in effect.',
     'terms.s10.title': '10. Changes and contact',
     'terms.s10.body':
-      'We may update these Terms from time to time. Continued use after an update means you accept the revised Terms. The “Last updated” date at the top will change when we publish updates. For questions, contact the site operator through the support channel published on cveey when available.',
+      'We may update these Terms from time to time. Continued use after an update means you accept the revised Terms. The “Last updated” date at the top will change when we publish updates. For questions, email {email} or {email2}.',
 
     ...createCvExtendedEn,
   },
   tr: {
     'nav.home': 'Ana Sayfa',
-    'nav.jobs': 'İlanlar',
     'nav.network': 'Bağlantılarım',
     'nav.createCv': 'CV Oluştur',
     'nav.myCv': 'CVlerim',
@@ -674,8 +682,6 @@ export const translations = {
     'nav.mainNav': 'Ana menü',
     'nav.openMenu': 'Menüyü aç',
     'nav.closeMenu': 'Menüyü kapat',
-    'nav.messages': 'Mesajlar',
-    'nav.inbox': 'Gelen kutusu',
     'nav.notifications': 'Bildirimler',
     'notifications.wantToConnectSuffix': 'bağlanmak istiyor!',
     'notifications.acceptedYourRequest': 'bağlantı isteğini kabul etti.',
@@ -775,14 +781,6 @@ export const translations = {
     'login.github': 'GitHub ile devam et',
     'login.or': 'veya',
 
-    'jobs.title': 'İlanlar',
-    'jobs.subtitle': 'Açık pozisyonlara göz atın ve yeni fırsatınızı bulun.',
-    'jobs.emptyTitle': 'Henüz ilan yok',
-    'jobs.emptyText': 'İş ilanları yakında burada görünecek.',
-    'jobs.loading': 'Yükleniyor…',
-    'jobs.signInRequired': 'Giriş gerekli',
-    'jobs.signInText': 'Açık pozisyonlara göz atmak için giriş yapın.',
-
     'network.title': 'Ağda Ara',
     'network.searchPlaceholder': 'Kullanıcı adı ile kişi ara…',
     'network.searchAria': 'Kullanıcı adı ile kişi ara',
@@ -805,15 +803,33 @@ export const translations = {
     'network.signInText': 'Kişi aramak ve bağlantı kurmak için giriş yapın.',
     'network.theirNetworks': 'Ağı',
 
-    'underConstruction.title': 'Geliştirmelerimiz devam ediyor',
-    'underConstruction.text': 'CV\'nizi bırakmayı unutmayın.',
-
     'home.copyHeadline': 'İşe Alınmanın En Kolay Yolu',
     'home.copyLead': 'CV\'nizi yükleyin ve İK firmalarının sizinle iletişime geçmesini bekleyin.',
     'home.copyBody1': 'Aktif CV\'niz, ağımızdaki tüm İK firmalarına gösterilir; bunlar arasında aktif olarak işe alım yapan birçok şirketle çalışanlar da vardır.',
     'home.copyBody2': 'Artık onlarca siteyi taramanıza veya CV\'nizi tek tek her işverene göndermenize gerek yok.',
     'home.copyBody3': 'Profilinizi yükleyin ve fırsatların size gelmesine izin verin—sabır anahtardır!',
     'home.copyBonus': 'Kapsamlı CV oluşturma aracımızla profesyonel düzeyde bir CV de hazırlayabilirsiniz.',
+    'home.about.title': 'cveey nedir?',
+    'home.about.p1':
+      'cveey, profesyonel bir CV platformudur. Özgeçmiş oluşturur veya yüklersiniz, şehir ve eğitim bilgilerinizle bir profil tutarsınız ve iş ortağı İK firmalarının inceleyebileceği yetenek havuzuna katılırsınız. Diğer üyeleri arayabilir ve bağlantı isteği gönderebilirsiniz.',
+    'home.about.p2':
+      'Fikir basit: aynı PDF’i onlarca iş sitesine göndermek yerine cveey’de tek bir aktif CV tutar, zaten aday arayan işe alımcılara görünür kalırsınız. Mülakat veya iş teklifi vaat etmeyiz — işinizi sunabileceğiniz ve bulunabileceğiniz bir yer veririz.',
+    'home.how.title': 'Nasıl çalışır',
+    'home.how.step1.title': 'Hesap oluşturun',
+    'home.how.step1.text':
+      'E-posta, Google veya GitHub ile giriş yapın. E-postanızı doğrulayın; ardından profilinizin ağda görünebilmesi için kullanıcı adı ve yaşadığınız şehri ekleyin.',
+    'home.how.step2.title': 'CV ekleyin',
+    'home.how.step2.text':
+      'PDF yükleyin (en fazla 5 MB) veya rehberli oluşturucuda ATS uyumlu bir CV hazırlayın. CVlerim’e kaydedin ve hangisinin aktif olacağını seçin.',
+    'home.how.step3.title': 'Görünür kalın',
+    'home.how.step3.text':
+      'CV’nizi kimlerin göreceğini siz seçersiniz: bağlantılar, yetenek havuzundaki iş ortağı firmalar veya daha kısıtlı bir seçenek. İş ortağı İK firmaları yetenek havuzu adaylarını inceleyebilir; diğer oturum açmış kullanıcılar ayarlarınıza göre profilleri görür.',
+    'home.visibility.title': 'CV sizin, kontrol sizde',
+    'home.visibility.p1':
+      'Gönderdiğiniz dosyaların ve profil metninin sahibi sizsiniz. Profilde e-postanızı gizleyebilir, CV’leri yeniden adlandırabilir veya değiştirebilir, görünürlüğü ayarlayabilir ve hesabınızı Profil’den silebilirsiniz. Diğer kullanıcılara ve İK görüntüleyicilerine göstermek istediğiniz kadarını paylaşın.',
+    'home.contact.title': 'İletişim',
+    'home.contact.lead': 'Ürün, gizlilik veya hesap soruları için e-posta',
+    'home.contact.or': 'veya',
 
     'myCv.title': 'CVlerim',
     'myCv.subtitle': 'CV\'lerinizi yönetin ve yetenek havuzunda görünür kalın.',
@@ -1216,6 +1232,8 @@ export const translations = {
     'ads.placeholderHint': 'Test alanı — AdSense henüz yüklenmedi',
 
     'footer.legalNav': 'Yasal',
+    'footer.about': 'Hakkında',
+    'footer.contact': 'İletişim',
 
     'legal.privacy': 'Gizlilik Politikası',
     'legal.terms': 'Kullanım Şartları',
@@ -1281,7 +1299,7 @@ export const translations = {
       'cveey, yasal olarak hesap oluşturabilen ve profesyonel bilgi paylaşabilen kullanıcılara yöneliktir. Hizmet 13 yaşın altındaki çocuklara (veya ülkenizdeki dijital rıza yaşının altındakilere) yönelik değildir. Bir çocuğun kişisel veri verdiğini düşünüyorsanız uygun adımları atabilmemiz için bize ulaşın.',
     'privacy.s11.title': '11. Değişiklikler ve iletişim',
     'privacy.s11.body':
-      'Ürün geliştikçe bu Gizlilik Politikası’nı güncelleyebiliriz. Güncellemede yukarıdaki “Son güncelleme” tarihi değişir. Gizlilik sorularınız için cveey’de yayınlandığında destek kanalı üzerinden site işletmecisine ulaşın.',
+      'Ürün geliştikçe bu Gizlilik Politikası’nı güncelleyebiliriz. Güncellemede yukarıdaki “Son güncelleme” tarihi değişir. Gizlilik sorularınız için {email} veya {email2} adresine yazın.',
 
     'terms.title': 'Kullanım Şartları',
     'terms.s1.title': '1. Kabul',
@@ -1289,7 +1307,7 @@ export const translations = {
       'cveey’e erişerek veya kullanarak bu Kullanım Şartları’nı ve Gizlilik Politikası’nı kabul etmiş olursunuz. Kabul etmiyorsanız hizmeti kullanmayın.',
     'terms.s2.title': '2. Hizmet',
     'terms.s2.body':
-      'cveey; CV/özgeçmiş oluşturma, yükleme, önizleme ve yönetme; profesyonel profil tutma; iş ortağı İK firmalarına yönelik yetenek havuzunda yer alma; diğer kullanıcıları arama ve onlarla bağlantı kurma; ilgili bildirimleri alma araçları sunar. Bazı alanlar (ör. İlanlar ve Mesajlar) yapım aşamasında işaretlenmiş ve kullanılamıyor olabilir. Özellikler ürün geliştikçe değişebilir, sınırlanabilir veya kullanılamaz hale gelebilir. Mülakat, iş teklifi veya işe alım sonucu garanti etmeyiz.',
+      'cveey; CV/özgeçmiş oluşturma, yükleme, önizleme ve yönetme; profesyonel profil tutma; iş ortağı İK firmalarına yönelik yetenek havuzunda yer alma; diğer kullanıcıları arama ve onlarla bağlantı kurma; ilgili bildirimleri alma araçları sunar. Özellikler ürün geliştikçe değişebilir, sınırlanabilir veya kullanılamaz hale gelebilir. Mülakat, iş teklifi veya işe alım sonucu garanti etmeyiz.',
     'terms.s3.title': '3. Hesaplar ve uygunluk',
     'terms.s3.body':
       'E-posta/şifre (e-posta doğrulaması zorunlu), Google veya GitHub ile kayıt olabilirsiniz. Doğru bilgi vermeli, kimlik bilgilerinizi güvende tutmalı ve gerekli onboarding’i (ör. kullanıcı adı ve yaşadığınız şehir) tamamlamalısınız. Hesabınızdaki etkinliklerden siz sorumlusunuz. Bu şartları ihlal eden veya güvenlik riski oluşturan hesapları askıya alabilir veya sonlandırabiliriz.',
@@ -1313,7 +1331,7 @@ export const translations = {
       'cveey’i kullanmayı istediğiniz zaman bırakabilir ve hesabınızı uygulamadan silebilirsiniz. Bu şartları ihlal ederseniz veya hizmeti sonlandırırsak erişimi askıya alabilir veya sonlandırabiliriz. Doğası gereği ayakta kalması gereken hükümler (sorumluluk redleri ve sınırlamalar dahil) yürürlükte kalır.',
     'terms.s10.title': '10. Değişiklikler ve iletişim',
     'terms.s10.body':
-      'Bu Şartları zaman zaman güncelleyebiliriz. Güncellemeden sonra hizmeti kullanmaya devam etmeniz revize edilmiş Şartları kabul ettiğiniz anlamına gelir. Yayınladığımızda yukarıdaki “Son güncelleme” tarihi değişir. Sorularınız için cveey’de yayınlandığında destek kanalı üzerinden site işletmecisine ulaşın.',
+      'Bu Şartları zaman zaman güncelleyebiliriz. Güncellemeden sonra hizmeti kullanmaya devam etmeniz revize edilmiş Şartları kabul ettiğiniz anlamına gelir. Yayınladığımızda yukarıdaki “Son güncelleme” tarihi değişir. Sorularınız için {email} veya {email2} adresine yazın.',
 
     ...createCvExtendedTr,
   },

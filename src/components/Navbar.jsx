@@ -13,7 +13,6 @@ import {
 
 const NAV_ITEMS = [
   { to: '/', key: 'nav.home', end: true, icon: 'home' },
-  { to: '/jobs', key: 'nav.jobs', icon: 'jobs' },
   { to: '/network', key: 'nav.network', icon: 'network' },
   { to: '/my-cv', key: 'nav.myCv', icon: 'cv' },
 ]
@@ -28,27 +27,6 @@ function BurgerIcon({ open }) {
       ) : (
         <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
       )}
-    </svg>
-  )
-}
-
-function InboxIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M22 12h-6l-2 3h-4l-2-3H2"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   )
 }
@@ -95,14 +73,6 @@ function NavItemIcon({ name }) {
         <svg {...common}>
           <path d="M3 10.5L12 3l9 7.5" {...stroke} />
           <path d="M5 9.5V20h14V9.5" {...stroke} />
-        </svg>
-      )
-    case 'jobs':
-      return (
-        <svg {...common}>
-          <path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" {...stroke} />
-          <rect x="3" y="7" width="18" height="14" rx="2" {...stroke} />
-          <path d="M3 13h18" {...stroke} />
         </svg>
       )
     case 'network':
@@ -272,15 +242,6 @@ export default function Navbar() {
                     onDismiss={handleDismissNotification}
                   />
                 </div>
-                <button
-                  type="button"
-                  className="navbar-icon-btn"
-                  onClick={() => goTo('/messages')}
-                  aria-label={t('nav.messages')}
-                  title={t('nav.messages')}
-                >
-                  <InboxIcon />
-                </button>
               </div>
               <button
                 type="button"
@@ -389,14 +350,6 @@ export default function Navbar() {
                       onDismiss={handleDismissNotification}
                     />
                   </div>
-                  <button
-                    type="button"
-                    className="mobile-nav-quick-btn"
-                    onClick={() => goTo('/messages')}
-                  >
-                    <InboxIcon />
-                    <span>{t('nav.messages')}</span>
-                  </button>
                 </div>
 
                 <button
