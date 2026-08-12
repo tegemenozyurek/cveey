@@ -1,15 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <defs>
-    <linearGradient id="cveey-c" x1="16" y1="2" x2="16" y2="30" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#E9D5FF"/>
-      <stop offset="0.4" stop-color="#C084FC"/>
-      <stop offset="1" stop-color="#5B21B6"/>
-    </linearGradient>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="8" fill="#7C3AED"/>
   <path
-    d="M21.35 8.4A9.65 9.65 0 1 0 21.35 23.6"
-    stroke="url(#cveey-c)"
-    stroke-width="5.8"
-    stroke-linecap="round"
+    fill="#fff"
+    d="M23.114 9.444A10.2 10.2 0 1 0 23.114 22.556L19.054 19.15A4.9 4.9 0 1 1 19.054 12.85Z"
   />
 </svg>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { CONTACT_EMAIL } from '../config/site'
 import { useAdsContentReady } from '../context/AdsPlacementContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -13,6 +14,7 @@ export default function Home() {
   const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
   const navigate = useNavigate()
+  const location = useLocation()
   useAdsContentReady(!authLoading)
   const fileInputRef = useRef(null)
   const [dragging, setDragging] = useState(false)
@@ -31,6 +33,14 @@ export default function Home() {
     }, 5500)
     return () => window.clearTimeout(id)
   }, [slideIndex])
+
+  useEffect(() => {
+    if (authLoading || location.hash !== '#about') return undefined
+    const id = window.requestAnimationFrame(() => {
+      document.getElementById('about')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [authLoading, location.hash])
 
   if (authLoading) {
     return (
@@ -156,6 +166,42 @@ export default function Home() {
           </div>
         </section>
       </div>
+
+      <article className="home-info" id="about">
+        <section className="home-info-block">
+          <h2 className="home-info-title">{t('home.about.title')}</h2>
+          <p className="home-info-text">{t('home.about.p1')}</p>
+          <p className="home-info-text">{t('home.about.p2')}</p>
+        </section>
+
+        <section className="home-info-block">
+          <h2 className="home-info-title">{t('home.how.title')}</h2>
+          <ol className="home-info-steps">
+            {['1', '2', '3'].map((n) => (
+              <li key={n} className="home-info-step">
+                <h3 className="home-info-step-title">{t(`home.how.step${n}.title`)}</h3>
+                <p className="home-info-text">{t(`home.how.step${n}.text`)}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="home-info-block">
+          <h2 className="home-info-title">{t('home.visibility.title')}</h2>
+          <p className="home-info-text">{t('home.visibility.p1')}</p>
+        </section>
+
+        <section className="home-info-block">
+          <h2 className="home-info-title">{t('home.contact.title')}</h2>
+          <p className="home-info-text">
+            {t('home.contact.lead')}{' '}
+            <a className="home-info-mail" href={`mailto:${CONTACT_EMAIL}`}>
+              {CONTACT_EMAIL}
+            </a>
+            .
+          </p>
+        </section>
+      </article>
     </main>
   )
 }

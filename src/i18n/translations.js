@@ -142,6 +142,26 @@ export const translations = {
     'home.copyBody2': 'You no longer need to chase down opportunities across dozens of websites or manually send your CV to every employer.',
     'home.copyBody3': 'Just upload your profile and let the opportunities come to you—patience is the key!',
     'home.copyBonus': 'You can also build a professional-grade CV using our comprehensive CV maker tool.',
+    'home.about.title': 'What is cveey?',
+    'home.about.p1':
+      'cveey is a professional CV platform. You create or upload a resume, keep a profile with your city and education, and join a talent pool that partner HR firms can review. You can also search for other members and send connection requests.',
+    'home.about.p2':
+      'The idea is simple: instead of sending the same PDF to dozens of job boards, you keep one active CV on cveey and stay visible to recruiters who are already looking. We do not promise interviews or job offers — we give you a place to present your work and be found.',
+    'home.how.title': 'How it works',
+    'home.how.step1.title': 'Create an account',
+    'home.how.step1.text':
+      'Sign in with email, Google, or GitHub. Verify your email, then add a username and home city so your profile can appear in the network.',
+    'home.how.step2.title': 'Add a CV',
+    'home.how.step2.text':
+      'Upload a PDF (up to 5 MB) or build an ATS-friendly CV in the guided editor. Save it to My CVs and choose which file is active.',
+    'home.how.step3.title': 'Stay visible',
+    'home.how.step3.text':
+      'Decide who can see your CV — connections, partner firms in the talent pool, or a more limited option. Partner HR firms can review talent-pool candidates; other signed-in users see profiles according to your settings.',
+    'home.visibility.title': 'Your CV, your control',
+    'home.visibility.p1':
+      'You own the files and profile text you submit. You can hide your email on your profile, rename or replace CVs, change visibility, and delete your account from Profile. Share only what you are comfortable showing to other users and HR viewers.',
+    'home.contact.title': 'Contact',
+    'home.contact.lead': 'For product, privacy, or account questions, email',
 
     'myCv.title': 'My CVs',
     'myCv.subtitle': 'Manage your CVs and stay visible in the talent pool.',
@@ -544,6 +564,8 @@ export const translations = {
     'ads.placeholderHint': 'Test slot — AdSense not loaded yet',
 
     'footer.legalNav': 'Legal',
+    'footer.about': 'About',
+    'footer.contact': 'Contact',
 
     'legal.privacy': 'Privacy Policy',
     'legal.terms': 'Terms of Service',
@@ -609,7 +631,7 @@ export const translations = {
       'cveey is intended for users who can lawfully create an account and share professional information. The service is not directed at children under 13 (or under the digital consent age in your country). If you believe a child has provided personal data, contact us so we can take appropriate steps.',
     'privacy.s11.title': '11. Changes and contact',
     'privacy.s11.body':
-      'We may update this Privacy Policy as the product evolves. The “Last updated” date at the top will change when we do. For privacy questions, contact the site operator through the support channel published on cveey when available.',
+      'We may update this Privacy Policy as the product evolves. The “Last updated” date at the top will change when we do. For privacy questions, email {email}.',
 
     'terms.title': 'Terms of Service',
     'terms.s1.title': '1. Acceptance',
@@ -641,7 +663,7 @@ export const translations = {
       'You may stop using cveey and delete your account in the app at any time. We may suspend or end access if you breach these terms or if we discontinue the service. Provisions that by nature should survive (including disclaimers and limitations of liability) remain in effect.',
     'terms.s10.title': '10. Changes and contact',
     'terms.s10.body':
-      'We may update these Terms from time to time. Continued use after an update means you accept the revised Terms. The “Last updated” date at the top will change when we publish updates. For questions, contact the site operator through the support channel published on cveey when available.',
+      'We may update these Terms from time to time. Continued use after an update means you accept the revised Terms. The “Last updated” date at the top will change when we publish updates. For questions, email {email}.',
 
     ...createCvExtendedEn,
   },
@@ -786,6 +808,26 @@ export const translations = {
     'home.copyBody2': 'Artık onlarca siteyi taramanıza veya CV\'nizi tek tek her işverene göndermenize gerek yok.',
     'home.copyBody3': 'Profilinizi yükleyin ve fırsatların size gelmesine izin verin—sabır anahtardır!',
     'home.copyBonus': 'Kapsamlı CV oluşturma aracımızla profesyonel düzeyde bir CV de hazırlayabilirsiniz.',
+    'home.about.title': 'cveey nedir?',
+    'home.about.p1':
+      'cveey, profesyonel bir CV platformudur. Özgeçmiş oluşturur veya yüklersiniz, şehir ve eğitim bilgilerinizle bir profil tutarsınız ve iş ortağı İK firmalarının inceleyebileceği yetenek havuzuna katılırsınız. Diğer üyeleri arayabilir ve bağlantı isteği gönderebilirsiniz.',
+    'home.about.p2':
+      'Fikir basit: aynı PDF’i onlarca iş sitesine göndermek yerine cveey’de tek bir aktif CV tutar, zaten aday arayan işe alımcılara görünür kalırsınız. Mülakat veya iş teklifi vaat etmeyiz — işinizi sunabileceğiniz ve bulunabileceğiniz bir yer veririz.',
+    'home.how.title': 'Nasıl çalışır',
+    'home.how.step1.title': 'Hesap oluşturun',
+    'home.how.step1.text':
+      'E-posta, Google veya GitHub ile giriş yapın. E-postanızı doğrulayın; ardından profilinizin ağda görünebilmesi için kullanıcı adı ve yaşadığınız şehri ekleyin.',
+    'home.how.step2.title': 'CV ekleyin',
+    'home.how.step2.text':
+      'PDF yükleyin (en fazla 5 MB) veya rehberli oluşturucuda ATS uyumlu bir CV hazırlayın. CVlerim’e kaydedin ve hangisinin aktif olacağını seçin.',
+    'home.how.step3.title': 'Görünür kalın',
+    'home.how.step3.text':
+      'CV’nizi kimlerin göreceğini siz seçersiniz: bağlantılar, yetenek havuzundaki iş ortağı firmalar veya daha kısıtlı bir seçenek. İş ortağı İK firmaları yetenek havuzu adaylarını inceleyebilir; diğer oturum açmış kullanıcılar ayarlarınıza göre profilleri görür.',
+    'home.visibility.title': 'CV sizin, kontrol sizde',
+    'home.visibility.p1':
+      'Gönderdiğiniz dosyaların ve profil metninin sahibi sizsiniz. Profilde e-postanızı gizleyebilir, CV’leri yeniden adlandırabilir veya değiştirebilir, görünürlüğü ayarlayabilir ve hesabınızı Profil’den silebilirsiniz. Diğer kullanıcılara ve İK görüntüleyicilerine göstermek istediğiniz kadarını paylaşın.',
+    'home.contact.title': 'İletişim',
+    'home.contact.lead': 'Ürün, gizlilik veya hesap soruları için e-posta',
 
     'myCv.title': 'CVlerim',
     'myCv.subtitle': 'CV\'lerinizi yönetin ve yetenek havuzunda görünür kalın.',
@@ -1188,6 +1230,8 @@ export const translations = {
     'ads.placeholderHint': 'Test alanı — AdSense henüz yüklenmedi',
 
     'footer.legalNav': 'Yasal',
+    'footer.about': 'Hakkında',
+    'footer.contact': 'İletişim',
 
     'legal.privacy': 'Gizlilik Politikası',
     'legal.terms': 'Kullanım Şartları',
@@ -1253,7 +1297,7 @@ export const translations = {
       'cveey, yasal olarak hesap oluşturabilen ve profesyonel bilgi paylaşabilen kullanıcılara yöneliktir. Hizmet 13 yaşın altındaki çocuklara (veya ülkenizdeki dijital rıza yaşının altındakilere) yönelik değildir. Bir çocuğun kişisel veri verdiğini düşünüyorsanız uygun adımları atabilmemiz için bize ulaşın.',
     'privacy.s11.title': '11. Değişiklikler ve iletişim',
     'privacy.s11.body':
-      'Ürün geliştikçe bu Gizlilik Politikası’nı güncelleyebiliriz. Güncellemede yukarıdaki “Son güncelleme” tarihi değişir. Gizlilik sorularınız için cveey’de yayınlandığında destek kanalı üzerinden site işletmecisine ulaşın.',
+      'Ürün geliştikçe bu Gizlilik Politikası’nı güncelleyebiliriz. Güncellemede yukarıdaki “Son güncelleme” tarihi değişir. Gizlilik sorularınız için {email} adresine yazın.',
 
     'terms.title': 'Kullanım Şartları',
     'terms.s1.title': '1. Kabul',
@@ -1285,7 +1329,7 @@ export const translations = {
       'cveey’i kullanmayı istediğiniz zaman bırakabilir ve hesabınızı uygulamadan silebilirsiniz. Bu şartları ihlal ederseniz veya hizmeti sonlandırırsak erişimi askıya alabilir veya sonlandırabiliriz. Doğası gereği ayakta kalması gereken hükümler (sorumluluk redleri ve sınırlamalar dahil) yürürlükte kalır.',
     'terms.s10.title': '10. Değişiklikler ve iletişim',
     'terms.s10.body':
-      'Bu Şartları zaman zaman güncelleyebiliriz. Güncellemeden sonra hizmeti kullanmaya devam etmeniz revize edilmiş Şartları kabul ettiğiniz anlamına gelir. Yayınladığımızda yukarıdaki “Son güncelleme” tarihi değişir. Sorularınız için cveey’de yayınlandığında destek kanalı üzerinden site işletmecisine ulaşın.',
+      'Bu Şartları zaman zaman güncelleyebiliriz. Güncellemeden sonra hizmeti kullanmaya devam etmeniz revize edilmiş Şartları kabul ettiğiniz anlamına gelir. Yayınladığımızda yukarıdaki “Son güncelleme” tarihi değişir. Sorularınız için {email} adresine yazın.',
 
     ...createCvExtendedTr,
   },

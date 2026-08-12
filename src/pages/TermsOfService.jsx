@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { CONTACT_EMAIL } from '../config/site'
 import { useLanguage } from '../context/LanguageContext'
 
 export default function TermsOfService() {
@@ -63,7 +64,7 @@ export default function TermsOfService() {
 
         <section className="legal-section">
           <h2>{t('terms.s10.title')}</h2>
-          <p>{t('terms.s10.body')}</p>
+          <p>{t('terms.s10.body', { email: CONTACT_EMAIL })}</p>
         </section>
       </article>
     </main>

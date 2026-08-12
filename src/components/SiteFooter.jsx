@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { CONTACT_EMAIL } from '../config/site'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import ThemeSwitcher from './ThemeSwitcher'
@@ -21,8 +22,10 @@ export default function SiteFooter() {
         </div>
         <p className="site-footer-copy">© {year} cveey</p>
         <nav className="site-footer-nav" aria-label={t('footer.legalNav')}>
+          <Link to={{ pathname: '/', hash: 'about' }}>{t('footer.about')}</Link>
           <Link to="/privacy">{t('legal.privacy')}</Link>
           <Link to="/terms">{t('legal.terms')}</Link>
+          <a href={`mailto:${CONTACT_EMAIL}`}>{t('footer.contact')}</a>
         </nav>
       </div>
     </footer>

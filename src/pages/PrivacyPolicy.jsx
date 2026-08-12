@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
+import { CONTACT_EMAIL } from '../config/site'
 import { useLanguage } from '../context/LanguageContext'
 
 export default function PrivacyPolicy() {
   const { t, lang } = useLanguage()
-  const updated = lang === 'tr' ? '27 Temmuz 2026' : 'July 27, 2026'
+  const updated = lang === 'tr' ? '13 Ağustos 2026' : 'August 13, 2026'
 
   return (
     <main className="main legal-page">
@@ -91,7 +92,7 @@ export default function PrivacyPolicy() {
 
         <section className="legal-section">
           <h2>{t('privacy.s11.title')}</h2>
-          <p>{t('privacy.s11.body')}</p>
+          <p>{t('privacy.s11.body', { email: CONTACT_EMAIL })}</p>
         </section>
       </article>
     </main>
