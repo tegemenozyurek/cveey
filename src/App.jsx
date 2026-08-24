@@ -17,8 +17,11 @@ import Profile from './pages/Profile'
 import PublicProfile from './pages/PublicProfile'
 import Network from './pages/Network'
 import About from './pages/About'
+import Guides from './pages/Guides'
+import GuideArticle from './pages/GuideArticle'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
+import DocumentMeta from './components/DocumentMeta'
 import './App.css'
 
 function AppShell() {
@@ -26,6 +29,7 @@ function AppShell() {
 
   return (
     <>
+      <DocumentMeta />
       <AdSenseLoader />
       <div className={`page${adsEligible ? '' : ' page--no-ads'}`}>
         <Navbar />
@@ -48,6 +52,8 @@ function AppShell() {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:uid" element={<PublicProfile />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/guides" element={<Guides />} />
+                <Route path="/guides/:slug" element={<GuideArticle />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
               </Routes>

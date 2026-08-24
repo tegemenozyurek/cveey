@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAdsContentReady } from '../context/AdsPlacementContext'
+import { homePage } from '../content/homePage'
+import { listGuides } from '../content/guides'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { hasPendingCvFile, setPendingCvFile } from '../pendingCvUpload'
@@ -11,13 +12,14 @@ const BODY_KEYS = ['home.copyBody1', 'home.copyBody2', 'home.copyBody3']
 
 export default function Home() {
   const { user, openLogin, authLoading } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const navigate = useNavigate()
-  useAdsContentReady(!authLoading)
+  const copy = homePage[lang] || homePage.en
   const fileInputRef = useRef(null)
   const [dragging, setDragging] = useState(false)
   const [fileError, setFileError] = useState('')
   const [slideIndex, setSlideIndex] = useState(0)
+  const guideTeasers = listGuides().slice(0, 6)
 
   useEffect(() => {
     if (user && hasPendingCvFile()) {
@@ -31,14 +33,6 @@ export default function Home() {
     }, 5500)
     return () => window.clearTimeout(id)
   }, [slideIndex])
-
-  if (authLoading) {
-    return (
-      <main className="main">
-        <p className="page-loading">{t('myCv.loading')}</p>
-      </main>
-    )
-  }
 
   const handleDragOver = (event) => {
     event.preventDefault()
@@ -68,6 +62,7 @@ export default function Home() {
       return
     }
     setPendingCvFile(file)
+    if (authLoading) return
     if (user) {
       navigate('/my-cv')
       return
@@ -156,6 +151,71 @@ export default function Home() {
           </div>
         </section>
       </div>
+
+      <article className="home-prose">
+        <section>
+          <h2>{copy.introTitle}</h2>
+          {copy.intro.map((paragraph) => (
+            <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+          ))}
+        </section>
+
+        <section>
+          <h2>{copy.howTitle}</h2>
+          <ol className="home-how-list">
+            {copy.how.map((step) => (
+              <li key={step.title}>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section>
+          <h2>{copy.whyTitle}</h2>
+          {copy.why.map((paragraph) => (
+            <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+          ))}
+        </section>
+
+        <section>
+          <h2>{copy.whoTitle}</h2>
+          {copy.who.map((paragraph) => (
+            <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+          ))}
+        </section>
+
+        <section>
+          <h2>{copy.faqTitle}</h2>
+          <dl className="home-faq">
+            {copy.faq.map((item) => (
+              <div key={item.q} className="home-faq-item">
+                <dt>{item.q}</dt>
+                <dd>{item.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section>
+          <h2>{copy.guidesTitle}</h2>
+          <p>{copy.guidesLead}</p>
+          <ul className="home-guide-teasers">
+            {guideTeasers.map((guide) => {
+              const item = guide[lang] || guide.en
+              return (
+                <li key={guide.slug}>
+                  <Link to={`/guides/${guide.slug}`}>{item.title}</Link>
+                </li>
+              )
+            })}
+          </ul>
+          <p>
+            <Link to="/guides">{copy.guidesCta}</Link>
+          </p>
+        </section>
+      </article>
     </main>
   )
 }

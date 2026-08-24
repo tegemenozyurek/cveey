@@ -21,14 +21,27 @@ function setAdRequestsPaused(paused) {
   }
 }
 
+function disableAutoAds() {
+  try {
+    window.adsbygoogle = window.adsbygoogle || []
+    window.adsbygoogle.push({
+      google_ad_client: ADS_CONFIG.client,
+      enable_page_level_ads: false,
+      overlays: { bottom: false, top: false, right: false },
+    })
+  } catch {
+    // Ad blockers / missing script
+  }
+}
+
 function setBodyAdsClass(enabled) {
   document.body.classList.toggle('ads-enabled', enabled)
   document.body.classList.toggle('ads-disabled', !enabled)
 }
 
 /**
- * Loads AdSense only on screens that opted in with real publisher content.
- * Pauses requests and hides leftover Auto ads on login / loading / empty views.
+ * Loads AdSense only on publisher-content screens.
+ * Pauses requests and hides leftover Auto ads everywhere else.
  */
 export default function AdSenseLoader() {
   const { adsAllowed } = useConsent()
@@ -44,6 +57,8 @@ export default function AdSenseLoader() {
 
     if (!canLoad) return undefined
     if (adsenseScriptPresent()) return undefined
+
+    disableAutoAds()
 
     const script = document.createElement('script')
     script.id = SCRIPT_ID

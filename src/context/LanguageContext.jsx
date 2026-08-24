@@ -4,11 +4,24 @@ import { translations } from '../i18n/translations'
 const LanguageContext = createContext(null)
 const STORAGE_KEY = 'cveey-lang'
 
-export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState(() => {
+function readInitialLang() {
+  try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    return saved === 'tr' ? 'tr' : 'en'
-  })
+    if (saved === 'tr' || saved === 'en') return saved
+  } catch {
+    // private mode
+  }
+  try {
+    const nav = String(navigator.language || '').toLowerCase()
+    if (nav.startsWith('tr')) return 'tr'
+  } catch {
+    // non-browser
+  }
+  return 'en'
+}
+
+export function LanguageProvider({ children }) {
+  const [lang, setLang] = useState(readInitialLang)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, lang)

@@ -19,7 +19,6 @@ import {
 } from '../createCv/cvDocument'
 import { loadCvDraft, saveCvDraft } from '../createCv/draftStorage'
 import { buildCvPdfFileName } from '../createCv/exportCvPdf'
-import { useAdsContentReady } from '../context/AdsPlacementContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useResume } from '../context/ResumeContext'
@@ -31,7 +30,6 @@ export default function CreateCV() {
   const navigate = useNavigate()
   const { user, openLogin, authLoading } = useAuth()
   const { t } = useLanguage()
-  useAdsContentReady(!authLoading && Boolean(user))
   const { cvs, uploadUserCv, refreshCvs } = useResume()
   const [showTemplateOverlay, setShowTemplateOverlay] = useState(true)
   const [saveStatus, setSaveStatus] = useState('')

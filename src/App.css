@@ -1206,6 +1206,13 @@ body.ads-disabled iframe[id^="google_ads_iframe"] {
   white-space: nowrap;
 }
 
+@media (max-width: 960px) {
+  .nav-link {
+    padding: 9px 12px;
+    font-size: 14px;
+  }
+}
+
 .nav-link:hover {
   color: var(--text);
 }
@@ -4153,7 +4160,7 @@ body.ads-disabled iframe[id^="google_ads_iframe"] {
 
 .home-main {
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0;
   padding-top: 36px;
   padding-bottom: 56px;
@@ -4443,6 +4450,168 @@ body.ads-disabled iframe[id^="google_ads_iframe"] {
   .home-copy-slide {
     transition: none;
   }
+}
+
+.home-prose {
+  width: 100%;
+  max-width: 760px;
+  margin-top: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.home-prose h2,
+.guides-card-title,
+.guide-article .about-section-title {
+  margin: 0 0 12px;
+}
+
+.home-prose h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text);
+}
+
+.home-prose p,
+.home-prose li,
+.home-faq dd,
+.guide-list li {
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--text) 88%, transparent);
+}
+
+.home-prose p {
+  margin: 0 0 12px;
+}
+
+.home-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.home-how-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.home-how-list h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.home-faq {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.home-faq-item dt {
+  margin: 0 0 4px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.home-faq-item dd {
+  margin: 0;
+}
+
+.home-guide-teasers,
+.guide-related,
+.guide-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.home-guide-teasers a,
+.guide-related a,
+.home-prose a,
+.about-prose-text a {
+  color: var(--accent-cyan);
+}
+
+.guides-page {
+  align-items: stretch;
+}
+
+.guides-index,
+.guide-article {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.guides-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guides-card {
+  display: block;
+  padding: 16px 18px;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--glass) 70%, transparent);
+  text-decoration: none;
+  color: inherit;
+}
+
+.guides-card:hover {
+  border-color: color-mix(in srgb, var(--accent-cyan) 45%, var(--glass-border));
+}
+
+.guides-card-title {
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.guides-card-desc,
+.guides-card-meta,
+.guide-meta {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.guides-card-desc {
+  margin-top: 6px;
+}
+
+.guides-card-meta,
+.guide-meta {
+  margin-top: 10px;
+}
+
+.guide-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+[data-theme='light'] .home-prose h2,
+[data-theme='light'] .guides-card-title {
+  color: #0f172a;
+}
+
+[data-theme='light'] .home-prose p,
+[data-theme='light'] .home-prose li,
+[data-theme='light'] .home-faq dd,
+[data-theme='light'] .guide-list li {
+  color: rgba(15, 23, 42, 0.82);
 }
 
 /* ── Upload Card ─────────────────────────────────── */

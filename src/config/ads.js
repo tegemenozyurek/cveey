@@ -1,10 +1,18 @@
+import { getGuideBySlug } from '../content/guides'
+
 /**
  * AdSense configuration.
+ *
+ * Ads are allowed only on article-style URLs (/about and /guides/:slug).
+ * Home is still a product CTA above the fold; the guides index is a listing.
+ * App screens (create CV, My CVs, profile, network, login) must never
+ * request Google ads — see AdsPlacementContext.
  *
  * 1. Set VITE_ADSENSE_CLIENT in .env (e.g. ca-pub-xxxxxxxxxxxxxxxx)
  * 2. Create Vertical / Skyscraper units in AdSense → paste slot IDs below
  * 3. Set VITE_ADS_ENABLED=true when you are ready for live ads
  * 4. Keep VITE_ADS_TEST=true until Google approval; then set false
+ * 5. Keep Auto ads OFF in the AdSense dashboard
  *
  * Never commit real publisher secrets beyond the public ca-pub / slot IDs
  * (those are meant to be public in page source).
@@ -38,7 +46,7 @@ export const ADS_CONFIG = {
 
   /**
    * AdSense script is only loaded after cookie consent is accepted
-   * and a page opts in with real publisher content (see AdsPlacementContext).
+   * and only on publisher-content URLs (see AdsPlacementContext).
    */
   requireConsent: true,
 }
@@ -49,4 +57,14 @@ export function adsReady() {
       ADS_CONFIG.client &&
       ADS_CONFIG.client.startsWith('ca-pub-'),
   )
+}
+
+/** Screens that have original editorial content next to which ads may appear. */
+export function isPublisherContentPath(pathname) {
+  if (pathname === '/about') return true
+  if (pathname.startsWith('/guides/')) {
+    const slug = decodeURIComponent(pathname.slice('/guides/'.length)).replace(/\/+$/, '')
+    return Boolean(slug && getGuideBySlug(slug))
+  }
+  return false
 }

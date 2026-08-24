@@ -13,6 +13,7 @@ import {
 
 const NAV_ITEMS = [
   { to: '/', key: 'nav.home', end: true, icon: 'home' },
+  { to: '/guides', key: 'nav.guides', icon: 'guides' },
   { to: '/network', key: 'nav.network', icon: 'network' },
   { to: '/my-cv', key: 'nav.myCv', icon: 'cv' },
 ]
@@ -82,6 +83,14 @@ function NavItemIcon({ name }) {
           <circle cx="17" cy="9" r="2.5" {...stroke} />
           <path d="M3 19a6 6 0 0112 0" {...stroke} />
           <path d="M14.5 19a4.5 4.5 0 016.5-4" {...stroke} />
+        </svg>
+      )
+    case 'guides':
+      return (
+        <svg {...common}>
+          <path d="M5 4h9a2 2 0 012 2v14H7a2 2 0 01-2-2V4z" {...stroke} />
+          <path d="M16 6h3a1 1 0 011 1v13H9" {...stroke} />
+          <path d="M8 9h5M8 13h5" {...stroke} />
         </svg>
       )
     case 'cv':

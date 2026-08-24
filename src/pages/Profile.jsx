@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { updateProfile } from 'firebase/auth'
 import { Download, Eye, EyeOff, Pencil, Search } from 'lucide-react'
-import { useAdsContentReady } from '../context/AdsPlacementContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useResume } from '../context/ResumeContext'
@@ -1367,7 +1366,6 @@ export default function Profile() {
   const { user, authLoading, setShowLogoutConfirm, setShowDeleteConfirm, refreshUser } = useAuth()
   const { t } = useLanguage()
   const navigate = useNavigate()
-  useAdsContentReady(!authLoading && Boolean(user))
   const { files, activeFileId } = useResume()
   const photoInputRef = useRef(null)
   const [panel, setPanel] = useState(null)

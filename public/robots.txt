@@ -1,0 +1,17 @@
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: *
+Allow: /
+Disallow: /create-cv
+Disallow: /my-cv
+Disallow: /network
+Disallow: /profile
+Disallow: /messages
+Disallow: /notifications
+Disallow: /jobs
+
+Sitemap: https://cveey.com/sitemap.xml

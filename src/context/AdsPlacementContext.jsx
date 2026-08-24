@@ -1,26 +1,22 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
+import { isPublisherContentPath } from '../config/ads'
 import { useAuth } from './AuthContext'
 
 const AdsPlacementContext = createContext(null)
 
 /**
- * Pages must opt in with useAdsContentReady(true) when they have real
- * publisher content. Default is off so login walls, loaders, and empty
- * screens never show AdSense units or Auto ads.
+ * Google ads only on publisher-content URLs. Login, verification, location
+ * setup, and every app screen (CV editor, dashboard, network) stay ad-free.
  */
 export function AdsPlacementProvider({ children }) {
-  const { authLoading, authInterstitial } = useAuth()
-  const [pageAllowsAds, setPageAllowsAds] = useState(false)
-
-  const setContentReady = useCallback((ready) => {
-    setPageAllowsAds(Boolean(ready))
-  }, [])
-
-  const adsEligible = pageAllowsAds && !authLoading && !authInterstitial
+  const { pathname } = useLocation()
+  const { authInterstitial } = useAuth()
+  const adsEligible = isPublisherContentPath(pathname) && !authInterstitial
 
   const value = useMemo(
-    () => ({ adsEligible, setContentReady }),
-    [adsEligible, setContentReady],
+    () => ({ adsEligible }),
+    [adsEligible],
   )
 
   return (
@@ -36,14 +32,4 @@ export function useAdsPlacement() {
     throw new Error('useAdsPlacement must be used within AdsPlacementProvider')
   }
   return ctx
-}
-
-/** Call from a page: true only when that screen has real content. */
-export function useAdsContentReady(ready) {
-  const { setContentReady } = useAdsPlacement()
-
-  useEffect(() => {
-    setContentReady(ready)
-    return () => setContentReady(false)
-  }, [ready, setContentReady])
 }

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { CONTACT_EMAILS } from '../config/site'
-import { useAdsContentReady } from '../context/AdsPlacementContext'
+import { aboutPage } from '../content/aboutPage'
 import { useLanguage } from '../context/LanguageContext'
 
 function MailIcon() {
@@ -13,8 +13,8 @@ function MailIcon() {
 }
 
 export default function About() {
-  const { t } = useLanguage()
-  useAdsContentReady(true)
+  const { t, lang } = useLanguage()
+  const extra = aboutPage[lang] || aboutPage.en
 
   return (
     <main className="main about-page">
@@ -52,6 +52,21 @@ export default function About() {
         <section className="about-section" aria-labelledby="about-control">
           <h2 id="about-control" className="about-section-title">{t('home.visibility.title')}</h2>
           <p className="about-prose-text">{t('home.visibility.p1')}</p>
+        </section>
+
+        <section className="about-section" aria-labelledby="about-extra">
+          <h2 id="about-extra" className="about-section-title">{extra.extraTitle}</h2>
+          {extra.extra.map((paragraph) => (
+            <p key={paragraph.slice(0, 40)} className="about-prose-text">{paragraph}</p>
+          ))}
+        </section>
+
+        <section className="about-section" aria-labelledby="about-guides">
+          <h2 id="about-guides" className="about-section-title">{t('guides.title')}</h2>
+          <p className="about-prose-text">{t('guides.aboutLead')}</p>
+          <p className="about-prose-text">
+            <Link to="/guides">{t('guides.browse')}</Link>
+          </p>
         </section>
 
         <section className="about-contact" aria-labelledby="about-contact">
